@@ -1,0 +1,75 @@
+<view class="container">
+    <view class="filter-bar">
+        <picker bindchange="onMonthChange" fields="month" mode="date" value="{{filterMonth}}">
+            <view class="picker-btn">{{filterMonth||uiText.thisMonth}} ▼</view>
+        </picker>
+    </view>
+    <view class="summary-card">
+        <view class="summary-title">{{uiText.summary}}</view>
+        <view class="summary-row">
+            <view class="summary-item">
+                <text class="label">{{uiText.totalAmount}}</text>
+                <text class="value">{{totalAmount}}</text>
+            </view>
+            <view class="summary-item">
+                <text class="label">{{uiText.totalCost}}</text>
+                <text class="value">{{totalCost}}</text>
+            </view>
+            <view class="summary-item">
+                <text class="label">{{uiText.totalProfit}}</text>
+                <text class="value profit">{{totalProfit}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="report-card">
+        <view class="report-title">{{uiText.byGoods}}</view>
+        <view class="report-list">
+            <view class="report-row header">
+                <text>{{uiText.goods}}</text>
+                <text>{{uiText.quantity}}</text>
+                <text>{{uiText.amount}}</text>
+                <text>{{uiText.profit}}</text>
+            </view>
+            <view class="report-row" wx:for="{{goodsSummary}}" wx:key="name">
+                <text>{{item.name}}</text>
+                <text>{{item.quantity}}</text>
+                <text>{{item.amount}}</text>
+                <text class="profit">{{item.profit}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="report-card">
+        <view class="report-title">{{uiText.byCustomer}}</view>
+        <view class="report-list">
+            <view class="report-row header">
+                <text>{{uiText.customer}}</text>
+                <text>{{uiText.count}}</text>
+                <text>{{uiText.amount}}</text>
+                <text>{{uiText.profit}}</text>
+            </view>
+            <view class="report-row" wx:for="{{customerSummary}}" wx:key="name">
+                <text>{{item.name}}</text>
+                <text>{{item.count}}</text>
+                <text>{{item.amount}}</text>
+                <text class="profit">{{item.profit}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="report-card">
+        <view class="report-title">{{uiText.byStaff}}</view>
+        <view class="report-list">
+            <view class="report-row header">
+                <text>{{uiText.staff}}</text>
+                <text>{{uiText.count}}</text>
+                <text>{{uiText.amount}}</text>
+                <text>{{uiText.profit}}</text>
+            </view>
+            <view class="report-row" wx:for="{{staffSummary}}" wx:key="name">
+                <text>{{item.name}}</text>
+                <text>{{item.count}}</text>
+                <text>{{item.amount}}</text>
+                <text class="profit">{{item.profit}}</text>
+            </view>
+        </view>
+    </view>
+</view>

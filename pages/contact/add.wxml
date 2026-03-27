@@ -1,0 +1,16 @@
+<view class="container">
+    <view class="form-group">
+        <view class="form-item">
+            <text class="label">名称</text>
+            <input bindinput="onNameInput" placeholder="输入客户或厂家名称" type="text" value="{{name}}"></input>
+        </view>
+        <view class="form-item align-top">
+            <text class="label">备注</text>
+            <textarea bindinput="onNoteInput" maxlength="200" placeholder="其他信息..." value="{{note}}"></textarea>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="submit" class="btn-submit">保存</button>
+        <button bindtap="goBack" class="btn-cancel">取消</button>
+    </view>
+</view>

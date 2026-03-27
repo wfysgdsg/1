@@ -1,0 +1,41 @@
+<view class="container">
+    <view class="form">
+        <view class="form-item">
+            <text class="label">{{uiText.goodsName}}</text>
+            <input bindinput="onNameInput" class="input" placeholder="{{uiText.goodsNamePlaceholder}}" value="{{name}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.category}}</text>
+            <radio-group bindchange="onCategoryChange" class="radio-group">
+                <label class="radio-label">
+                    <radio checked="{{category==='hardware'}}" color="#1890ff" value="hardware"></radio>硬件 (1.13)</label>
+                <label class="radio-label">
+                    <radio checked="{{category==='software'}}" color="#1890ff" value="software"></radio>软件 (1.06)</label>
+            </radio-group>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.spec}}</text>
+            <input bindinput="onSpecInput" class="input" placeholder="{{uiText.specPlaceholder}}" value="{{spec}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.unit}}</text>
+            <input bindinput="onUnitInput" class="input" placeholder="{{uiText.unitPlaceholder}}" value="{{unit}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.costPrice}}</text>
+            <input bindinput="onCostPriceInput" class="input" placeholder="{{uiText.costPricePlaceholder}}" type="digit" value="{{costPrice}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.salePrice}}</text>
+            <input bindinput="onSalePriceInput" class="input" placeholder="{{uiText.salePricePlaceholder}}" type="digit" value="{{salePrice}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.remark}}</text>
+            <textarea bindinput="onRemarkInput" class="textarea" placeholder="{{uiText.remarkPlaceholder}}" value="{{remark}}"></textarea>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="goBack" class="cancel-btn">{{uiText.cancel}}</button>
+        <button bindtap="submit" class="submit-btn">{{uiText.save}}</button>
+    </view>
+</view>

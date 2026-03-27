@@ -1,0 +1,33 @@
+<view class="container">
+    <view class="search-bar">
+        <text class="search-icon">搜</text>
+        <input bindinput="onSearch" class="search-input" placeholder="搜索商品名称"></input>
+    </view>
+    <view class="goods-list" wx:if="{{goodsList.length}}">
+        <view class="goods-item" wx:for="{{goodsList}}" wx:key="_id">
+            <view class="goods-info">
+                <text class="goods-name">{{item.name}}</text>
+                <view class="goods-tags">
+                    <text class="tag">成本: {{item.costPrice}}</text>
+                    <text class="tag">售价: {{item.salePrice}}</text>
+                    <text class="tag stock">库存: {{item.stock||0}}{{item.unit||''}}</text>
+                </view>
+            </view>
+            <view class="goods-actions">
+                <text bindtap="editGoods" class="action-btn edit" data-id="{{item._id}}">编辑</text>
+                <text bindtap="deleteGoods" class="action-btn delete" data-id="{{item._id}}">删除</text>
+            </view>
+        </view>
+    </view>
+    
+    <view class="pagination" wx:if="{{totalPages > 1}}">
+        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+        <text class="page-info">{{currentPage}} / {{totalPages}}</text>
+        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage === totalPages}}">下一页</button>
+    </view>
+    <view class="empty" wx:else>
+        <text class="empty-icon">货</text>
+        <text>暂无商品</text>
+    </view>
+    <view bindtap="goToAdd" class="add-btn">+ 新增商品</view>
+</view>

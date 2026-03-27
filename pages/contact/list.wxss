@@ -1,0 +1,134 @@
+.container {
+  background-color: #f5f5f5;
+  flex-direction: column;
+  height: 100vh;
+  padding: 0;
+}
+.container,
+.search-bar {
+  display: -webkit-flex;
+  display: flex;
+}
+.search-bar {
+  align-items: center;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  padding: 10px 15px;
+}
+.search-bar input {
+  flex: 1;
+  font-size: 14px;
+  margin-left: 10px;
+}
+.tabs {
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+  display: -webkit-flex;
+  display: flex;
+  padding: 10px 0;
+}
+.tab {
+  color: #666;
+  flex: 1;
+  font-size: 14px;
+  position: relative;
+  text-align: center;
+}
+.tab.active {
+  color: #1890ff;
+  font-weight: 700;
+}
+.tab.active::after {
+  background-color: #1890ff;
+  bottom: -10px;
+  content: '';
+  height: 2px;
+  left: 20%;
+  position: absolute;
+  width: 60%;
+}
+.contact-list {
+  box-sizing: border-box;
+  flex: 1;
+  padding: 10px;
+}
+.contact-card {
+  align-items: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  display: -webkit-flex;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  padding: 15px;
+}
+.contact-info {
+  flex: 1;
+}
+.name-row {
+  align-items: center;
+  display: -webkit-flex;
+  display: flex;
+  margin-bottom: 5px;
+}
+.name {
+  color: #333;
+  font-size: 16px;
+  font-weight: 700;
+  margin-right: 10px;
+}
+.tag {
+  border-radius: 4px;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+}
+.tag.customer {
+  background-color: #52c41a;
+}
+.tag.supplier {
+  background-color: #722ed1;
+}
+.detail {
+  color: #8c8c8c;
+  font-size: 12px;
+  margin-top: 2px;
+}
+.delete-btn {
+  padding: 5px;
+}
+.empty {
+  align-items: center;
+  color: #bfbfbf;
+  display: -webkit-flex;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-top: 100px;
+}
+.empty image {
+  height: 100px;
+  margin-bottom: 10px;
+  width: 100px;
+}
+.fab {
+  align-items: center;
+  background-color: #1890ff;
+  border-radius: 25px;
+  bottom: 20px;
+  box-shadow: 0 4px 10px rgba(24, 144, 255, 0.4);
+  display: -webkit-flex;
+  display: flex;
+  height: 50px;
+  justify-content: center;
+  position: fixed;
+  right: 20px;
+  width: 50px;
+}
+.plus {
+  color: #fff;
+  font-size: 30px;
+  font-weight: 300;
+  margin-top: -3px;
+}

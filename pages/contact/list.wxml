@@ -1,0 +1,26 @@
+<view class="container">
+    <view class="search-bar">
+        <icon size="18" type="search"></icon>
+        <input bindinput="onSearch" placeholder="搜索名称/备注" type="text" value="{{searchKeyword}}"></input>
+    </view>
+    <scroll-view scrollY class="contact-list">
+        <view bindtap="editContact" class="contact-card" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id">
+            <view class="contact-info">
+                <view class="name-row">
+                    <text class="name">{{item.name}}</text>
+                </view>
+                <view class="detail" wx:if="{{item.contact}}">联系方式: {{item.contact}}</view>
+                <view class="detail" wx:if="{{item.note}}">备注: {{item.note}}</view>
+            </view>
+            <view catchtap="deleteContact" class="delete-btn" data-id="{{item._id}}">
+                <icon color="#ff4d4f" size="20" type="cancel"></icon>
+            </view>
+        </view>
+        <view class="empty" wx:if="{{contactList.length===0}}">
+            <text>暂无联系人，请点击下方 + 号添加</text>
+        </view>
+    </scroll-view>
+    <view bindtap="goToAdd" class="fab">
+        <text class="plus">+</text>
+    </view>
+</view>

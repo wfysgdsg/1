@@ -1,0 +1,129 @@
+<view class="container">
+    <view class="page-hero">
+        <text class="hero-title">销售开票</text>
+        <text class="hero-subtitle">先选商品，再选客户，最后确认金额和收款状态</text>
+    </view>
+    <view class="form">
+        <view class="ai-recognition">
+            <button bindtap="takePhoto" class="ai-btn" disabled="{{isRecognizing}}">
+                <text class="ai-icon">📷</text>
+                <text>{{isRecognizing?'识别中...':'AI拍照识别商品'}}</text>
+            </button>
+        </view>
+        <view class="form-section">
+            <view class="section-title">选择商品</view>
+            <view class="section-tip">支持搜索、AI拍照识别，也可以从借货明细批量导入</view>
+            <view class="goods-select">
+                <view class="input-wrapper">
+                    <input bindinput="onSearchInput" class="input" confirmType="search" placeholder="输入商品名称搜索" value="{{searchKeyword}}"></input>
+                    <view bindtap="clearSearch" class="clear-search" wx:if="{{searchKeyword}}">×</view>
+                </view>
+                <view class="search-result" wx:if="{{showSearchResults&&searchResults.length>0}}">
+                    <view bindtap="selectGoods" class="result-item" data-id="{{item._id}}" wx:for="{{searchResults}}" wx:key="_id">
+                        <text>{{item.name}}</text>
+                        <text class="result-price">库存:{{item.userStock}} ¥{{item.salePrice}}</text>
+                    </view>
+                </view>
+                <view class="search-result empty-result" wx:if="{{showSearchResults&&searchResults.length===0&&searchKeyword}}">
+                    <text>未找到商品</text>
+                </view>
+            </view>
+            <view class="selected-goods" wx:if="{{selectedGoods.length>0}}">
+                <view class="selected-summary">
+                    <text>已选 {{selectedGoods.length}} 种商品</text>
+                    <text wx:if="{{hasAllQuantities}}">预计毛利 ¥{{totalProfit}}</text>
+                </view>
+                <view class="goods-item" wx:for="{{selectedGoods}}" wx:key="index">
+                    <view class="goods-header">
+                        <view class="goods-name-group">
+                            <text class="goods-name">{{item.name}}</text>
+                            <text class="goods-unit">单位：{{item.unit||'未填'}}</text>
+                        </view>
+                        <text bindtap="removeGoods" class="remove-btn" data-index="{{index}}">×</text>
+                    </view>
+                    <view class="goods-body">
+                        <view class="price-row">
+                            <text class="price-label">售价</text>
+                            <input bindinput="onSalePriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.salePrice}}"></input>
+                        </view>
+                        <view class="price-row">
+                            <text class="price-label">成本</text>
+                            <input bindinput="onCostPriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.costPrice}}"></input>
+                        </view>
+                        <view class="price-row">
+                            <text class="price-label">数量</text>
+                            <input bindinput="onQuantityInput" class="quantity-input" data-index="{{index}}" placeholder="0" type="digit" value="{{item.quantity}}"></input>
+                        </view>
+                    </view>
+                    <view class="goods-footer">
+                        <text class="goods-stock">库存: {{item.userStock}}</text>
+                        <text class="goods-profit-text" wx:if="{{item.quantity}}">毛利: ¥{{item.profit}}</text>
+                    </view>
+                </view>
+            </view>
+        </view>
+        <view class="form-section">
+            <view class="section-title">客户信息 *</view>
+            <view class="section-tip">建议先搜索已有客户，没有再新增</view>
+            <view class="location-search">
+                <input bindfocus="onContactFocus" bindinput="onContactKeywordInput" class="contact-input" placeholder="输入关键字搜索客户" value="{{contactKeyword}}"></input>
+                <view class="contact-results" wx:if="{{showContactResults&&contactResults.length>0}}">
+                    <view bindtap="selectContact" class="contact-item" data-item="{{item}}" wx:for="{{contactResults}}" wx:key="_id">
+                        <text>{{item.name}}</text>
+                        <text class="result-detail" wx:if="{{item.contact}}">{{item.contact}}</text>
+                    </view>
+                </view>
+                <view class="contact-results empty-result" wx:if="{{showContactResults&&contactResults.length===0&&contactKeyword}}">
+                    <text>未找到匹配客户</text>
+                </view>
+            </view>
+            <view class="selected-location" wx:if="{{selectedContact}}">
+                <text class="selected-text">已选: {{selectedContact.name}}</text>
+                <text bindtap="clearContact" class="clear-btn">×</text>
+            </view>
+            <view bindtap="goToAddContact" class="add-link">+ 新增客户</view>
+        </view>
+        <view class="profit-preview" wx:if="{{selectedGoods.length>0&&hasAllQuantities}}">
+            <view class="profit-title">本单预览</view>
+            <view class="profit-row">
+                <text>销售金额:</text>
+                <text>¥{{totalAmount}}</text>
+            </view>
+            <view class="profit-row">
+                <text>成本:</text>
+                <text>¥{{totalCost}}</text>
+            </view>
+            <view class="profit-row highlight">
+                <text>预估毛利:</text>
+                <text>¥{{totalProfit}}</text>
+            </view>
+            <view class="profit-row">
+                <text>毛利率:</text>
+                <text>{{profitRate}}%</text>
+            </view>
+        </view>
+        <view class="form-item">
+            <text class="label">销售日期 *</text>
+            <picker bindchange="onDateChange" mode="date" value="{{saleDate}}">
+                <view class="picker">{{saleDate||'请选择日期'}}</view>
+            </picker>
+        </view>
+        <view class="form-item">
+            <text class="label">付款状态</text>
+            <radio-group bindchange="onPayStatusChange" class="radio-group">
+                <label class="radio-label">
+                    <radio checked="{{payStatus==='unpaid'}}" color="#ff4d4f" value="unpaid"></radio>未付款</label>
+                <label class="radio-label">
+                    <radio checked="{{payStatus==='paid'}}" color="#52c41a" value="paid"></radio>已结清</label>
+            </radio-group>
+        </view>
+        <view class="form-item">
+            <text class="label">备注</text>
+            <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="goBack" class="cancel-btn">返回</button>
+        <button bindtap="submit" class="submit-btn">确认开票</button>
+    </view>
+</view>

@@ -1,0 +1,54 @@
+<view class="container">
+    <view class="tabs">
+        <view bindtap="switchTab" class="tab {{tab==='detail'?'active':''}}" data-tab="detail">{{uiText.detailTab}}</view>
+        <view bindtap="switchTab" class="tab {{tab==='stock'?'active':''}}" data-tab="stock">{{uiText.stockTab}}</view>
+    </view>
+    <view class="borrow-list" wx:if="{{tab==='detail'}}">
+        <view bindtap="goToDetail" class="customer-card" data-id="{{item.customerId}}" data-name="{{item.customerName}}" wx:for="{{customerGroups}}" wx:key="groupKey">
+            <view class="card-header">
+                <view class="customer-info">
+                    <text class="customer-name">{{item.customerName}}</text>
+                    <text class="last-date">{{uiText.latestBorrow}}: {{item.lastBorrowDate}}</text>
+                </view>
+                <view class="badge-count">{{item.totalItems}}</view>
+            </view>
+            <view class="card-body">
+                <view class="goods-summary-row" wx:for="{{item.displayGoods}}" wx:for-item="goods" wx:key="name">
+                    <text class="goods-name-dot">{{goods.name}}</text>
+                    <text class="goods-qty">x{{goods.qty}}{{goods.unit}}</text>
+                </view>
+                <view class="more-tip" wx:if="{{item.totalItems>3}}">{{uiText.viewAll}} ({{item.totalItems}})</view>
+            </view>
+            <view class="card-footer">
+                <text class="tap-detail-btn">{{uiText.manageHint}}</text>
+            </view>
+        </view>
+        <view class="empty" wx:if="{{!customerGroups||customerGroups.length===0}}">
+            <text class="empty-icon">📭</text>
+            <text>{{uiText.noBorrow}}</text>
+        </view>
+        <!-- 分页 -->
+        <view class="pagination" wx:if="{{totalPages > 1}}">
+            <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+            <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
+            <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+        </view>
+    </view>
+    <view class="stock-list" wx:if="{{tab==='stock'}}">
+        <view class="stock-item" wx:for="{{stockList}}" wx:key="_id">
+            <view class="stock-info">
+                <text class="goods-name">{{item.goodsName}}</text>
+                <text class="stock-num">{{uiText.availableStock}}: {{item.stock}} {{item.unit||''}}</text>
+            </view>
+            <view class="stock-time">{{uiText.lastChange}}: {{item.lastSaleDate||uiText.noSaleRecord}}</view>
+        </view>
+        <view class="empty" wx:if="{{!stockList||stockList.length===0}}">
+            <text class="empty-icon">📭</text>
+            <text>{{uiText.noStock}}</text>
+        </view>
+    </view>
+    <view bindtap="goToAdd" class="add-btn">
+        <text>+</text>
+        <text>{{uiText.addBorrow}}</text>
+    </view>
+</view>
