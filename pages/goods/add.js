@@ -11,6 +11,7 @@ Page({
     name: '',
     category: 'hardware', // 默认硬件
     spec: '',
+    keywords: '', // 别名/关联词
     unit: '',
     costPrice: '',
     salePrice: '',
@@ -22,6 +23,8 @@ Page({
       category: '商品分类 *',
       spec: '规格/型号',
       specPlaceholder: '请输入规格或型号',
+      keywords: '别名/关联词',
+      keywordsPlaceholder: '如：ctl-200,ctl-202，多个用逗号分隔',
       unit: '单位',
       unitPlaceholder: '如：个、箱、件',
       costPrice: '成本价 *',
@@ -56,6 +59,7 @@ Page({
         name: goods.name,
         category: goods.category || 'hardware',
         spec: goods.spec || '',
+        keywords: goods.keywords || '',
         unit: goods.unit || '',
         costPrice: String(goods.costPrice || ''),
         salePrice: String(goods.salePrice || ''),
@@ -75,6 +79,9 @@ Page({
   },
   onSpecInput: function (e) {
     this.setData({ spec: e.detail.value });
+  },
+  onKeywordsInput: function (e) {
+    this.setData({ keywords: e.detail.value });
   },
   onUnitInput: function (e) {
     this.setData({ unit: e.detail.value });
@@ -103,6 +110,7 @@ Page({
       name: this.data.name,
       category: this.data.category,
       spec: this.data.spec,
+      keywords: this.data.keywords,
       unit: this.data.unit,
       costPrice: parseFloat(this.data.costPrice),
       salePrice: parseFloat(this.data.salePrice),

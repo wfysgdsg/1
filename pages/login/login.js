@@ -17,7 +17,7 @@ Page({
     autoLogin: false,
     autoLoginTried: false,
     uiText: {
-      logo: '货',
+      logo: '📦',
       title: '借货销售',
       subtitle: 'Personal Asset Manager',
       account: '账号',

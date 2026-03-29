@@ -9,10 +9,15 @@ Page({
   data: {
     contactList: [],
     searchKeyword: '',
-    activeTab: 'all' // 目前业务支持: all (全部)
+    activeTab: 'all',
+    currentPage: 1,
+    pageSize: 10,
+    totalCount: 0,
+    totalPages: 0,
   },
 
   onShow: function () {
+    this.setData({ currentPage: 1 });
     this.loadContacts();
   },
 
@@ -21,39 +26,72 @@ Page({
    */
   async loadContacts() {
     try {
-      let query = db.collection('contacts').orderBy('createTime', 'desc');
+      wx.showLoading({ title: '加载中...' });
       
-      const whereCond = {};
-      if (this.data.searchKeyword) {
-        whereCond.name = db.RegExp({
-          regexp: this.data.searchKeyword,
-          options: 'i',
+      const currentPage = this.data.currentPage;
+      const pageSize = this.data.pageSize;
+      const searchKeyword = this.data.searchKeyword;
+
+      let query = db.collection('contacts').orderBy('createTime', 'desc');
+
+      if (searchKeyword) {
+        query = query.where({
+          name: db.RegExp({
+            regexp: searchKeyword,
+            options: 'i',
+          }),
         });
       }
 
-      if (Object.keys(whereCond).length > 0) {
-        query = query.where(whereCond);
-      }
+      // 获取总数
+      const countRes = await query.count();
+      const total = countRes.total;
+      const pages = Math.ceil(total / pageSize);
+      const skip = (currentPage - 1) * pageSize;
 
-      // 获取数据 (联系人一般不多，直接 get)
-      const res = await query.get();
-      this.setData({ contactList: res.data || [] });
+      // 分页获取数据
+      const res = await query.skip(skip).limit(pageSize).get();
+
+      this.setData({
+        contactList: res.data || [],
+        totalCount: total,
+        totalPages: pages,
+      });
+      wx.hideLoading();
 
     } catch (err) {
       console.error('加载联系人失败', err);
+      wx.hideLoading();
       wx.showToast({ title: '加载失败', icon: 'none' });
     }
   },
 
   onSearch: function (e) {
-    this.setData({ searchKeyword: e.detail.value });
+    this.setData({
+      searchKeyword: e.detail.value,
+      currentPage: 1,
+    });
     this.loadContacts();
   },
 
   switchTab: function (e) {
     const tab = e.currentTarget.dataset.tab;
-    this.setData({ activeTab: tab });
+    this.setData({ activeTab: tab, currentPage: 1 });
     this.loadContacts();
+  },
+
+  prevPage: function () {
+    if (this.data.currentPage > 1) {
+      this.setData({ currentPage: this.data.currentPage - 1 });
+      this.loadContacts();
+    }
+  },
+
+  nextPage: function () {
+    if (this.data.currentPage < this.data.totalPages) {
+      this.setData({ currentPage: this.data.currentPage + 1 });
+      this.loadContacts();
+    }
   },
 
   goToAdd: () => wx.navigateTo({ url: '/pages/contact/add' }),
@@ -68,7 +106,7 @@ Page({
    */
   async deleteContact(e) {
     const id = e.currentTarget.dataset.id;
-    
+
     const confirmRes = await wx.showModal({
       title: '确认删除',
       content: '确定要删除该联系人吗？',

@@ -4,6 +4,7 @@
  */
 const db = wx.cloud.database();
 const _ = db.command;
+const { fetchAll } = require('../../utils/db');
 
 Page({
   data: {
@@ -44,15 +45,13 @@ Page({
       const start = new Date(year, month - 1, 1).getTime();
       const end = new Date(year, month, 1).getTime();
 
-      // 2. 获取本月所有销售记录
+      // 2. 获取本月所有销售记录 - 使用 fetchAll 获取完整数据，解决 20 条限制问题
       let whereCond = { saleTime: _.gte(start).and(_.lt(end)) };
       if (userInfo.role !== 'root') {
         whereCond.sellerId = userInfo._id;
       }
 
-      // 注意：这里原逻辑直接用 get()，如果单数超过 20 条统计会不准，但为了不破坏原版UI的“即时感”，暂时保留
-      const res = await db.collection('sale').where(whereCond).get();
-      const sales = res.data || [];
+      const sales = await fetchAll(db.collection('sale').where(whereCond));
 
       let totalSalesAmt = 0;
       let totalCostAmt = 0;
@@ -101,15 +100,15 @@ Page({
         .slice(0, 5)
         .map(i => ({ ...i, profit: Number(i.profit.toFixed(2)) }));
 
-      // 3. 计算上月利润，用于对比趋势
+      // 3. 计算上月利润，用于对比趋势 - 使用 fetchAll 获取完整数据
       const lastMonthStart = new Date(year, month - 2, 1).getTime();
       const lastMonthEnd = start;
       let lastMonthWhere = { saleTime: _.gte(lastMonthStart).and(_.lt(lastMonthEnd)) };
       if (userInfo.role !== 'root') lastMonthWhere.sellerId = userInfo._id;
 
-      const lastMonthRes = await db.collection('sale').where(lastMonthWhere).get();
+      const lastMonthSales = await fetchAll(db.collection('sale').where(lastMonthWhere));
       let lastProf = 0;
-      (lastMonthRes.data || []).forEach(s => {
+      (lastMonthSales || []).forEach(s => {
         lastProf += parseFloat(s.totalProfit || 0);
       });
 
@@ -143,7 +142,7 @@ Page({
    */
   async exportExcel() {
     const { selectedMonth, totalSales, totalCost, profit, topGoods, topCustomers } = this.data;
-    
+
     // 生成 CSV 内容
     let csv = '\ufeff'; // UTF-8 BOM，防止 Excel 打开乱码
     csv += `月度利润报表 (${selectedMonth})\n\n`;

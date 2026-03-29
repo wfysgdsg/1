@@ -11,9 +11,12 @@ Page({
     stockList: [],
     loading: false,
     currentPage: 1,
-    pageSize: 20,
+    pageSize: 10,
     totalCount: 0,
     totalPages: 0,
+    stockPage: 1,
+    stockTotalCount: 0,
+    stockTotalPages: 0,
     uiText: {
       detailTab: '借货客户明细',
       stockTab: '个人库存',
@@ -72,13 +75,22 @@ Page({
       if (!isRoot) {
         stockQuery = stockQuery.where({ userId: userId });
       }
-      return stockQuery.orderBy('updateTime', 'desc').limit(that.data.pageSize).get().then(function(stocks) {
-        return {
-          total: result.total,
-          pages: result.pages,
-          borrows: result.borrows,
-          stocks: stocks
-        };
+
+      return stockQuery.count().then(function(stockCountRes) {
+        var stockTotal = stockCountRes.total;
+        var stockPages = Math.ceil(stockTotal / that.data.pageSize);
+        var stockSkip = (that.data.stockPage - 1) * that.data.pageSize;
+
+        return stockQuery.orderBy('updateTime', 'desc').skip(stockSkip).limit(that.data.pageSize).get().then(function(stocks) {
+          return {
+            total: result.total,
+            pages: result.pages,
+            borrows: result.borrows,
+            stocks: stocks,
+            stockTotal: stockTotal,
+            stockPages: stockPages
+          };
+        });
       });
     }).then(function(result) {
       var borrows = result.borrows;
@@ -122,6 +134,8 @@ Page({
         stockList: stocks.data,
         totalCount: result.total,
         totalPages: result.pages,
+        stockTotalCount: result.stockTotal,
+        stockTotalPages: result.stockPages,
         loading: false
       });
     }).catch(function(err) {
@@ -155,8 +169,27 @@ Page({
     }
   },
 
+  prevStockPage: function() {
+    if (this.data.stockPage > 1) {
+      this.setData({ stockPage: this.data.stockPage - 1 });
+      this.refreshData();
+    }
+  },
+
+  nextStockPage: function() {
+    if (this.data.stockPage < this.data.stockTotalPages) {
+      this.setData({ stockPage: this.data.stockPage + 1 });
+      this.refreshData();
+    }
+  },
+
   switchTab: function(e) {
-    this.setData({ tab: e.currentTarget.dataset.tab });
+    var tab = e.currentTarget.dataset.tab;
+    if (tab === 'stock') {
+      this.setData({ tab: tab, stockPage: 1 });
+    } else {
+      this.setData({ tab: tab });
+    }
   },
 
   goToDetail: function(e) {

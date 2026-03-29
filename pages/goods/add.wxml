@@ -18,6 +18,10 @@
             <input bindinput="onSpecInput" class="input" placeholder="{{uiText.specPlaceholder}}" value="{{spec}}"></input>
         </view>
         <view class="form-item">
+            <text class="label">{{uiText.keywords}}</text>
+            <input bindinput="onKeywordsInput" class="input" placeholder="{{uiText.keywordsPlaceholder}}" value="{{keywords}}"></input>
+        </view>
+        <view class="form-item">
             <text class="label">{{uiText.unit}}</text>
             <input bindinput="onUnitInput" class="input" placeholder="{{uiText.unitPlaceholder}}" value="{{unit}}"></input>
         </view>

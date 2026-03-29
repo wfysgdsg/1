@@ -1,9 +1,11 @@
-require('../../@babel/runtime/helpers/Objectvalues');
-var t = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  e = require('../../@babel/runtime/helpers/objectSpread2'),
-  o = require('../../@babel/runtime/helpers/slicedToArray'),
-  a = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  r = wx.cloud.database();
+/**
+ * 销售报表页逻辑 (重构整理)
+ * 整理日期：2025-01-26
+ */
+const db = wx.cloud.database();
+const _ = db.command;
+const { fetchAll } = require('../../utils/db');
+
 Page({
   data: {
     filterMonth: '',
@@ -31,147 +33,129 @@ Page({
       staff: '人员',
     },
   },
+
   onShow: function () {
-    wx.getStorageSync('userInfo')
-      ? (this.setFilterMonth(), this.loadReport())
-      : wx.redirectTo({ url: '/pages/login/login' });
+    const userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setFilterMonth();
+      this.loadReport();
+    } else {
+      wx.redirectTo({ url: '/pages/login/login' });
+    }
   },
+
   setFilterMonth: function () {
-    var t = new Date();
+    const now = new Date();
     this.setData({
-      filterMonth: ''
-        .concat(t.getFullYear(), '-')
-        .concat(String(t.getMonth() + 1).padStart(2, '0')),
+      filterMonth: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
     });
   },
-  onMonthChange: function (t) {
-    this.setData({ filterMonth: t.detail.value }), this.loadReport();
+
+  onMonthChange: function (e) {
+    this.setData({ filterMonth: e.detail.value });
+    this.loadReport();
   },
-  loadReport: function () {
-    var n = this;
-    return a(
-      t().mark(function a() {
-        var i, u, s, m, l, c, f, d, h, g, p, b, y, x, S, w, N, v, q;
-        return t().wrap(
-          function (t) {
-            for (;;)
-              switch ((t.prev = t.next)) {
-                case 0:
-                  return (
-                    (i = wx.getStorageSync('userInfo')),
-                    (u = n.data.filterMonth.split('-')),
-                    (s = o(u, 2)),
-                    (m = s[0]),
-                    (l = s[1]),
-                    (c = new Date(m, l - 1, 1).getTime()),
-                    (f = new Date(m, l, 1).getTime()),
-                    (t.prev = 4),
-                    (d = r
-                      .collection('sale')
-                      .where({
-                        saleTime: r.command.gte(c).and(r.command.lt(f)),
-                      })),
-                    'root' !== i.role &&
-                      (d = r
-                        .collection('sale')
-                        .where({
-                          saleTime: r.command.gte(c).and(r.command.lt(f)),
-                          sellerId: i._id,
-                        })),
-                    (t.next = 9),
-                    d.get()
-                  );
-                case 9:
-                  return (
-                    (h = t.sent),
-                    (g = h.data || []),
-                    (p = 0),
-                    (b = 0),
-                    (y = 0),
-                    (x = {}),
-                    (S = {}),
-                    (w = {}),
-                    (t.next = 19),
-                    r.collection('users').get()
-                  );
-                case 19:
-                  (N = t.sent),
-                    (v = {}),
-                    (N.data || []).forEach(function (t) {
-                      v[t._id] = t.name || t.username;
-                    }),
-                    g.forEach(function (t) {
-                      (p += t.totalAmount || 0),
-                        (b += t.totalCost || 0),
-                        (y += t.totalProfit || 0),
-                        (t.goodsDetail || []).forEach(function (t) {
-                          x[t.goodsName] ||
-                            (x[t.goodsName] = {
-                              name: t.goodsName,
-                              quantity: 0,
-                              amount: 0,
-                              profit: 0,
-                            }),
-                            (x[t.goodsName].quantity += t.quantity || 0),
-                            (x[t.goodsName].amount +=
-                              (t.salePrice || 0) * (t.quantity || 0)),
-                            (x[t.goodsName].profit += t.profit || 0);
-                        });
-                      var e = t.contactName || t.locationName || '未知';
-                      S[e] ||
-                        (S[e] = { name: e, count: 0, amount: 0, profit: 0 }),
-                        (S[e].count += 1),
-                        (S[e].amount += t.totalAmount || 0),
-                        (S[e].profit += t.totalProfit || 0);
-                      var o = v[t.sellerId] || '未知';
-                      w[o] ||
-                        (w[o] = { name: o, count: 0, amount: 0, profit: 0 }),
-                        (w[o].count += 1),
-                        (w[o].amount += t.totalAmount || 0),
-                        (w[o].profit += t.totalProfit || 0);
-                    }),
-                    (q = function (t) {
-                      return Object.values(t)
-                        .sort(function (t, e) {
-                          return e.amount - t.amount;
-                        })
-                        .slice(0, 10)
-                        .map(function (t) {
-                          return e(
-                            e({}, t),
-                            {},
-                            {
-                              amount: Number(t.amount || 0).toFixed(2),
-                              profit: Number(t.profit || 0).toFixed(2),
-                            },
-                          );
-                        });
-                    }),
-                    n.setData({
-                      totalAmount: Number(p || 0).toFixed(2),
-                      totalCost: Number(b || 0).toFixed(2),
-                      totalProfit: Number(y || 0).toFixed(2),
-                      goodsSummary: q(x),
-                      customerSummary: q(S),
-                      staffSummary: q(w),
-                    }),
-                    (t.next = 31);
-                  break;
-                case 27:
-                  (t.prev = 27),
-                    (t.t0 = t.catch(4)),
-                    console.error('加载报表失败', t.t0),
-                    wx.showToast({ title: '加载报表失败', icon: 'none' });
-                case 31:
-                case 'end':
-                  return t.stop();
-              }
-          },
-          a,
-          null,
-          [[4, 27]],
-        );
-      }),
-    )();
+
+  /**
+   * 加载报表数据
+   */
+  async loadReport() {
+    wx.showLoading({ title: '加载中...' });
+    const userInfo = wx.getStorageSync('userInfo');
+    if (!userInfo) return;
+
+    try {
+      const [year, month] = this.data.filterMonth.split('-').map(Number);
+      const start = new Date(year, month - 1, 1).getTime();
+      const end = new Date(year, month, 1).getTime();
+
+      // 构建查询条件
+      let whereCond = {
+        saleTime: _.gte(start).and(_.lt(end)),
+      };
+      if (userInfo.role !== 'root') {
+        whereCond.sellerId = userInfo._id;
+      }
+
+      // 使用 fetchAll 获取完整数据，解决 20 条限制问题
+      const sales = await fetchAll(db.collection('sale').where(whereCond));
+
+      // 获取用户列表（用于映射员工ID到名称）
+      const usersRes = await db.collection('users').get();
+      const userNameMap = {};
+      (usersRes.data || []).forEach(u => {
+        userNameMap[u._id] = u.name || u.username || '未知';
+      });
+
+      // 初始化统计变量
+      let totalAmount = 0;
+      let totalCost = 0;
+      let totalProfit = 0;
+      const goodsMap = {};
+      const customerMap = {};
+      const staffMap = {};
+
+      // 遍历所有销售记录进行统计
+      sales.forEach(sale => {
+        totalAmount += Number(sale.totalAmount) || 0;
+        totalCost += Number(sale.totalCost) || 0;
+        totalProfit += Number(sale.totalProfit) || 0;
+
+        // 按商品统计
+        (sale.goodsDetail || []).forEach(g => {
+          if (!goodsMap[g.goodsName]) {
+            goodsMap[g.goodsName] = { name: g.goodsName, quantity: 0, amount: 0, profit: 0 };
+          }
+          const qty = Number(g.quantity) || 0;
+          const price = Number(g.salePrice) || 0;
+          goodsMap[g.goodsName].quantity += qty;
+          goodsMap[g.goodsName].amount += qty * price;
+          goodsMap[g.goodsName].profit += Number(g.profit) || 0;
+        });
+
+        // 按客户统计
+        const custName = sale.contactName || sale.locationName || '未知';
+        if (!customerMap[custName]) {
+          customerMap[custName] = { name: custName, count: 0, amount: 0, profit: 0 };
+        }
+        customerMap[custName].count += 1;
+        customerMap[custName].amount += Number(sale.totalAmount) || 0;
+        customerMap[custName].profit += Number(sale.totalProfit) || 0;
+
+        // 按人员统计
+        const staffName = userNameMap[sale.sellerId] || '未知';
+        if (!staffMap[staffName]) {
+          staffMap[staffName] = { name: staffName, count: 0, amount: 0, profit: 0 };
+        }
+        staffMap[staffName].count += 1;
+        staffMap[staffName].amount += Number(sale.totalAmount) || 0;
+        staffMap[staffName].profit += Number(sale.totalProfit) || 0;
+      });
+
+      // 排序并取 Top 10
+      const sortByAmount = (map) => Object.values(map)
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 10)
+        .map(item => ({
+          ...item,
+          amount: Number(item.amount || 0).toFixed(2),
+          profit: Number(item.profit || 0).toFixed(2),
+        }));
+
+      this.setData({
+        totalAmount: totalAmount.toFixed(2),
+        totalCost: totalCost.toFixed(2),
+        totalProfit: totalProfit.toFixed(2),
+        goodsSummary: sortByAmount(goodsMap),
+        customerSummary: sortByAmount(customerMap),
+        staffSummary: sortByAmount(staffMap),
+      });
+
+    } catch (err) {
+      console.error('加载报表失败', err);
+      wx.showToast({ title: '加载报表失败', icon: 'none' });
+    } finally {
+      wx.hideLoading();
+    }
   },
 });

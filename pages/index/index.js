@@ -98,7 +98,8 @@ Page({
       const results = await Promise.all([
         db.collection('goods').count(), // 1. 商品总种类
         borrowColl.where({ status: 'pending' }).count(), // 2. 待还借货数
-        saleColl.where({ saleTime: _.gte(todayStart) }).get(), // 3. 今日销售单 (注意：这里用 get 有 20 条限制，如果单数多会统计不准)
+        // 3. 今日销售单 - 使用 fetchAll 获取完整数据，解决 20 条限制问题
+        fetchAll(saleColl.where({ saleTime: _.gte(todayStart) }), { maxPages: 10 }),
         db.collection('sale').where({
           payStatus: 'unpaid',
           sellerId: userInfo.role === 'root' ? _.exists(true) : userInfo._id,
@@ -120,7 +121,7 @@ Page({
       ] = results;
 
       // 计算今日销售额
-      const todaySalesTotal = (todaySalesRes.data || []).reduce((sum, item) => {
+      const todaySalesTotal = (todaySalesRes || []).reduce((sum, item) => {
         return sum + (Number(item.totalAmount) || 0);
       }, 0);
 
@@ -132,7 +133,7 @@ Page({
       this.setData({
         goodsCount: goodsCountRes.total,
         borrowCount: borrowCountRes.total,
-        saleCount: (todaySalesRes.data || []).length,
+        saleCount: (todaySalesRes || []).length,
         unpaidCount: unpaidCountRes.total,
         transferCount: transferCountRes.total,
         todaySales: todaySalesTotal.toFixed(2),
