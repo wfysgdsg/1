@@ -1,5 +1,5 @@
 /**
- * 提交销售单云函数
+ * 提交销售单云函数 (使用数据库事务)
  * 功能：处理销售单入库、扣减库存、更新借货状态
  * 整理日期：2024-03-26
  */
@@ -54,9 +54,10 @@ exports.main = async (event, context) => {
     const user = await checkAuth(userId, sessionToken);
 
     // 2. 准备销售单数据
-    const totalAmount = selectedGoods.reduce((sum, g) => sum + (parseFloat(g.quantity) * Number(g.salePrice || 0)), 0);
-    const totalCost = selectedGoods.reduce((sum, g) => sum + (parseFloat(g.quantity) * Number(g.costPrice || 0)), 0);
-    const totalProfit = selectedGoods.reduce((sum, g) => sum + (parseFloat(g.profit) || 0), 0);
+    // 使用分单位进行中间计算，防止精度丢失
+    const totalAmountCents = selectedGoods.reduce((sum, g) => sum + Math.round(parseFloat(g.quantity) * Number(g.salePrice || 0) * 100), 0);
+    const totalCostCents = selectedGoods.reduce((sum, g) => sum + Math.round(parseFloat(g.quantity) * Number(g.costPrice || 0) * 100), 0);
+    const totalProfitCents = selectedGoods.reduce((sum, g) => sum + Math.round(parseFloat(g.profit || 0) * 100), 0);
 
     const saleRecord = {
       sellerId: userId,
@@ -74,9 +75,9 @@ exports.main = async (event, context) => {
         salePrice: Number(g.salePrice),
         profit: parseFloat(g.profit)
       })),
-      totalAmount,
-      totalCost,
-      totalProfit,
+      totalAmount: totalAmountCents / 100,
+      totalCost: totalCostCents / 100,
+      totalProfit: totalProfitCents / 100,
       saleDate: new Date(saleDate).getTime(),
       saleTime: new Date(saleDate).getTime(),
       payStatus: payStatus || 'paid',
@@ -87,59 +88,69 @@ exports.main = async (event, context) => {
       importMode: !!importMode
     };
 
-    // 3. 开启事务（或模拟事务）处理数据一致性
-    // 这里采用分步更新，因为部分环境可能不支持 Transaction
-    
-    // A. 插入销售记录
-    const saleAddRes = await db.collection('sale').add({ data: saleRecord });
-    const saleId = saleAddRes._id;
+    // 3. 使用数据库事务处理数据一致性
+    const result = await db.runTransaction(async transaction => {
+      // A. 插入销售记录
+      const saleAddRes = await transaction.collection('sale').add({ data: saleRecord });
+      const saleId = saleAddRes._id;
 
-    // B. 更新个人库存 (user_goods)
-    for (const g of selectedGoods) {
-      const qty = parseFloat(g.quantity);
-      if (qty <= 0) continue;
+      // B. 更新个人库存 (user_goods)
+      for (const g of selectedGoods) {
+        const qty = parseFloat(g.quantity);
+        if (qty <= 0) continue;
 
-      // 尝试原子减库存
-      const updateRes = await db.collection('user_goods').where({
-        userId: userId,
-        goodsId: g._id
-      }).update({
-        data: {
-          stock: _.inc(-qty),
-          updateTime: db.serverDate()
+        const userGoodsColl = transaction.collection('user_goods');
+        const userGoodsRes = await userGoodsColl.where({
+          userId: userId,
+          goodsId: g._id
+        }).get();
+
+        if (userGoodsRes.data.length > 0) {
+          const ug = userGoodsRes.data[0];
+          await userGoodsColl.doc(ug._id).update({
+            data: {
+              stock: _.inc(-qty),
+              updateTime: db.serverDate()
+            }
+          });
+        } else {
+          // 如果库存记录不存在，则创建一条
+          await userGoodsColl.add({
+            data: {
+              userId: userId,
+              goodsId: g._id,
+              goodsName: g.name,
+              stock: -qty,
+              updateTime: db.serverDate()
+            }
+          });
         }
-      });
-
-      // 如果库存记录不存在（理论上不应该，因为能卖说明有货，除非是允许负库存），则创建一条
-      if (updateRes.stats.updated === 0) {
-        await db.collection('user_goods').add({
-          data: {
-            userId: userId,
-            goodsId: g._id,
-            goodsName: g.name,
-            stock: -qty,
-            updateTime: db.serverDate()
-          }
-        });
       }
-    }
 
-    // C. 如果是导入模式，更新原借货单状态
-    if (importMode && importIds && importIds.length > 0) {
-      await db.collection('borrow').where({
-        _id: _.in(importIds)
-      }).update({
-        data: {
-          status: 'sold', // 已转销售
-          saleId: saleId,
-          updateTime: db.serverDate()
+      // C. 如果是导入模式，更新原借货单状态
+      if (importMode && importIds && importIds.length > 0) {
+        const borrowColl = transaction.collection('borrow');
+        // 事务中不支持 where().update()，需要循环处理或使用其他方式
+        // 但我们可以获取记录 ID 后依次更新
+        for (const borrowId of importIds) {
+          await borrowColl.doc(borrowId).update({
+            data: {
+              status: 'sold',
+              saleId: saleId,
+              updateTime: db.serverDate()
+            }
+          });
         }
-      });
-    }
+      }
+
+      return {
+        saleId: saleId
+      };
+    });
 
     return {
       success: true,
-      saleId: saleId,
+      saleId: result.saleId,
       message: '提交成功'
     };
 

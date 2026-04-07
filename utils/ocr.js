@@ -67,24 +67,52 @@ function calculateSimilarity(text1, text2) {
 }
 
 /**
- * 提取文本中的颜色词
- * 商品颜色格式：xk(黑), xm(红), xc(蓝), xy(黄) 或 HK(黑), HM(红), HY(黄), HC(蓝) 或中文"黑/红/蓝/黄"
+ * 从数据库加载 OCR 匹配规则
  */
-function extractColor(text) {
-  const clean = cleanText(text);
+async function loadOcrRules() {
+  try {
+    const res = await db.collection('config').doc('ocr_rules').get();
+    return res.data || {};
+  } catch (err) {
+    console.warn('未找到远程 OCR 配置，将使用默认规则');
+    return {
+      replacements: [
+        { pattern: 'ctl-200(?!5)', replacement: 'ctl-205', flags: 'gi' },
+        { pattern: 'gl-', replacement: 'ctl-', flags: 'gi' },
+        { pattern: 'lm(?=[^a-z])', replacement: 'hm', flags: 'gi' },
+        { pattern: '黑色粉', replacement: '黑色硒鼓', flags: 'gi' },
+        { pattern: '红色粉', replacement: '红色硒鼓', flags: 'gi' },
+        { pattern: '蓝色粉', replacement: '蓝色硒鼓', flags: 'gi' },
+        { pattern: '黄色粉', replacement: '黄色硒鼓', flags: 'gi' }
+      ],
+      colorMaps: {
+        'x': { 'xk': '黑', 'xc': '蓝', 'xy': '黄', 'xm': '红' },
+        'h': { 'hk': '黑', 'hc': '蓝', 'hy': '黄', 'hm': '红' }
+      }
+    };
+  }
+}
 
-  // 格式1: xk/xm/xc/xy (小写，如巨威1150xk)
+/**
+ * 提取文本中的颜色词
+ */
+function extractColor(text, colorConfig) {
+  const clean = cleanText(text);
+  const xMap = (colorConfig && colorConfig.x) || { 'xk': '黑', 'xc': '蓝', 'xy': '黄', 'xm': '红' };
+  const hMap = (colorConfig && colorConfig.h) || { 'hk': '黑', 'hc': '蓝', 'hy': '黄', 'hm': '红' };
+
+  // 格式1: xk/xm/xc/xy
   const xColorMatch = clean.match(/(xk|xc|xy|xm)\s*$/i);
   if (xColorMatch) {
-    const colorMap = { 'xk': '黑', 'xc': '蓝', 'xy': '黄', 'xm': '红' };
-    return { color: colorMap[xColorMatch[1].toLowerCase()], suffix: xColorMatch[0], rawSuffix: xColorMatch[1] };
+    const val = xColorMatch[1].toLowerCase();
+    return { color: xMap[val], suffix: xColorMatch[0], rawSuffix: val };
   }
 
-  // 格式2: HK/HM/HY/HC (如巨威CTL-205HK)
+  // 格式2: HK/HM/HY/HC
   const hColorMatch = clean.match(/(hk|hc|hy|hm)\s*$/i);
   if (hColorMatch) {
-    const colorMap = { 'hk': '黑', 'hc': '蓝', 'hy': '黄', 'hm': '红' };
-    return { color: colorMap[hColorMatch[1].toLowerCase()], suffix: hColorMatch[0], rawSuffix: hColorMatch[1] };
+    const val = hColorMatch[1].toLowerCase();
+    return { color: hMap[val], suffix: hColorMatch[0], rawSuffix: val };
   }
 
   // 格式3: 中文颜色词
@@ -100,8 +128,8 @@ function extractColor(text) {
 /**
  * 计算文本与商品名的匹配度（包含 keywords 匹配 + 颜色精确匹配）
  */
-function calculateGoodsMatchScore(text, goods) {
-  const textColor = extractColor(text);
+function calculateGoodsMatchScore(text, goods, colorConfig) {
+  const textColor = extractColor(text, colorConfig);
   const goodsName = goods.name;
   const goodsNameLower = goodsName.toLowerCase();
 
@@ -151,7 +179,6 @@ function splitLines(text) {
 
 /**
  * 解析带有数量特征的文本行
- * 示例： "苹果 10" -> { name: "苹果", quantity: 10 }
  */
 function parseQuantityLine(rawLine) {
   const cleaned = cleanText(rawLine);
@@ -176,77 +203,53 @@ function parseQuantityLine(rawLine) {
 }
 
 /**
- * 在所有 OCR 识别出的文本中找到与指定关键词最匹配的那一行
- */
-function findBestLine(keyword, ocrLines) {
-  let bestLine = '';
-  let bestScore = 0;
-
-  ocrLines.forEach(line => {
-    const score = calculateSimilarity(line, keyword);
-    if (score > bestScore) {
-      bestScore = score;
-      bestLine = line;
-    }
-  });
-
-  return { bestLine, bestScore };
-}
-
-/**
  * 根据 OCR/语音 结果和商品数据库进行匹配
- * 升级版：支持“各X个”、“和”、“、”等复杂自然语言解析
- * 支持：CTL-200系列自动映射到CTL-205，CTL-350系列颜色粉=硒鼓
  */
 async function matchGoodsFromOcr(ocrResult) {
   if (!ocrResult) return [];
   
-  // 0. 预处理：OCR结果中的别名映射
-  // - CTL-200 系列 -> CTL-205 系列
-  // - GL- 系列 -> CTL- 系列（手写G像C，L像t）
-  // - LM -> HM（手写L像H，容易认错）
-  // - "粉" -> "硒鼓"（同义）
-  let processedText = ocrResult
-    .replace(/ctl-200(?!5)/gi, 'ctl-205')  // CTL-200 -> CTL-205（但如果是CTL-2005则不改）
-    .replace(/gl-/gi, 'ctl-')              // GL- -> CTL-（手写G像C，L像t）
-    .replace(/lm(?=[^a-z])/gi, 'hm')      // LM -> HM（手写L像H）
-    .replace(/黑色粉/gi, '黑色硒鼓')
-    .replace(/红色粉/gi, '红色硒鼓')
-    .replace(/蓝色粉/gi, '蓝色硒鼓')
-    .replace(/黄色粉/gi, '黄色硒鼓');
+  // 1. 加载远程配置
+  const config = await loadOcrRules();
+  let processedText = ocrResult;
   
-  // 1. 预处理：将语音/OCR文本按常用分隔符拆分
-  // 替换"各"、"和"等关键词，方便拆分
+  // 2. 预处理：应用替换规则
+  if (config.replacements) {
+    config.replacements.forEach(rule => {
+      try {
+        const reg = new RegExp(rule.pattern, rule.flags || 'gi');
+        processedText = processedText.replace(reg, rule.replacement);
+      } catch(e) {
+        console.error('OCR rule error:', e);
+      }
+    });
+  }
+  
+  // 3. 预处理：将语音/OCR文本按常用分隔符拆分
   processedText = processedText.replace(/各\s*(\d+(?:\.\d+)?)/g, '各$1');
   const segments = processedText.split(/[，,。、\s+|和]/).filter(Boolean);
   
-  // 提取意图列表 [{name: '', quantity: ''}]
   let intents = [];
   let globalEachQty = null;
 
-  // 检查是否有"各XX"这种全局数量
   const eachMatch = processedText.match(/各\s*(\d+(?:\.\d+)?)/);
   if (eachMatch) {
     globalEachQty = Number(eachMatch[1]);
   }
 
   segments.forEach(seg => {
-    // 尝试从片段中提取名称和数量
     const info = parseQuantityLine(seg);
     if (info) {
-      // 过滤不合理数量：>50的肯定是价格不是数量
       if (info.quantity <= 50) {
         intents.push({ name: info.name, quantity: info.quantity });
       }
     } else {
-      // 没提取出数量，先记下名称，待会儿可能用全局"各"数量
       intents.push({ name: seg.replace(/各\d+/, ''), quantity: globalEachQty || '' });
     }
   });
 
   if (!intents.length) return [];
 
-  // 2. 加载全部商品库进行匹配
+  // 4. 加载全部商品库进行匹配
   const allGoods = await fetchAll(db.collection('goods'));
   const matchedList = [];
 
@@ -255,16 +258,14 @@ async function matchGoodsFromOcr(ocrResult) {
     let maxScore = 0;
 
     allGoods.forEach(goods => {
-      const score = calculateGoodsMatchScore(intent.name, goods);
+      const score = calculateGoodsMatchScore(intent.name, goods, config.colorMaps);
       if (score > maxScore) {
         maxScore = score;
         bestMatch = goods;
       }
     });
 
-    // 匹配分值阈值：0.5
     if (bestMatch && maxScore > 0.5) {
-      // 避免重复添加同一种商品
       if (!matchedList.some(m => m._id === bestMatch._id)) {
         const result = {
           _id: bestMatch._id,
@@ -281,7 +282,6 @@ async function matchGoodsFromOcr(ocrResult) {
     }
   });
 
-  // 按匹配分值降序排列
   return matchedList.sort((a, b) => b.matchScore - a.matchScore);
 }
 

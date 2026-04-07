@@ -1,0 +1,15 @@
+var money = function(val) {
+  if (typeof val === 'undefined' || val === null) return '0.00';
+  return parseFloat(val).toFixed(2);
+};
+
+var date = function(timestamp) {
+  if (!timestamp) return '';
+  var d = getDate(timestamp);
+  return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+};
+
+module.exports = {
+  money: money,
+  date: date
+};

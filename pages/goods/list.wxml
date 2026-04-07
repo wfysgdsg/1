@@ -25,7 +25,7 @@
         <text class="page-info">{{currentPage}} / {{totalPages}}</text>
         <button bindtap="nextPage" class="page-btn" disabled="{{currentPage === totalPages}}">下一页</button>
     </view>
-    <view class="empty" wx:else>
+    <view class="empty" wx:if="{{goodsList.length === 0}}">
         <text class="empty-icon">货</text>
         <text>暂无商品</text>
     </view>
