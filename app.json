@@ -1,0 +1,59 @@
+{
+  "componentFramework": "exparser",
+  "tabBar": {
+    "color": "#999999",
+    "selectedColor": "#1890ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/index/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/goods/list",
+        "text": "商品库"
+      },
+      {
+        "pagePath": "pages/borrow/list",
+        "text": "借货"
+      },
+      {
+        "pagePath": "pages/sale/list",
+        "text": "销售"
+      },
+      {
+        "pagePath": "pages/profile/profile",
+        "text": "我的"
+      }
+    ]
+  },
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#1890ff",
+    "navigationBarTitleText": "个人借销货系统",
+    "navigationBarTextStyle": "white"
+  },
+  "pages": [
+    "pages/login/login",
+    "pages/index/index",
+    "pages/goods/list",
+    "pages/goods/add",
+    "pages/borrow/list",
+    "pages/borrow/add",
+    "pages/sale/list",
+    "pages/sale/add",
+    "pages/customer/list",
+    "pages/customer/add",
+    "pages/profile/profile",
+    "pages/password/index",
+    "pages/export/index",
+    "pages/staff/index",
+    "pages/contact/list",
+    "pages/contact/add",
+    "pages/sale/debt",
+    "pages/report/month",
+    "pages/borrow/detail",
+    "pages/borrow/transfer-list"
+  ]
+}

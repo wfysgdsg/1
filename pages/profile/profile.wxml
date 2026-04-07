@@ -1,0 +1,49 @@
+<view class="container">
+    <view class="header-card">
+        <view class="avatar-section">
+            <view class="avatar">{{userInfo.name?userInfo.name[0]:'?'}}</view>
+            <view class="user-detail">
+                <text class="username">{{userInfo.name||uiText.notLoggedIn}}</text>
+                <text class="role-tag">{{userInfo.role==='root'?uiText.admin:uiText.staff}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="menu-card">
+        <view bindtap="changePassword" class="menu-item">
+            <view class="menu-left">
+                <text class="menu-icon">密</text>
+                <text class="menu-text">{{uiText.changePassword}}</text>
+            </view>
+            <text class="arrow">></text>
+        </view>
+        <view bindtap="exportData" class="menu-item">
+            <view class="menu-left">
+                <text class="menu-icon">导</text>
+                <text class="menu-text">{{uiText.exportData}}</text>
+            </view>
+            <text class="arrow">></text>
+        </view>
+        <view bindtap="viewReport" class="menu-item">
+            <view class="menu-left">
+                <text class="menu-icon">报</text>
+                <text class="menu-text">{{uiText.report}}</text>
+            </view>
+            <text class="arrow">></text>
+        </view>
+        <view bindtap="manageStaff" class="menu-item" wx:if="{{isAdmin}}">
+            <view class="menu-left">
+                <text class="menu-icon">员</text>
+                <text class="menu-text">{{uiText.manageStaff}}</text>
+            </view>
+            <text class="arrow">></text>
+        </view>
+        <view bindtap="about" class="menu-item">
+            <view class="menu-left">
+                <text class="menu-icon">关</text>
+                <text class="menu-text">{{uiText.about}}</text>
+            </view>
+            <text class="arrow">></text>
+        </view>
+    </view>
+    <button bindtap="logout" class="logout-btn" wx:if="{{isLogged}}">{{uiText.logout}}</button>
+</view>

@@ -1,0 +1,17 @@
+var buildTransferTip = function(count) {
+  return '您有 ' + count + ' 项调货申请待处理';
+};
+
+var buildOrderMeta = function(count) {
+  return '共 ' + count + ' 笔订单';
+};
+
+var buildOrderTotal = function(order) {
+  return '合计: ¥' + (order.totalAmount || '0.00');
+};
+
+module.exports = {
+  buildTransferTip: buildTransferTip,
+  buildOrderMeta: buildOrderMeta,
+  buildOrderTotal: buildOrderTotal
+};

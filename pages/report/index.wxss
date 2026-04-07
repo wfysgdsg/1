@@ -1,0 +1,87 @@
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 20rpx;
+}
+.filter-bar {
+  margin-bottom: 20rpx;
+}
+.picker-btn {
+  background: #fff;
+  border-radius: 8rpx;
+  color: #1890ff;
+  display: inline-block;
+  font-size: 26rpx;
+  padding: 12rpx 24rpx;
+}
+.summary-card {
+  background: linear-gradient(135deg, #1890ff, #36cfc9);
+  border-radius: 16rpx;
+  color: #fff;
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+}
+.summary-title {
+  font-size: 28rpx;
+  font-weight: 700;
+  margin-bottom: 20rpx;
+}
+.summary-row {
+  display: -webkit-flex;
+  display: flex;
+}
+.summary-item {
+  flex: 1;
+  text-align: center;
+}
+.summary-item .label {
+  display: block;
+  font-size: 24rpx;
+  opacity: 0.9;
+}
+.summary-item .value {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 700;
+  margin-top: 8rpx;
+}
+.summary-item .value.profit {
+  color: #fff;
+}
+.report-card {
+  background: #fff;
+  border-radius: 16rpx;
+  margin-bottom: 20rpx;
+  padding: 24rpx;
+}
+.report-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+.report-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+.report-row {
+  border-bottom: 1rpx solid #f0f0f0;
+  display: -webkit-flex;
+  display: flex;
+  font-size: 24rpx;
+  padding: 12rpx 0;
+}
+.report-row.header {
+  color: #999;
+  font-size: 22rpx;
+}
+.report-row text {
+  flex: 1;
+  text-align: center;
+}
+.report-row text:first-child {
+  flex: 2;
+  text-align: left;
+}
+.report-row .profit {
+  color: #52c41a;
+}

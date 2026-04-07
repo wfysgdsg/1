@@ -1,0 +1,77 @@
+<view class="container">
+    <view class="filter-bar">
+        <view class="filter-row">
+            <picker bindchange="onFilterChange" range="{{filterOptions}}" rangeKey="name">
+                <view class="filter-btn">{{selectedFilter?selectedFilter.name:uiText.all}}</view>
+            </picker>
+            <picker bindchange="onSortChange" mode="selector" range="{{sortOptions}}" rangeKey="name">
+                <view class="sort-btn">{{selectedSort?selectedSort.name:uiText.sort}}</view>
+            </picker>
+        </view>
+    </view>
+    <view class="filter-bar">
+        <picker bindchange="onMonthChange" fields="month" mode="date" value="{{filterMonth}}">
+            <view class="picker-btn">{{filterMonth||uiText.month}}</view>
+        </picker>
+    </view>
+    <view class="summary">
+        <view class="summary-item">
+            <text class="label">{{uiText.totalAmount}}</text>
+            <text class="value">{{totalAmount}}</text>
+        </view>
+        <view class="summary-item">
+            <text class="label">{{uiText.totalCost}}</text>
+            <text class="value">{{totalCost}}</text>
+        </view>
+        <view class="summary-item">
+            <text class="label">{{uiText.totalProfit}}</text>
+            <text class="value profit">{{totalProfit}}</text>
+        </view>
+    </view>
+    <view class="sale-list" wx:if="{{saleList.length}}">
+        <view class="sale-item" wx:for="{{saleList}}" wx:key="_id">
+            <view class="sale-header">
+                <text class="customer-name">{{item.customerName}}</text>
+                <view class="status-tags">
+                    <text class="status-tag {{item.payStatus}}">{{item.payStatus==='paid'?uiText.paid:uiText.unpaid}}</text>
+                    <text class="sale-date">{{item.saleDate}}</text>
+                </view>
+            </view>
+            <view class="goods-detail">
+                <view class="goods-row header">
+                    <text>{{uiText.goods}}</text>
+                    <text>{{uiText.quantity}}</text>
+                    <text>{{uiText.unitPrice}}</text>
+                    <text>{{uiText.profit}}</text>
+                </view>
+                <view class="goods-row" wx:for="{{item.goodsDetail}}" wx:for-item="goods" wx:key="goodsId">
+                    <text>{{goods.goodsName}}</text>
+                    <text>{{goods.quantity}}{{goods.unit}}</text>
+                    <text>{{goods.salePrice}}</text>
+                    <text class="profit">{{goods.profit}}</text>
+                </view>
+            </view>
+            <view class="sale-footer">
+                <view class="amount-info">
+                    <text>{{uiText.total}}: {{item.totalAmount}}</text>
+                    <text class="profit-text">{{uiText.profit}}: {{item.totalProfit}}</text>
+                </view>
+                <view class="action-btns" wx:if="{{item.payStatus==='unpaid'}}">
+                    <button bindtap="confirmPayment" class="pay-btn" data-id="{{item._id}}" data-wxid="{{item._id}}">确认收款</button>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{!saleList.length}}">
+        <text>{{uiText.noSales}}</text>
+    </view>
+    
+    <!-- 分页 -->
+    <view class="pagination" wx:if="{{totalPages > 1}}">
+        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+        <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
+        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+    </view>
+    
+    <view bindtap="goToAdd" class="add-btn">{{uiText.addSale}}</view>
+</view>

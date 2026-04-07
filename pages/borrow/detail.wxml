@@ -1,0 +1,91 @@
+<view class="container">
+    <view class="header-banner">
+        <view class="customer-info">
+            <text class="customer-name">{{customerName}}</text>
+            <text class="borrow-count">共 {{rawRecords.length}} 条借货记录</text>
+        </view>
+        <view bindtap="toggleBatchMode" class="batch-switch">
+            <text>{{isBatchMode?'取消选择':'批量操作'}}</text>
+        </view>
+    </view>
+    <view class="sub-tabs">
+        <view bindtap="switchTab" class="sub-tab {{tab==='time'?'active':''}}" data-tab="time">按时间</view>
+        <view bindtap="switchTab" class="sub-tab {{tab==='goods'?'active':''}}" data-tab="goods">按商品</view>
+    </view>
+    <view class="selection-tip" wx:if="{{isBatchMode}}">已选 {{selectedIds.length}} 项</view>
+    <view class="records-list" wx:if="{{tab==='time'}}">
+        <view class="time-group" wx:for="{{timeGroups}}" wx:key="date">
+            <view class="date-group-card">
+                <view class="date-header">{{item.date}}</view>
+                <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-card {{utils.includes(selectedIds,r._id)?'selected':''}}" data-id="{{r._id}}" wx:for="{{item.items}}" wx:for-item="r" wx:key="_id">
+                    <view class="record-check" wx:if="{{isBatchMode}}">
+                        <view class="checkbox {{utils.includes(selectedIds,r._id)?'checked':''}}">
+                            <text class="checkmark" wx:if="{{utils.includes(selectedIds,r._id)}}">✓</text>
+                        </view>
+                    </view>
+                    <view class="record-body">
+                        <view class="record-header">
+                            <text class="goods-name">{{r.goodsName}}</text>
+                            <text class="goods-qty">x{{r.quantity}}{{r.unit}}</text>
+                        </view>
+                        <view class="record-footer">
+                            <text class="price-info">成本 ¥{{r.costPrice}} / 售价 ¥{{r.salePrice||0}}</text>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="records-list" wx:if="{{tab==='goods'}}">
+        <view class="goods-summary-card" wx:for="{{goodsGroups}}" wx:key="goodsId">
+            <view class="summary-header">
+                <text class="sum-name">{{item.goodsName}}</text>
+                <text class="sum-qty">总计 {{item.totalQty}} {{item.unit}}</text>
+            </view>
+            <view class="detail-items">
+                <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-mini-row {{utils.includes(selectedIds,r._id)?'selected':''}}" data-id="{{r._id}}" wx:for="{{item.items}}" wx:for-item="r" wx:key="_id">
+                    <view class="mini-check" wx:if="{{isBatchMode}}">
+                        <view class="checkbox mini {{utils.includes(selectedIds,r._id)?'checked':''}}">
+                            <text class="checkmark mini-mark" wx:if="{{utils.includes(selectedIds,r._id)}}">✓</text>
+                        </view>
+                    </view>
+                    <text class="mini-date">{{r.borrowDate}}</text>
+                    <text class="mini-qty">x{{r.quantity}}</text>
+                    <text class="mini-price">¥{{r.salePrice||0}}</text>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{!rawRecords||rawRecords.length===0}}">
+        <text class="empty-icon">✓</text>
+        <text>该客户所有借货均已结清</text>
+    </view>
+    <view class="batch-toolbar" wx:if="{{isBatchMode}}">
+        <view bindtap="selectAll" class="toolbar-info">
+            <view class="checkbox {{selectedIds.length===rawRecords.length&&rawRecords.length>0?'checked':''}}">
+                <text class="checkmark" wx:if="{{selectedIds.length===rawRecords.length&&rawRecords.length>0}}">✓</text>
+            </view>
+            <text>全选（已选 {{selectedIds.length}}）</text>
+        </view>
+        <view class="toolbar-btns">
+            <view bindtap="batchReturn" class="tool-btn return-btn">归还</view>
+            <view bindtap="batchTransfer" class="tool-btn move-btn">移货</view>
+            <view bindtap="batchSale" class="tool-btn sale-btn">去开票</view>
+        </view>
+    </view>
+    <view bindtap="closeStaffPicker" class="modal-mask" wx:if="{{showStaffPicker}}"></view>
+    <view class="staff-picker-modal" wx:if="{{showStaffPicker}}">
+        <view class="modal-title">选择接收员工</view>
+        <view class="modal-body">
+            <picker-view bindchange="onStaffChange" class="staff-picker-view" indicatorStyle="height: 50px;" style="width:100%;height:300rpx;" value="{{[selectedStaffIndex]}}">
+                <picker-view-column>
+                    <view style="line-height:50px;text-align:center;" wx:for="{{staffList}}" wx:key="_id">{{item.name}}</view>
+                </picker-view-column>
+            </picker-view>
+        </view>
+        <view class="modal-footer">
+            <view bindtap="closeStaffPicker" class="modal-btn cancel">取消</view>
+            <view bindtap="confirmTransfer" class="modal-btn confirm">确定发送</view>
+        </view>
+    </view>
+</view>

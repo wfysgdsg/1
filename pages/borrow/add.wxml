@@ -1,0 +1,85 @@
+<view class="container">
+    <view class="form">
+        <view class="ai-recognition">
+            <button bindtap="takePhoto" class="ai-btn" disabled="{{isRecognizing}}">
+                <text class="ai-icon">📷</text>
+                <text>{{isRecognizing?'识别中...':'AI拍照识别商品'}}</text>
+            </button>
+        </view>
+        <view class="form-section">
+            <view class="section-title">选择商品</view>
+            <view class="goods-select">
+                <view class="input-wrapper">
+                    <input bindinput="onSearchInput" class="input" confirmType="search" placeholder="输入商品名称搜索" value="{{searchKeyword}}"></input>
+                    <view bindtap="clearSearch" class="clear-search" wx:if="{{searchKeyword}}">×</view>
+                </view>
+                <view class="search-result" wx:if="{{showSearchResults&&searchResults.length>0}}">
+                    <view bindtap="selectGoods" class="result-item" data-item="{{item}}" wx:for="{{searchResults}}" wx:key="_id">
+                        <text>{{item.name}}</text>
+                        <text class="result-price">¥{{item.costPrice}}</text>
+                    </view>
+                </view>
+                <view class="search-result empty-result" wx:if="{{showSearchResults&&searchResults.length===0&&searchKeyword}}">
+                    <text>未找到商品</text>
+                </view>
+            </view>
+            <view bindtap="goToAddGoods" class="add-quick-link">+ 新增商品</view>
+            <view class="selected-goods" wx:if="{{selectedGoods.length>0}}">
+                <view class="goods-item" wx:for="{{selectedGoods}}" wx:key="index">
+                    <view class="goods-header">
+                        <text class="goods-name">{{item.name}}</text>
+                        <text bindtap="removeGoods" class="remove-btn" data-index="{{index}}">×</text>
+                    </view>
+                    <view class="goods-body">
+                        <view class="price-row">
+                            <text class="price-label">成本:</text>
+                            <input bindinput="onCostPriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.costPrice}}"></input>
+                        </view>
+                        <view class="price-row">
+                            <text class="price-label">数量:</text>
+                            <input bindinput="onQuantityInput" class="quantity-input" data-index="{{index}}" placeholder="0" type="digit" value="{{item.quantity}}"></input>
+                        </view>
+                    </view>
+                    <view class="goods-footer">
+                        <text class="goods-unit">单位: {{item.unit||'无'}}</text>
+                    </view>
+                </view>
+            </view>
+        </view>
+        <view class="form-section">
+            <view class="section-title">客户信息 *</view>
+            <view class="location-search">
+                <input bindinput="onLocationSearchInput" class="contact-input" confirmType="search" placeholder="输入关键字搜索客户" value="{{locationSearchKeyword}}"></input>
+                <view class="contact-results" wx:if="{{showLocationResults&&locationSearchResults.length>0}}">
+                    <view bindtap="selectLocation" class="contact-item" data-item="{{item}}" wx:for="{{locationSearchResults}}" wx:key="_id">
+                        <text>{{item.name}}</text>
+                        <text class="result-detail" wx:if="{{item.contact}}">{{item.contact}}</text>
+                    </view>
+                </view>
+                <view class="contact-results empty-result" wx:if="{{showLocationResults&&locationSearchResults.length===0&&locationSearchKeyword}}">
+                    <text>未找到匹配客户</text>
+                </view>
+            </view>
+            <view class="selected-location" wx:if="{{selectedLocation}}">
+                <text class="selected-text">已选: {{selectedLocation.name}}</text>
+                <text bindtap="clearLocationSearch" class="clear-btn">×</text>
+            </view>
+            <view bindtap="goToAddContact" class="add-quick-link">+ 新增客户</view>
+        </view>
+        <view class="form-item">
+            <text class="label">借货日期 *</text>
+            <picker bindchange="onDateChange" mode="date" value="{{borrowDate}}">
+                <view class="picker">{{borrowDate||'请选择日期'}}</view>
+            </picker>
+        </view>
+        <view class="form-item">
+            <text class="label">备注</text>
+            <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
+        </view>
+        <view class="stock-tip">提示：借货成功后，商品会自动添加到你的个人库存中</view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="goBack" class="cancel-btn">取消</button>
+        <button bindtap="submit" class="submit-btn">确认借货</button>
+    </view>
+</view>

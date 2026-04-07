@@ -1,0 +1,25 @@
+<view class="container">
+    <view class="search-bar">
+        <text class="search-icon">🔍</text>
+        <input bindinput="onSearch" class="search-input" placeholder="搜索存放位置"></input>
+    </view>
+    <view class="customer-list">
+        <view class="customer-item" wx:for="{{customerList}}" wx:key="_id">
+            <view class="customer-info">
+                <text class="customer-name">{{item.name}}</text>
+                <view class="customer-detail" wx:if="{{item.remark}}">
+                    <text>📝 {{item.remark}}</text>
+                </view>
+            </view>
+            <view class="customer-actions">
+                <text bindtap="editCustomer" class="action-btn edit" data-id="{{item._id}}">编辑</text>
+                <text bindtap="deleteCustomer" class="action-btn delete" data-id="{{item._id}}">删除</text>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{customerList.length===0}}">
+        <text class="empty-icon">📍</text>
+        <text>暂无存放位置</text>
+    </view>
+    <view bindtap="goToAdd" class="add-btn">+ 新增位置</view>
+</view>

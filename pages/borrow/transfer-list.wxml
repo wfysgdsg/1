@@ -1,0 +1,34 @@
+<view class="container">
+    <view class="header-banner">
+        <text class="title">移货申请列表</text>
+        <text class="subtitle">待您确认接收的货品</text>
+    </view>
+    <view class="request-list">
+        <view class="request-card" wx:for="{{requestList}}" wx:key="_id">
+            <view class="card-header">
+                <view class="sender-info">
+                    <text class="sender-name">来自: {{item.senderName}}</text>
+                    <text class="request-time">时间: {{item.createTime}}</text>
+                </view>
+                <view class="status-tag">待接收</view>
+            </view>
+            <view class="card-body">
+                <view class="customer-info">原单位: {{item.fromCustomerName}}</view>
+                <view class="goods-list">
+                    <view class="goods-item" wx:for="{{item.goodsList}}" wx:for-item="goods" wx:key="goodsId">
+                        <text class="goods-name">• {{goods.goodsName}}</text>
+                        <text class="goods-qty">x{{goods.quantity}} {{goods.unit}}</text>
+                    </view>
+                </view>
+            </view>
+            <view class="card-footer">
+                <view bindtap="rejectTransfer" class="action-btn reject" data-id="{{item._id}}">拒绝</view>
+                <view bindtap="acceptTransfer" class="action-btn accept" data-id="{{item._id}}">同意接收</view>
+            </view>
+        </view>
+        <view class="empty" wx:if="{{!requestList||requestList.length===0}}">
+            <text class="empty-icon">📂</text>
+            <text>暂无待处理的移货申请</text>
+        </view>
+    </view>
+</view>

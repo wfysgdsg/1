@@ -1,0 +1,41 @@
+<view class="container">
+    <view class="search-bar">
+        <icon size="18" type="search"></icon>
+        <input bindinput="onSearch" placeholder="搜索名称/备注" type="text" value="{{searchKeyword}}"></input>
+    </view>
+
+    <!-- 顶部分页 -->
+    <view class="pagination" wx:if="{{totalPages > 1}}">
+        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+        <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
+        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+    </view>
+
+    <scroll-view scrollY class="contact-list">
+        <view bindtap="editContact" class="contact-card" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id">
+            <view class="contact-info">
+                <view class="name-row">
+                    <text class="name">{{item.name}}</text>
+                </view>
+                <view class="detail" wx:if="{{item.contact}}">联系方式: {{item.contact}}</view>
+                <view class="detail" wx:if="{{item.note}}">备注: {{item.note}}</view>
+            </view>
+            <view catchtap="deleteContact" class="delete-btn" data-id="{{item._id}}">
+                <icon color="#ff4d4f" size="20" type="cancel"></icon>
+            </view>
+        </view>
+        <view class="empty" wx:if="{{contactList.length===0}}">
+            <text>暂无联系人，请点击下方 + 号添加</text>
+        </view>
+
+        <!-- 底部分页 -->
+        <view class="pagination" wx:if="{{totalPages > 1}}">
+            <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+            <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
+            <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+        </view>
+    </scroll-view>
+    <view bindtap="goToAdd" class="fab">
+        <text class="plus">+</text>
+    </view>
+</view>

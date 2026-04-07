@@ -1,0 +1,21 @@
+<view class="container">
+    <view class="header">
+        <text class="title">员工管理</text>
+        <button bindtap="addUser" class="add-btn" wx:if="{{isRoot}}">+ 添加员工</button>
+    </view>
+    <view class="user-list">
+        <view class="user-item" wx:for="{{userList}}" wx:key="_id">
+            <view class="user-info">
+                <text class="user-name">{{item.name||item.username}}</text>
+                <text class="user-role">{{item.role==='root'?'管理员':'员工'}}</text>
+            </view>
+            <view class="user-actions" wx:if="{{isRoot&&item.role!=='root'}}">
+                <text bindtap="resetPassword" class="action-btn" data-id="{{item._id}}">改密码</text>
+                <text bindtap="deleteUser" class="action-btn delete" data-id="{{item._id}}" data-name="{{item.name}}">删除</text>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{userList.length===0}}">
+        <text>暂无员工</text>
+    </view>
+</view>

@@ -1,0 +1,48 @@
+<view class="container">
+    <view class="bg-orb bg-orb-1"></view>
+    <view class="bg-orb bg-orb-2"></view>
+    <view class="bg-orb bg-orb-3"></view>
+    <view class="logo-section">
+        <view class="logo-circle">
+            <text class="logo-icon">{{uiText.logo}}</text>
+        </view>
+        <text class="logo-title">{{uiText.title}}</text>
+        <text class="logo-subtitle">{{uiText.subtitle}}</text>
+    </view>
+    <view class="form-card">
+        <view class="input-group">
+            <text class="input-icon">{{uiText.account}}</text>
+            <input bindinput="onUsernameInput" class="input" placeholder="{{uiText.accountPlaceholder}}" value="{{username}}"></input>
+        </view>
+        <view class="input-group">
+            <text class="input-icon">{{uiText.password}}</text>
+            <input bindinput="onPasswordInput" class="input" password="{{!showPassword}}" placeholder="{{uiText.passwordPlaceholder}}" value="{{password}}"></input>
+            <view bindtap="togglePassword" class="eye-icon">
+                <text>{{showPassword?uiText.hide:uiText.show}}</text>
+            </view>
+        </view>
+        <view class="option-row">
+            <view bindtap="toggleRememberPassword" class="option-item">
+                <view class="checkbox {{rememberPassword?'checked':''}}">
+                    <text wx:if="{{rememberPassword}}">√</text>
+                </view>
+                <text class="option-text">{{uiText.rememberPassword}}</text>
+            </view>
+            <view bindtap="toggleAutoLogin" class="option-item">
+                <view class="checkbox {{autoLogin?'checked':''}}">
+                    <text wx:if="{{autoLogin}}">√</text>
+                </view>
+                <text class="option-text">{{uiText.autoLogin}}</text>
+            </view>
+        </view>
+        <button bindtap="login" class="login-btn">{{uiText.login}}</button>
+    </view>
+    <view class="extra-links">
+        <text bindtap="forgotPassword" class="link">{{uiText.forgotPassword}}</text>
+        <text class="divider">|</text>
+        <text bindtap="changePassword" class="link">{{uiText.changePassword}}</text>
+    </view>
+    <view class="footer">
+        <text>{{uiText.firstLoginTip}}</text>
+    </view>
+</view>
