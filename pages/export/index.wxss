@@ -1,0 +1,63 @@
+.container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding: 30rpx;
+}
+.form {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 30rpx;
+}
+.form-item {
+  margin-bottom: 30rpx;
+}
+.label {
+  color: #333;
+  display: block;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+.label,
+.picker {
+  font-size: 28rpx;
+}
+.picker {
+  align-items: center;
+  background: #f7f7f7;
+  border-radius: 8rpx;
+  display: -webkit-flex;
+  display: flex;
+  height: 80rpx;
+  padding: 0 20rpx;
+}
+.btn-group {
+  margin-top: 40rpx;
+}
+.export-btn {
+  background: #1890ff;
+  border-radius: 44rpx;
+  color: #fff;
+  font-size: 30rpx;
+  height: 88rpx;
+}
+.preview {
+  background: #fff;
+  border-radius: 16rpx;
+  margin-top: 40rpx;
+  padding: 30rpx;
+}
+.preview-title {
+  font-size: 28rpx;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+.preview-list {
+  max-height: 400rpx;
+  overflow-y: auto;
+}
+.preview-item {
+  border-bottom: 1rpx solid #f0f0f0;
+  color: #666;
+  font-size: 24rpx;
+  padding: 12rpx 0;
+}

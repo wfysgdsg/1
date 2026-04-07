@@ -1,0 +1,16 @@
+<view class="container">
+    <view class="form-card">
+        <view class="form-item">
+            <text class="label">存放位置 *</text>
+            <input bindinput="onNameInput" class="input" placeholder="请输入存放位置名称" value="{{name}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">备注</text>
+            <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="goBack" class="cancel-btn">取消</button>
+        <button bindtap="submit" class="submit-btn">保存</button>
+    </view>
+</view>

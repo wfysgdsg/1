@@ -1,0 +1,9 @@
+{
+  "name": "getHomeStats",
+  "version": "1.0.0",
+  "description": "首页聚合统计",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

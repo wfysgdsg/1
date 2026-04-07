@@ -1,0 +1,75 @@
+<view class="container">
+    <view class="month-selector">
+        <picker bindchange="onMonthChange" fields="month" mode="date" value="{{selectedMonth}}">
+            <view class="picker-btn">
+                <text class="month-text">{{selectedMonth}} 报表</text>
+                <text class="arrow">▼</text>
+            </view>
+        </picker>
+    </view>
+    <view class="summary-grid">
+        <view class="summary-card main">
+            <text class="label">本月净利润</text>
+            <text class="value">¥{{profit}}</text>
+            <view class="trend {{trend>=0?'up':'down'}}" wx:if="{{lastMonthProfit>0}}">{{trend>=0?'↑':'↓'}} 环比 {{absTrend}}%</view>
+        </view>
+        <view class="summary-sub">
+            <view class="sub-card sales">
+                <text class="sub-label">销售总额(含税)</text>
+                <text class="sub-value">¥{{totalSales}}</text>
+            </view>
+            <view class="sub-card cost">
+                <text class="sub-label">库存总成本</text>
+                <text class="sub-value">¥{{totalCost}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="section">
+        <view class="section-title">
+            <text>商品销量排行</text>
+            <text class="more">Top 5</text>
+        </view>
+        <view class="rank-list">
+            <view class="rank-item" wx:for="{{topGoods}}" wx:key="name">
+                <view class="rank-info">
+                    <text class="index">{{index+1}}</text>
+                    <text class="name">{{item.name}}</text>
+                </view>
+                <view class="rank-data">
+                    <text class="qty">{{item.qty}}件</text>
+                    <text class="profit">赚 ¥{{item.profit}}</text>
+                </view>
+            </view>
+            <view class="empty-small" wx:if="{{topGoods.length===0}}">暂无数据</view>
+        </view>
+    </view>
+    <view class="section">
+        <view class="section-title">
+            <text>大客户贡献榜</text>
+            <text class="more">按利润</text>
+        </view>
+        <view class="customer-list">
+            <view class="customer-item" wx:for="{{topCustomers}}" wx:key="name">
+                <view class="cust-info">
+                    <text class="cust-name">{{item.name}}</text>
+                    <view class="progress-bar">
+                        <view class="progress" style="width:{{item.percent}}%;"></view>
+                    </view>
+                </view>
+                <view class="cust-data">
+                    <text class="cust-profit">¥{{item.profit}}</text>
+                </view>
+            </view>
+            <view class="empty-small" wx:if="{{topCustomers.length===0}}">暂无数据</view>
+        </view>
+    </view>
+    <canvas canvasId="reportCanvas" style="width:750px;height:1200px;position:fixed;left:-10000px;"></canvas>
+    <view class="action-bar">
+        <button bindtap="exportExcel" class="btn excel">
+            <text>📊 导出月度 Excel</text>
+        </button>
+        <button bindtap="exportReportImage" class="btn image">
+            <text>🖼️ 生成报表长图</text>
+        </button>
+    </view>
+</view>

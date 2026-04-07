@@ -1,0 +1,130 @@
+<wxs src="./index.wxs" module="indexWxs" />
+<view class="container">
+    <view class="header-banner">
+        <view class="user-info">
+            <view class="welcome-box">
+                <text class="greeting">{{uiText.greeting}}{{userName}}</text>
+                <text class="date">{{currentDate}}</text>
+            </view>
+            <view bindtap="goToProfile" class="profile-entry">
+                <text class="profile-icon">{{uiText.profileIcon}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="stats-card">
+        <view class="stat-main">
+            <text class="stat-val">{{todaySales}}</text>
+            <text class="stat-lab">{{uiText.todaySales}}</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-side">
+            <view class="stat-mini">
+                <text class="mini-val">{{stockTotal}}</text>
+                <text class="mini-lab">{{uiText.stockTotal}}</text>
+            </view>
+            <view class="stat-mini">
+                <text class="mini-val" style="color:{{unpaidCount>0?'#ff4d4f':'#52c41a'}}">{{unpaidCount}}</text>
+                <text class="mini-lab">{{uiText.unpaidCount}}</text>
+            </view>
+        </view>
+    </view>
+    <view class="grid-stats">
+        <view bindtap="goToGoods" class="grid-item">
+            <text class="grid-num">{{goodsCount}}</text>
+            <text class="grid-label">{{uiText.goodsCount}}</text>
+        </view>
+        <view bindtap="goToBorrow" class="grid-item">
+            <text class="grid-num">{{borrowCount}}</text>
+            <text class="grid-label">{{uiText.borrowCount}}</text>
+        </view>
+        <view bindtap="goToSale" class="grid-item">
+            <text class="grid-num">{{saleCount}}</text>
+            <text class="grid-label">{{uiText.saleCount}}</text>
+        </view>
+    </view>
+    <view bindtap="goToTransfer" class="alert-bar" wx:if="{{transferCount>0}}">
+        <view class="alert-content">
+            <text class="alert-text">{{indexWxs.buildTransferTip(transferCount)}}</text>
+        </view>
+        <text class="alert-btn">去处理</text>
+    </view>
+    <view class="section-title">
+        <text>{{uiText.quickActions}}</text>
+        <text class="title-tip">{{uiText.quickTip}}</text>
+    </view>
+    <view class="action-grid">
+        <view bindtap="goToAddSale" class="action-card" style="background:linear-gradient(135deg, #69c0ff 0%, #1890ff 100%);">
+            <text class="action-title">{{uiText.addSale}}</text>
+            <text class="action-desc">{{uiText.addSaleDesc}}</text>
+        </view>
+        <view bindtap="goToAddBorrow" class="action-card" style="background:linear-gradient(135deg, #ffbb96 0%, #ff7a45 100%);">
+            <text class="action-title">{{uiText.addBorrow}}</text>
+            <text class="action-desc">{{uiText.addBorrowDesc}}</text>
+        </view>
+        <view class="mini-action-row">
+            <view bindtap="goToDebt" class="mini-action">
+                <view class="mini-icon" style="background:#fff1f0;">{{uiText.debtIcon}}</view>
+                <text>{{uiText.debt}}</text>
+                <view class="mini-badge" wx:if="{{unpaidCount>0}}">{{unpaidCount}}</view>
+            </view>
+            <view bindtap="goToContact" class="mini-action">
+                <view class="mini-icon" style="background:#f6ffed;">{{uiText.contactIcon}}</view>
+                <text>{{uiText.contact}}</text>
+            </view>
+            <view bindtap="goToReport" class="mini-action">
+                <view class="mini-icon" style="background:#f9f0ff;">{{uiText.reportIcon}}</view>
+                <text>{{uiText.report}}</text>
+            </view>
+            <view bindtap="goToTransfer" class="mini-action">
+                <view class="mini-icon" style="background:#e6f7ff;">{{uiText.transferIcon}}</view>
+                <text>{{uiText.transfer}}</text>
+                <view class="mini-badge" wx:if="{{transferCount>0}}">{{transferCount}}</view>
+            </view>
+        </view>
+    </view>
+    <view class="section-title receivable-title">
+        <text>{{uiText.receivableTitle}}</text>
+        <text bindtap="goToDebt" class="title-tip">{{uiText.viewAll}}</text>
+    </view>
+    <view class="receivable-panel" wx:if="{{receivableList.length>0}}">
+        <view class="receivable-card" wx:for="{{receivableList}}" wx:key="customerId">
+            <view bindtap="toggleReceivable" class="receivable-header" data-id="{{item.customerId}}">
+                <view class="receivable-left">
+                    <text class="receivable-name">{{item.customerName}}</text>
+                    <text class="receivable-meta">{{indexWxs.buildOrderMeta(item.orderCount)}}</text>
+                </view>
+                <view class="receivable-right">
+                    <text class="receivable-amount">{{item.totalAmount}}</text>
+                    <text class="receivable-arrow">{{receivableExpandedId===item.customerId?uiText.collapse:uiText.expand}}</text>
+                </view>
+            </view>
+            <view class="receivable-body" wx:if="{{receivableExpandedId===item.customerId}}">
+                <view class="receivable-order" wx:for="{{item.orders}}" wx:for-item="order" wx:key="_id">
+                    <view class="order-top">
+                        <text class="order-date">{{order.saleDate}}</text>
+                        <text class="order-total">{{indexWxs.buildOrderTotal(order)}}</text>
+                    </view>
+                    <view class="goods-table">
+                        <view class="goods-table-head">
+                            <text>{{uiText.goods}}</text>
+                            <text>{{uiText.quantity}}</text>
+                            <text>{{uiText.price}}</text>
+                            <text>{{uiText.total}}</text>
+                            <text>{{uiText.profit}}</text>
+                        </view>
+                        <view class="goods-table-row" wx:for="{{order.goodsRows}}" wx:for-item="row" wx:key="goodsName">
+                            <text>{{row.goodsName}}</text>
+                            <text>{{row.quantity}}{{row.unit}}</text>
+                            <text>{{row.salePrice}}</text>
+                            <text>{{row.lineTotal}}</text>
+                            <text class="profit-cell">{{row.profit}}</text>
+                        </view>
+                    </view>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="receivable-empty" wx:else>
+        <text>{{uiText.noReceivables}}</text>
+    </view>
+</view>

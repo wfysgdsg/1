@@ -1,0 +1,28 @@
+<view class="container">
+    <view class="form">
+        <view class="form-item">
+            <text class="label">{{uiText.dataType}}</text>
+            <picker bindchange="onTypeChange" range="{{dataTypes}}" rangeKey="name">
+                <view class="picker">{{selectedType?selectedType.name:uiText.choose}}</view>
+            </picker>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.dateRange}}</text>
+            <picker bindchange="onStartDateChange" mode="date" start="2024-01-01" value="{{startDate}}">
+                <view class="picker">{{uiText.start}}{{startDate||uiText.choose}}</view>
+            </picker>
+            <picker bindchange="onEndDateChange" mode="date" value="{{endDate}}">
+                <view class="picker" style="margin-top:16rpx;">{{uiText.end}}{{endDate||uiText.choose}}</view>
+            </picker>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="exportData" class="export-btn">{{uiText.exportExcel}}</button>
+    </view>
+    <view class="preview" wx:if="{{previewData.length>0}}">
+        <view class="preview-title">{{uiText.preview}}</view>
+        <view class="preview-list">
+            <view class="preview-item" wx:for="{{previewData}}" wx:key="index">{{item}}</view>
+        </view>
+    </view>
+</view>

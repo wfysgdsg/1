@@ -1,0 +1,62 @@
+<view class="container">
+    <view class="header-card">
+        <text class="total-label">{{uiText.totalDebt}}</text>
+        <text class="total-amount">{{totalDebt}}</text>
+        <view class="total-stats">
+            <text>{{debtCount}} {{uiText.unpaidOrders}}</text>
+            <text>{{customerCount}} {{uiText.customers}}</text>
+        </view>
+    </view>
+    <view class="customer-list">
+        <view class="customer-debt-item" wx:for="{{debtList}}" wx:key="contactId">
+            <view bindtap="toggleCustomer" class="customer-header" data-id="{{item.contactId}}">
+                <view class="customer-info">
+                    <text class="customer-name">{{item.contactName}}</text>
+                    <text class="order-count">{{item.orders.length}} {{uiText.orderCount}}</text>
+                </view>
+                <view class="customer-amount-info">
+                    <view class="debt-sums">
+                        <text class="debt-amount">{{item.displayOriginal}}</text>
+                        <text class="debt-profit">{{uiText.profit}}: {{item.displayProfit}}</text>
+                    </view>
+                    <text class="arrow {{expandedId===item.contactId?'up':'down'}}">▼</text>
+                </view>
+            </view>
+            <view class="order-details" wx:if="{{expandedId===item.contactId}}">
+                <view class="order-item" wx:for="{{item.orders}}" wx:for-item="order" wx:key="_id">
+                    <view class="order-main">
+                        <view class="order-date-box">
+                            <text class="order-date">{{order.saleDate}}</text>
+                            <text class="debt-tag {{order.debtDays>30?'urgent':''}}">{{uiText.overdue}}{{order.debtDays}}{{uiText.days}}</text>
+                        </view>
+                        <view class="order-money-info">
+                            <text class="order-amount">{{uiText.originalPrice}}: {{order.orderOriginal}}</text>
+                            <text class="order-profit">{{uiText.grossProfit}}: {{order.orderProfit}}</text>
+                        </view>
+                    </view>
+                    <view class="goods-table" wx:if="{{order.goodsRows.length}}">
+                        <view class="goods-table-head">
+                            <text class="col-name">{{uiText.goodsName}}</text>
+                            <text class="col-qty">{{uiText.quantity}}</text>
+                            <text class="col-price">{{uiText.unitPrice}}</text>
+                            <text class="col-profit">{{uiText.grossProfit}}</text>
+                            <text class="col-total">{{uiText.totalPrice}}</text>
+                        </view>
+                        <view class="goods-table-row" wx:for="{{order.goodsRows}}" wx:for-item="row" wx:key="index">
+                            <text class="col-name goods-name">{{row.goodsName}}</text>
+                            <text class="col-qty">{{row.quantity}}{{row.unit}}</text>
+                            <text class="col-price">{{row.salePrice}}</text>
+                            <text class="col-profit profit-text">{{row.profit}}</text>
+                            <text class="col-total">{{row.lineTotal}}</text>
+                        </view>
+                    </view>
+                    <button bindtap="confirmPayment" class="pay-btn-sm" data-id="{{order._id}}">{{uiText.confirmPayment}}</button>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{debtList.length===0}}">
+        <icon color="#52c41a" size="60" type="success"></icon>
+        <text>{{uiText.noDebt}}</text>
+    </view>
+</view>

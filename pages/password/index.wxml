@@ -1,0 +1,20 @@
+<view class="container">
+    <view class="form">
+        <view class="form-item">
+            <text class="label">{{uiText.oldPassword}}</text>
+            <input password bindinput="onOldPasswordInput" class="input" placeholder="{{uiText.oldPasswordPlaceholder}}" value="{{oldPassword}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.newPassword}}</text>
+            <input password bindinput="onNewPasswordInput" class="input" placeholder="{{uiText.newPasswordPlaceholder}}" value="{{newPassword}}"></input>
+        </view>
+        <view class="form-item">
+            <text class="label">{{uiText.confirmPassword}}</text>
+            <input password bindinput="onConfirmPasswordInput" class="input" placeholder="{{uiText.confirmPasswordPlaceholder}}" value="{{confirmPassword}}"></input>
+        </view>
+    </view>
+    <view class="btn-group">
+        <button bindtap="goBack" class="cancel-btn">{{uiText.cancel}}</button>
+        <button bindtap="submit" class="submit-btn">{{uiText.save}}</button>
+    </view>
+</view>
