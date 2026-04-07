@@ -6,6 +6,7 @@ const db = wx.cloud.database();
 const _ = db.command;
 const { fetchAll } = require('../../utils/db');
 const { matchGoodsFromOcr } = require('../../utils/ocr');
+const Money = require('../../utils/money');
 
 Page({
   data: {
@@ -320,7 +321,7 @@ Page({
    */
   calcProfit: function () {
     const goods = this.data.selectedGoods;
-    let totalAmt = 0, totalCostAmt = 0, totalProfAmt = 0;
+    let totalAmtCents = 0, totalCostAmtCents = 0, totalProfAmtCents = 0;
     let hasAllQty = goods.length > 0;
 
     const list = goods.map(g => {
@@ -333,13 +334,17 @@ Page({
       // 根据分类判断税率 (默认为硬件 1.13)
       const taxRate = g.category === 'software' ? 1.06 : 1.13;
       
-      const lineSale = (qty * Number(g.salePrice || 0)) / taxRate;
-      const lineCost = (qty * Number(g.costPrice || 0)) / taxRate;
-      const lineProfit = lineSale - lineCost;
+      // 使用分单位计算
+      const salePriceCents = Money.yuanToCents(g.salePrice);
+      const costPriceCents = Money.yuanToCents(g.costPrice);
       
-      totalAmt += lineSale;
-      totalCostAmt += lineCost;
-      totalProfAmt += lineProfit;
+      const lineSaleCents = Money.divide(Money.multiply(salePriceCents, qty), taxRate);
+      const lineCostCents = Money.divide(Money.multiply(costPriceCents, qty), taxRate);
+      const lineProfitCents = lineSaleCents - lineCostCents;
+      
+      totalAmtCents += lineSaleCents;
+      totalCostAmtCents += lineCostCents;
+      totalProfAmtCents += lineProfitCents;
       
       return {
         _id: g._id,
@@ -350,16 +355,16 @@ Page({
         salePrice: g.salePrice,
         userStock: g.userStock,
         quantity: g.quantity,
-        profit: lineProfit.toFixed(2)
+        profit: Money.centsToYuan(lineProfitCents)
       };
     });
 
     this.setData({
       selectedGoods: list,
-      totalAmount: totalAmt.toFixed(2),
-      totalCost: totalCostAmt.toFixed(2),
-      totalProfit: totalProfAmt.toFixed(2),
-      profitRate: totalAmt > 0 ? ((totalProfAmt / totalAmt) * 100).toFixed(2) : '0.00',
+      totalAmount: Money.centsToYuan(totalAmtCents),
+      totalCost: Money.centsToYuan(totalCostAmtCents),
+      totalProfit: Money.centsToYuan(totalProfAmtCents),
+      profitRate: totalAmtCents > 0 ? ((totalProfAmtCents / totalAmtCents) * 100).toFixed(2) : '0.00',
       hasAllQuantities: hasAllQty,
     });
   },
@@ -376,6 +381,19 @@ Page({
     if (!selectedGoods.length || !selectedContact || !saleDate) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' });
       return;
+    }
+
+    // 严格校验：数量必须为正数，单价不能为负
+    for (const g of selectedGoods) {
+      const qty = parseFloat(g.quantity);
+      if (isNaN(qty) || qty < 0) {
+        wx.showToast({ title: `商品【${g.name}】数量非法`, icon: 'none' });
+        return;
+      }
+      if (Number(g.salePrice) < 0 || Number(g.costPrice) < 0) {
+        wx.showToast({ title: `商品【${g.name}】价格非法`, icon: 'none' });
+        return;
+      }
     }
 
     if (selectedGoods.filter(g => parseFloat(g.quantity) > 0).length === 0) {

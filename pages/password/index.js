@@ -2,6 +2,7 @@
  * 修改密码逻辑 (反编译还原整理)
  * 整理日期：2024-03-26
  */
+const CLIENT_SALT = 'personal_assets_salt_2024';
 const { md5 } = require('../../utils/util');
 
 Page({
@@ -68,8 +69,8 @@ Page({
           action: 'changePassword',
           userId: wx.getStorageSync('userId'),
           sessionToken: wx.getStorageSync('sessionToken'),
-          oldPassword: md5(oldPassword),
-          newPassword: md5(newPassword),
+          oldPassword: md5(oldPassword + CLIENT_SALT),
+          newPassword: md5(newPassword + CLIENT_SALT),
         },
       });
 

@@ -8,6 +8,7 @@ const AUTO_LOGIN_KEY = 'autoLogin';
 const REMEMBERED_USER_KEY = 'rememberedUsername';
 const REMEMBERED_PWD_KEY = 'rememberedPassword';
 
+const CLIENT_SALT = 'personal_assets_salt_2024';
 const { md5 } = require('../../utils/util');
 
 Page({
@@ -119,14 +120,14 @@ Page({
     wx.showLoading({ title: isAuto ? '自动登录中...' : '登录中...' });
 
     try {
-      // 如果不是自动登录（即手动输入），则需要处理 MD5
+      // 如果不是自动登录（即手动输入），则需要处理 MD5 (加盐)
       // 注意：如果从缓存恢复的已经是 MD5 了，就不应该再次 MD5
       // 我们可以通过长度判断，MD5 始终是 32 位 hex
       let loginPassword = password;
       const isAlreadyMd5 = /^[a-f0-9]{32}$/i.test(password);
       
       if (!isAlreadyMd5) {
-        loginPassword = md5(password);
+        loginPassword = md5(password + CLIENT_SALT);
       }
 
       // 调用云函数

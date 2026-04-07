@@ -1,5 +1,6 @@
 var e = require('../../@babel/runtime/helpers/regeneratorRuntime'),
   t = require('../../@babel/runtime/helpers/asyncToGenerator'),
+  CLIENT_SALT = 'personal_assets_salt_2024',
   md5 = require('../../utils/util').md5,
   r = wx.cloud.database(),
   n = require('../../utils/db').fetchAll;
@@ -92,7 +93,7 @@ Page({
                                     action: 'add',
                                     username: a,
                                     name: a,
-                                    password: md5(s),
+                                    password: md5(s + CLIENT_SALT),
                                   },
                                 })
                               );
@@ -272,7 +273,7 @@ Page({
                             sessionToken: wx.getStorageSync('sessionToken'),
                             action: 'resetPassword',
                             targetUserId: s,
-                            newPassword: md5(n),
+                            newPassword: md5(n + CLIENT_SALT),
                           },
                         })
                       );
