@@ -1,1 +1,1 @@
-{ "navigationBarTitleText": "商品库", "usingComponents": {} }
+{ "navigationBarTitleText": "商品库", "enablePullDownRefresh": true, "usingComponents": {} }

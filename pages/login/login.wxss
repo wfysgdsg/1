@@ -8,12 +8,13 @@ page {
 }
 .container {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
   flex-direction: column;
   padding: 80rpx 50rpx;
   position: relative;
 }
+
+/* 背景光晕 */
 .bg-orb {
   animation: float 8s ease-in-out infinite;
   border-radius: 50%;
@@ -45,267 +46,255 @@ page {
   right: 50rpx;
   width: 250rpx;
 }
-@-webkit-keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-30rpx) scale(1.05);
-  }
-}
 @keyframes float {
-  0%,
-  100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-30rpx) scale(1.05);
-  }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-30rpx) scale(1.05); }
 }
+
+/* Logo 区域 */
 .logo-section {
   animation: fadeInDown 0.8s ease-out;
-  margin-bottom: 80rpx;
-  margin-top: 60rpx;
+  margin-bottom: 60rpx;
+  margin-top: 40rpx;
   position: relative;
   text-align: center;
   z-index: 10;
 }
-@-webkit-keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-40rpx); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .logo-circle {
   align-items: center;
   backdrop-filter: blur(20rpx);
-  background: linear-gradient(
-    135deg,
-    hsla(0, 0%, 100%, 0.2),
-    hsla(0, 0%, 100%, 0.1)
-  );
-  border: 3rpx solid hsla(0, 0%, 100%, 0.3);
+  background: linear-gradient(135deg, hsla(0,0%,100%,0.2), hsla(0,0%,100%,0.1));
+  border: 3rpx solid hsla(0,0%,100%,0.3);
   border-radius: 50%;
-  box-shadow: 0 30rpx 60rpx rgba(0, 0, 0, 0.3);
-  display: -webkit-flex;
+  box-shadow: 0 30rpx 60rpx rgba(0,0,0,0.3);
   display: flex;
-  height: 180rpx;
+  height: 160rpx;
   justify-content: center;
-  margin: 0 auto 30rpx;
-  width: 180rpx;
+  margin: 0 auto 24rpx;
+  width: 160rpx;
 }
 .logo-icon {
-  font-size: 90rpx;
+  font-size: 80rpx;
 }
 .logo-title {
   -webkit-text-fill-color: transparent;
   background: linear-gradient(135deg, #fff, #e0e0e0);
   -webkit-background-clip: text;
+  background-clip: text;
   color: #fff;
   display: block;
-  font-size: 56rpx;
+  font-size: 52rpx;
   font-weight: 700;
   letter-spacing: 4rpx;
-  text-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.3);
 }
 .logo-subtitle {
-  color: hsla(0, 0%, 100%, 0.7);
+  color: hsla(0,0%,100%,0.6);
   display: block;
-  font-size: 26rpx;
+  font-size: 24rpx;
   letter-spacing: 6rpx;
-  margin-top: 16rpx;
+  margin-top: 12rpx;
   text-transform: uppercase;
 }
+
+/* 表单卡片 */
 .form-card {
   animation: fadeInUp 0.8s ease-out 0.2s both;
   backdrop-filter: blur(30rpx);
-  background: hsla(0, 0%, 100%, 0.08);
-  border: 1rpx solid hsla(0, 0%, 100%, 0.15);
-  border-radius: 32rpx;
-  box-shadow: 0 40rpx 80rpx rgba(0, 0, 0, 0.25);
-  padding: 60rpx 44rpx;
+  background: hsla(0,0%,100%,0.08);
+  border: 1rpx solid hsla(0,0%,100%,0.15);
+  border-radius: 40rpx;
+  box-shadow: 0 40rpx 80rpx rgba(0,0,0,0.25);
+  padding: 56rpx 48rpx;
   position: relative;
   width: 100%;
   z-index: 10;
 }
-@-webkit-keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(40rpx);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(40rpx); }
+  to { opacity: 1; transform: translateY(0); }
 }
-.input-group {
+
+/* 字段包装 */
+.field-wrapper {
+  margin-bottom: 36rpx;
+}
+.field-label {
+  color: hsla(0,0%,100%,0.7);
+  font-size: 26rpx;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+  padding-left: 8rpx;
+  letter-spacing: 2rpx;
+}
+
+/* 输入框容器 */
+.input-wrapper {
   align-items: center;
-  background: hsla(0, 0%, 100%, 0.1);
-  border: 1rpx solid hsla(0, 0%, 100%, 0.1);
-  border-radius: 16rpx;
-  display: -webkit-flex;
+  background: hsla(0,0%,100%,0.06);
+  border: 2rpx solid hsla(0,0%,100%,0.1);
+  border-radius: 24rpx;
   display: flex;
-  margin-bottom: 28rpx;
+  height: 96rpx;
   padding: 0 28rpx;
-  transition: all 0.3s ease;
+  position: relative;
+  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.input-group:focus-within {
-  background: hsla(0, 0%, 100%, 0.15);
-  border-color: rgba(102, 126, 234, 0.5);
-  box-shadow: 0 0 20rpx rgba(102, 126, 234, 0.2);
+/* 聚焦状态 */
+.input-wrapper.focused {
+  background: hsla(0,0%,100%,0.1);
+  border-color: #667eea;
+  box-shadow: 0 0 0 4rpx rgba(102,126,234,0.15), 0 8rpx 32rpx rgba(102,126,234,0.1);
 }
-.input-icon {
-  font-size: 36rpx;
+/* 聚焦时左侧光效 */
+.input-wrapper.focused::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6rpx;
+  height: 56rpx;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+  border-radius: 0 6rpx 6rpx 0;
+}
+
+.field-icon {
+  font-size: 34rpx;
   margin-right: 20rpx;
+  opacity: 0.8;
 }
-.input {
-  color: #fff;
+
+.field-input {
   flex: 1;
+  color: #ffffff;
   font-size: 30rpx;
-  height: 100rpx;
+  height: 96rpx;
+  line-height: 96rpx;
 }
-.input::-webkit-input-placeholder {
-  color: hsla(0, 0%, 100%, 0.5);
+.placeholder {
+  color: hsla(0,0%,100%,0.35);
+  font-size: 28rpx;
 }
-.input::placeholder {
-  color: hsla(0, 0%, 100%, 0.5);
+
+/* 密码可见切换按钮 */
+.eye-btn {
+  font-size: 36rpx;
+  padding: 10rpx 16rpx;
+  transition: transform 0.2s ease;
 }
-.eye-icon {
-  color: hsla(0, 0%, 100%, 0.72);
-  font-size: 24rpx;
-  padding: 10rpx;
+.eye-btn:active {
+  transform: scale(0.85);
 }
+
+/* 选项行 */
 .option-row {
-  display: -webkit-flex;
   display: flex;
-  gap: 20rpx;
   justify-content: space-between;
-  margin-top: 12rpx;
+  margin-top: 8rpx;
+  margin-bottom: 44rpx;
 }
-.option-item {
-  flex: 1;
-  padding: 18rpx 0;
-}
-.checkbox,
 .option-item {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
+  padding: 12rpx 0;
 }
-.checkbox {
-  border: 2rpx solid hsla(0, 0%, 100%, 0.35);
-  border-radius: 10rpx;
+.radio {
+  border: 2rpx solid hsla(0,0%,100%,0.3);
+  border-radius: 50%;
   box-sizing: border-box;
-  color: #fff;
-  font-size: 22rpx;
-  height: 34rpx;
-  justify-content: center;
+  height: 36rpx;
   margin-right: 14rpx;
-  width: 34rpx;
+  position: relative;
+  transition: all 0.25s ease;
+  width: 36rpx;
 }
-.checkbox.checked {
-  background: linear-gradient(135deg, #6aa8ff, #8c6bff);
+.radio.checked {
+  background: linear-gradient(135deg, #667eea, #764ba2);
   border-color: transparent;
-  box-shadow: 0 8rpx 18rpx rgba(106, 168, 255, 0.35);
+  box-shadow: 0 6rpx 16rpx rgba(102,126,234,0.35);
+}
+.radio-dot {
+  background: #fff;
+  border-radius: 50%;
+  height: 14rpx;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translate(25%, -50%);
+  width: 14rpx;
+  animation: popIn 0.2s ease;
+}
+@keyframes popIn {
+  from { transform: translate(25%, -50%) scale(0); }
+  to { transform: translate(25%, -50%) scale(1); }
 }
 .option-text {
-  color: hsla(0, 0%, 100%, 0.86);
+  color: hsla(0,0%,100%,0.8);
   font-size: 26rpx;
 }
+
+/* 登录按钮 */
+.btn-wrapper {
+  position: relative;
+}
 .login-btn {
-  animation: shimmer 3s linear infinite;
-  background: linear-gradient(135deg, #667eea, #764ba2 50%, #f093fb);
+  align-items: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   background-size: 200% 200%;
-  border: none;
   border-radius: 50rpx;
-  box-shadow: 0 15rpx 40rpx rgba(102, 126, 234, 0.4);
+  box-shadow: 0 12rpx 40rpx rgba(102,126,234,0.35);
+  display: flex;
+  height: 100rpx;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.login-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 8rpx 28rpx rgba(102,126,234,0.45);
+}
+/* 按钮流光效果 */
+.btn-shine {
+  animation: shimmer 3s linear infinite;
+  background: linear-gradient(90deg, transparent, hsla(0,0%,100%,0.25), transparent);
+  height: 100%;
+  position: absolute;
+  top: 0;
+  transform: translateX(-100%);
+  width: 60%;
+}
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.btn-text {
   color: #fff;
   font-size: 34rpx;
   font-weight: 600;
-  height: 100rpx;
   letter-spacing: 4rpx;
-  line-height: 100rpx;
-  margin-top: 38rpx;
-  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
 }
-@-webkit-keyframes shimmer {
-  0% {
-    background-position: 0 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
-}
-@keyframes shimmer {
-  0% {
-    background-position: 0 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0 50%;
-  }
-}
-.login-btn:active {
-  box-shadow: 0 8rpx 25rpx rgba(102, 126, 234, 0.5);
-  transform: scale(0.96);
-}
+
+/* 额外链接 */
 .extra-links {
   animation: fadeIn 0.8s ease-out 0.4s both;
-  display: -webkit-flex;
   display: flex;
   justify-content: center;
-  margin-top: 50rpx;
+  margin-top: 48rpx;
   position: relative;
   z-index: 10;
 }
-@-webkit-keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 .link {
-  color: hsla(0, 0%, 100%, 0.8);
+  color: hsla(0,0%,100%,0.7);
   font-size: 28rpx;
   padding: 16rpx 24rpx;
   transition: all 0.3s ease;
@@ -315,14 +304,16 @@ page {
   transform: scale(0.95);
 }
 .divider {
-  color: hsla(0, 0%, 100%, 0.4);
+  color: hsla(0,0%,100%,0.35);
   margin: 0 8rpx;
 }
+
+/* 底部提示 */
 .footer {
   animation: fadeIn 0.8s ease-out 0.6s both;
-  color: hsla(0, 0%, 100%, 0.5);
+  color: hsla(0,0%,100%,0.45);
   font-size: 24rpx;
-  margin-top: 80rpx;
+  margin-top: 60rpx;
   position: relative;
   text-align: center;
   z-index: 10;

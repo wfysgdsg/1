@@ -1,167 +1,143 @@
-var e = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  t = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  r = require('wx-server-sdk');
-r.init({ env: r.DYNAMIC_CURRENT_ENV });
-var a = r.database();
-exports.main = (function () {
-  var r = t(
-    e().mark(function t(r, s) {
-      var n, c, o, u, i, l, m, p, d, g, b, x, f, v, w, h, P, k, D;
-      return e().wrap(
-        function (e) {
-          for (;;)
-            switch ((e.prev = e.next)) {
-              case 0:
-                return (
-                  (n = r.type),
-                  (c = r.goodsName),
-                  (o = r.quantity),
-                  (u = r.customerName),
-                  (i = r.salePrice),
-                  (l = r.costPrice),
-                  (m = r.date),
-                  (e.prev = 1),
-                  (e.next = 4),
-                  a
-                    .collection('goods')
-                    .where({ name: a.RegExp({ regexp: c, options: 'i' }) })
-                    .get()
-                );
-              case 4:
-                if (0 !== (p = e.sent).data.length) {
-                  e.next = 7;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '未找到商品: '.concat(c),
-                });
-              case 7:
-                if (
-                  ((d = p.data[0]),
-                  (g = m || new Date().toISOString().split('T')[0]),
-                  'borrow' !== n)
-                ) {
-                  e.next = 16;
-                  break;
-                }
-                return (
-                  (b = {
-                    goodsId: d._id,
-                    goodsName: d.name,
-                    unit: d.unit || '',
-                    costPrice: d.costPrice,
-                    quantity: parseFloat(o),
-                    borrowDate: g,
-                    remark: '',
-                    status: 'pending',
-                    createTime: a.serverDate(),
-                  }),
-                  (e.next = 13),
-                  a.collection('borrow').add({ data: b })
-                );
-              case 13:
-                return e.abrupt('return', {
-                  success: !0,
-                  message: '借货记录已添加：'
-                    .concat(d.name, ' x ')
-                    .concat(o)
-                    .concat(d.unit || ''),
-                });
-              case 16:
-                if ('sale' !== n) {
-                  e.next = 35;
-                  break;
-                }
-                if (u) {
-                  e.next = 19;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '销售记录需要提供送货单位',
-                });
-              case 19:
-                return (
-                  (e.next = 21),
-                  a
-                    .collection('customer')
-                    .where({ name: a.RegExp({ regexp: u, options: 'i' }) })
-                    .get()
-                );
-              case 21:
-                return (
-                  (x = e.sent),
-                  (f = ''),
-                  (v = u),
-                  x.data.length > 0 &&
-                    ((f = x.data[0]._id), (v = x.data[0].name)),
-                  (w = i ? parseFloat(i) : d.salePrice),
-                  (h = l ? parseFloat(l) : d.costPrice),
-                  (P = parseFloat(o)),
-                  (k = (w - h) * P),
-                  (D = {
-                    goodsDetail: [
-                      {
-                        goodsId: d._id,
-                        goodsName: d.name,
-                        unit: d.unit || '',
-                        quantity: P,
-                        salePrice: w,
-                        costPrice: h,
-                        profit: k,
-                      },
-                    ],
-                    customerId: f,
-                    customerName: v,
-                    totalAmount: w * P,
-                    totalCost: h * P,
-                    totalProfit: k,
-                    saleDate: g,
-                    saleTime: new Date(g).getTime(),
-                    createTime: a.serverDate(),
-                  }),
-                  (e.next = 32),
-                  a.collection('sale').add({ data: D })
-                );
-              case 32:
-                return e.abrupt('return', {
-                  success: !0,
-                  message: '销售记录已添加：'
-                    .concat(d.name, ' x ')
-                    .concat(o)
-                    .concat(d.unit || '', ' -> ')
-                    .concat(v),
-                });
-              case 35:
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '未知类型，请使用 borrow 或 sale',
-                });
-              case 36:
-                e.next = 41;
-                break;
-              case 38:
-                return (
-                  (e.prev = 38),
-                  (e.t0 = e.catch(1)),
-                  e.abrupt('return', {
-                    success: !1,
-                    message: '添加失败: ' + e.t0.message,
-                  })
-                );
-              case 41:
-              case 'end':
-                return e.stop();
-            }
-        },
-        t,
-        null,
-        [[1, 38]],
-      );
-    }),
-  );
-  return function (e, t) {
-    return r.apply(this, arguments);
-  };
-})();
+/**
+ * 新增记录云函数（带认证）
+ * 整理日期：2024-03-26
+ */
+const cloud = require('wx-server-sdk');
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
+
+/**
+ * 校验用户登录状态
+ */
+async function checkAuth(userId, sessionToken) {
+  if (!userId || !sessionToken) {
+    throw new Error('登录状态已失效，请重新登录');
+  }
+
+  const userRes = await db.collection('users').doc(userId).get();
+  const user = userRes.data;
+
+  if (!user) {
+    throw new Error('用户不存在');
+  }
+
+  if (user.sessionToken !== sessionToken) {
+    throw new Error('登录状态已失效，请重新登录');
+  }
+
+  const expireAt = user.sessionExpireAt ? new Date(user.sessionExpireAt).getTime() : 0;
+  // 修复：当 expireAt 为 0 时不视为过期（表示永久有效或未设置）
+  if (expireAt > 0 && expireAt <= Date.now()) {
+    throw new Error('登录已过期，请重新登录');
+  }
+
+  // 续期 Session
+  await db.collection('users').doc(userId).update({
+    data: { sessionExpireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
+  });
+
+  return user;
+}
+
+exports.main = async (event, context) => {
+  const { userId, sessionToken, type, goodsName, quantity, customerName, salePrice, costPrice, date } = event;
+
+  try {
+    // 1. 校验登录状态
+    const userInfo = await checkAuth(userId, sessionToken);
+
+    // 2. 查找商品
+    const goodsRes = await db.collection('goods')
+      .where({ name: db.RegExp({ regexp: goodsName, options: 'i' }) })
+      .get();
+
+    if (!goodsRes.data || goodsRes.data.length === 0) {
+      return { success: false, message: '未找到商品: ' + goodsName };
+    }
+
+    const goods = goodsRes.data[0];
+    const recordDate = date || new Date().toISOString().split('T')[0];
+
+    // 3. 借货类型
+    if (type === 'borrow') {
+      const borrowRecord = {
+        goodsId: goods._id,
+        goodsName: goods.name,
+        unit: goods.unit || '',
+        costPrice: goods.costPrice,
+        quantity: parseFloat(quantity),
+        borrowDate: recordDate,
+        remark: '',
+        status: 'pending',
+        borrowerId: userId,
+        borrowerName: userInfo.name || userInfo.username,
+        createTime: db.serverDate(),
+      };
+
+      await db.collection('borrow').add({ data: borrowRecord });
+
+      return {
+        success: true,
+        message: '借货记录已添加：' + goods.name + ' x ' + quantity + (goods.unit || '')
+      };
+    }
+
+    // 4. 销售类型
+    if (type === 'sale') {
+      if (!customerName) {
+        return { success: false, message: '销售记录需要提供送货单位' };
+      }
+
+      const customerRes = await db.collection('customer')
+        .where({ name: db.RegExp({ regexp: customerName, options: 'i' }) })
+        .get();
+
+      let customerId = '';
+      let customerFinalName = customerName;
+      if (customerRes.data && customerRes.data.length > 0) {
+        customerId = customerRes.data[0]._id;
+        customerFinalName = customerRes.data[0].name;
+      }
+
+      const finalSalePrice = salePrice ? parseFloat(salePrice) : goods.salePrice;
+      const finalCostPrice = costPrice ? parseFloat(costPrice) : goods.costPrice;
+      const qty = parseFloat(quantity);
+      const profit = (finalSalePrice - finalCostPrice) * qty;
+
+      const saleRecord = {
+        goodsDetail: [{
+          goodsId: goods._id,
+          goodsName: goods.name,
+          unit: goods.unit || '',
+          quantity: qty,
+          salePrice: finalSalePrice,
+          costPrice: finalCostPrice,
+          profit: profit,
+        }],
+        customerId: customerId,
+        customerName: customerFinalName,
+        totalAmount: finalSalePrice * qty,
+        totalCost: finalCostPrice * qty,
+        totalProfit: profit,
+        saleDate: recordDate,
+        saleTime: new Date(recordDate).getTime(),
+        sellerId: userId,
+        sellerName: userInfo.name || userInfo.username,
+        createTime: db.serverDate(),
+      };
+
+      await db.collection('sale').add({ data: saleRecord });
+
+      return {
+        success: true,
+        message: '销售记录已添加：' + goods.name + ' x ' + quantity + (goods.unit || '') + ' -> ' + customerFinalName
+      };
+    }
+
+    return { success: false, message: '未知类型，请使用 borrow 或 sale' };
+
+  } catch (err) {
+    console.error('addRecord 云函数失败:', err);
+    return { success: false, message: err.message || '添加失败' };
+  }
+};

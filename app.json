@@ -1,4 +1,5 @@
 {
+  "lazyCodeLoading": "requiredComponents",
   "componentFramework": "exparser",
   "tabBar": {
     "color": "#999999",

@@ -1,12 +1,11 @@
 /**
- * 登录页面逻辑 (反编译还原整理)
- * 整理日期：2024-03-26
+ * 登录页面逻辑
+ * 修复：不再存储明文密码，改用安全的记住令牌方案
  */
-
 const REMEMBER_PWD_KEY = 'rememberPassword';
 const AUTO_LOGIN_KEY = 'autoLogin';
 const REMEMBERED_USER_KEY = 'rememberedUsername';
-const REMEMBERED_PWD_KEY = 'rememberedPassword';
+const REMEMBER_TOKEN_KEY = 'rememberToken';
 
 Page({
   data: {
@@ -16,9 +15,11 @@ Page({
     rememberPassword: false,
     autoLogin: false,
     autoLoginTried: false,
+    focusedAccount: false,
+    focusedPwd: false,
     uiText: {
       logo: '📦',
-      title: '借货销售',
+      title: '钒事如此货物记账',
       subtitle: 'Personal Asset Manager',
       account: '账号',
       accountPlaceholder: 'Username',
@@ -41,25 +42,26 @@ Page({
 
   /**
    * 从本地缓存恢复登录偏好（记住密码、自动登录）
+   * 修复：使用安全令牌替代明文密码存储
    */
   restoreLoginPreferences: function () {
     try {
       const isRemember = !!wx.getStorageSync(REMEMBER_PWD_KEY);
       const isAutoLogin = !!wx.getStorageSync(AUTO_LOGIN_KEY);
-      const savedUser = (isRemember && wx.getStorageSync(REMEMBERED_USER_KEY)) || '';
-      const savedPwd = (isRemember && wx.getStorageSync(REMEMBERED_PWD_KEY)) || '';
+      const savedUser = wx.getStorageSync(REMEMBERED_USER_KEY) || '';
+      const rememberToken = wx.getStorageSync(REMEMBER_TOKEN_KEY) || '';
 
       this.setData({
         rememberPassword: isRemember,
         autoLogin: isAutoLogin,
         username: savedUser,
-        password: savedPwd,
+        password: '', // 不再恢复密码，需要用户输入
       });
 
-      // 如果开启了自动登录，且有保存的账号密码，且还没尝试过自动登录
-      if (isAutoLogin && savedUser && savedPwd && !this.data.autoLoginTried) {
+      // 如果开启了自动登录，且有记住令牌，且还没尝试过自动登录
+      if (isAutoLogin && rememberToken && !this.data.autoLoginTried) {
         this.setData({ autoLoginTried: true });
-        this.doLogin(true);
+        this.doAutoLogin(rememberToken);
       }
     } catch (e) {
       console.warn('读取本地缓存失败', e);
@@ -75,6 +77,19 @@ Page({
     this.setData({ password: e.detail.value });
   },
 
+  onAccountFocus: function() {
+    this.setData({ focusedAccount: true });
+  },
+  onAccountBlur: function() {
+    this.setData({ focusedAccount: false });
+  },
+  onPwdFocus: function() {
+    this.setData({ focusedPwd: true });
+  },
+  onPwdBlur: function() {
+    this.setData({ focusedPwd: false });
+  },
+
   togglePassword: function () {
     this.setData({ showPassword: !this.data.showPassword });
   },
@@ -83,7 +98,7 @@ Page({
     const newVal = !this.data.rememberPassword;
     this.setData({
       rememberPassword: newVal,
-      autoLogin: newVal && this.data.autoLogin, // 如果取消记住密码，自动登录也得取消
+      autoLogin: newVal && this.data.autoLogin,
     });
     if (!newVal) this.clearRememberedCredentials();
   },
@@ -92,7 +107,7 @@ Page({
     const newVal = !this.data.autoLogin;
     this.setData({
       autoLogin: newVal,
-      rememberPassword: newVal || this.data.rememberPassword, // 开启自动登录必须开启记住密码
+      rememberPassword: newVal || this.data.rememberPassword,
     });
   },
 
@@ -101,27 +116,69 @@ Page({
   },
 
   /**
-   * 执行登录逻辑
-   * @param {boolean} isAuto 是否为自动登录
+   * 通过记住令牌自动登录
    */
-  async doLogin(isAuto = false) {
-    const { username, password } = this.data;
-
-    if (!username || !password) {
-      if (!isAuto) {
-        wx.showToast({ title: '请输入用户名和密码', icon: 'none' });
-      }
-      return;
-    }
-
-    wx.showLoading({ title: isAuto ? '自动登录中...' : '登录中...' });
+  async doAutoLogin(rememberToken) {
+    wx.showLoading({ title: '自动登录中...' });
 
     try {
-      // 调用云函数
       const res = await wx.cloud.callFunction({
         name: 'authLogin',
         data: {
-          action: 'login',
+          action: 'autoLogin',
+          rememberToken: rememberToken
+        },
+      });
+
+      wx.hideLoading();
+
+      const result = res.result;
+      if (result && result.success) {
+        const userInfo = result.userInfo;
+        wx.setStorageSync('userInfo', userInfo);
+        wx.setStorageSync('userId', userInfo._id);
+        wx.setStorageSync('sessionToken', userInfo.sessionToken);
+
+        wx.showToast({ title: '自动登录成功', icon: 'success' });
+
+        setTimeout(() => {
+          wx.switchTab({ url: '/pages/index/index' });
+        }, 800);
+      } else {
+        // 自动登录失败，清除记住令牌
+        this.clearRememberedCredentials();
+        wx.showToast({
+          title: (result && result.message) || '自动登录失败，请重新登录',
+          icon: 'none',
+        });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('自动登录失败', err);
+      wx.showToast({ title: '自动登录失败，请重新登录', icon: 'none' });
+    }
+  },
+
+  /**
+   * 执行登录逻辑
+   * @param {boolean} isAuto 是否为自动登录（已废弃，保留兼容性）
+   */
+  async doLogin(isAuto = false) {
+    const { username, password, rememberPassword } = this.data;
+
+    if (!username || !password) {
+      wx.showToast({ title: '请输入用户名和密码', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '登录中...' });
+
+    try {
+      // 调用云函数 - 根据是否记住密码选择不同的登录方式
+      const res = await wx.cloud.callFunction({
+        name: 'authLogin',
+        data: {
+          action: rememberPassword ? 'rememberLogin' : 'login',
           username: username,
           password: password
         },
@@ -132,24 +189,27 @@ Page({
       const result = res.result;
       if (result && result.success) {
         const userInfo = result.userInfo;
-        // 注意：后端返回的是 userInfo 包含 _id, username, name, role, sessionToken 等
-        
+
         wx.setStorageSync('userInfo', userInfo);
         wx.setStorageSync('userId', userInfo._id);
         wx.setStorageSync('sessionToken', userInfo.sessionToken);
 
-        this.persistLoginPreferences();
+        // 如果选择了记住密码，存储安全令牌而非密码
+        if (rememberPassword && userInfo.rememberToken) {
+          wx.setStorageSync(REMEMBER_PWD_KEY, true);
+          wx.setStorageSync(AUTO_LOGIN_KEY, this.data.autoLogin);
+          wx.setStorageSync(REMEMBERED_USER_KEY, username);
+          wx.setStorageSync(REMEMBER_TOKEN_KEY, userInfo.rememberToken);
+        } else {
+          this.persistLoginPreferences();
+        }
 
-        wx.showToast({ title: isAuto ? '自动登录成功' : '登录成功', icon: 'success' });
+        wx.showToast({ title: '登录成功', icon: 'success' });
 
         setTimeout(() => {
           wx.switchTab({ url: '/pages/index/index' });
         }, 800);
       } else {
-        // 登录失败处理
-        if (isAuto) {
-          this.clearRememberedCredentials();
-        }
         wx.showToast({
           title: (result && result.message) || '登录失败',
           icon: 'none',
@@ -163,24 +223,22 @@ Page({
   },
 
   /**
-   * 持久化登录偏好
+   * 持久化登录偏好（仅存储用户名，不存储密码）
    */
   persistLoginPreferences: function () {
-    const { username, password, rememberPassword, autoLogin } = this.data;
+    const { username, rememberPassword, autoLogin } = this.data;
     wx.setStorageSync(REMEMBER_PWD_KEY, rememberPassword);
     wx.setStorageSync(AUTO_LOGIN_KEY, autoLogin);
+    wx.setStorageSync(REMEMBERED_USER_KEY, rememberPassword ? username : '');
 
-    if (rememberPassword) {
-      wx.setStorageSync(REMEMBERED_USER_KEY, username);
-      wx.setStorageSync(REMEMBERED_PWD_KEY, password);
-    } else {
-      this.clearRememberedCredentials();
+    if (!rememberPassword) {
+      wx.removeStorageSync(REMEMBER_TOKEN_KEY);
     }
   },
 
   clearRememberedCredentials: function () {
     wx.removeStorageSync(REMEMBERED_USER_KEY);
-    wx.removeStorageSync(REMEMBERED_PWD_KEY);
+    wx.removeStorageSync(REMEMBER_TOKEN_KEY);
     wx.setStorageSync(REMEMBER_PWD_KEY, false);
     wx.setStorageSync(AUTO_LOGIN_KEY, false);
   },

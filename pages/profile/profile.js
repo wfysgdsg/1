@@ -66,6 +66,42 @@ Page({
   },
 
   /**
+   * 同步商品库
+   */
+  syncGoods: function () {
+    if (!this.ensureLogin()) return;
+    wx.showLoading({ title: '同步中...' });
+    wx.cloud.callFunction({
+      name: 'syncGoods',
+      data: { action: 'sync' },
+      success: res => {
+        wx.hideLoading();
+        if (res.result && res.result.success) {
+          wx.showModal({
+            title: '同步成功',
+            content: res.result.message,
+            showCancel: false
+          });
+        } else {
+          wx.showModal({
+            title: '同步失败',
+            content: res.result ? res.result.message : '未知错误',
+            showCancel: false
+          });
+        }
+      },
+      fail: err => {
+        wx.hideLoading();
+        wx.showModal({
+          title: '同步失败',
+          content: err.message || '请先在开发者工具部署 syncGoods 云函数',
+          showCancel: false
+        });
+      }
+    });
+  },
+
+  /**
    * 登录检查保底
    */
   ensureLogin: function () {

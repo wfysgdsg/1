@@ -1,11 +1,12 @@
 /**
- * 新增销售页逻辑 (反编译还原整理)
+ * 新增销售页逻辑
  * 整理日期：2024-03-26
  */
 const db = wx.cloud.database();
 const _ = db.command;
 const { fetchAll } = require('../../utils/db');
 const { matchGoodsFromOcr } = require('../../utils/ocr');
+const { takePhotoAndRecognize, startVoice, stopVoice, handleRecognizedResult } = require('../../utils/recognize');
 
 Page({
   data: {
@@ -317,6 +318,7 @@ Page({
   /**
    * 核心计算：计算合计金额和毛利
    * 业务逻辑：硬件除以 1.13，软件除以 1.06
+   * 修复：使用整数运算避免浮点数精度问题（以分为单位计算）
    */
   calcProfit: function () {
     const goods = this.data.selectedGoods;
@@ -329,18 +331,31 @@ Page({
         hasAllQty = false;
         return { ...g, profit: '0.00' };
       }
-      
+
       // 根据分类判断税率 (默认为硬件 1.13)
       const taxRate = g.category === 'software' ? 1.06 : 1.13;
-      
-      const lineSale = (qty * Number(g.salePrice || 0)) / taxRate;
-      const lineCost = (qty * Number(g.costPrice || 0)) / taxRate;
-      const lineProfit = lineSale - lineCost;
-      
+
+      // 使用整数运算避免浮点数精度问题：
+      // 将金额转为"分"（整数），除法用整数除法避免小数精度丢失
+      // 公式: (qty * priceYuan) / taxRate = (qty * priceFen) / (taxRate * 100)
+      const priceYuan = Number(g.salePrice || 0);
+      const costYuan = Number(g.costPrice || 0);
+      const priceFen = Math.round(priceYuan * 100); // 元转分
+      const costFen = Math.round(costYuan * 100);   // 元转分
+      const divisorFen = Math.round(taxRate * 100); // 税率转分母，如 1.13 -> 113
+
+      const lineSaleFen = Math.round((qty * priceFen) / divisorFen);
+      const lineCostFen = Math.round((qty * costFen) / divisorFen);
+      const lineProfitFen = lineSaleFen - lineCostFen;
+
+      const lineSale = lineSaleFen / 100;
+      const lineCost = lineCostFen / 100;
+      const lineProfit = lineProfitFen / 100;
+
       totalAmt += lineSale;
       totalCostAmt += lineCost;
       totalProfAmt += lineProfit;
-      
+
       return {
         _id: g._id,
         name: g.name,
@@ -432,129 +447,28 @@ Page({
   /**
    * OCR 拍照/选图识别商品
    */
-  takePhoto: function () {
-    wx.showActionSheet({
-      itemList: ['拍照识别', '从相册选择'],
-      success: (res) => {
-        const source = res.tapIndex === 0 ? ['camera'] : ['album'];
-        wx.chooseMedia({
-          count: 1,
-          mediaType: ['image'],
-          sourceType: source,
-          success: (res) => {
-            this.uploadAndRecognize(res.tempFiles[0].tempFilePath);
-          },
-        });
-      },
-    });
-  },
-
-  async uploadAndRecognize(filePath) {
-    wx.showLoading({ title: '识别中...' });
-    this.setData({ isRecognizing: true });
-
-    try {
-      const cloudPath = `recognize/${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
-      const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath });
-      const fileId = uploadRes.fileID;
-
-      // 调用 OCR 云函数
-      const ocrRes = await wx.cloud.callFunction({
-        name: 'ocrRecognize',
-        data: { fileId }
-      });
-
-      if (!ocrRes.result || !ocrRes.result.success) {
-        throw new Error(ocrRes.result.message || '识别失败');
-      }
-
-      const ocrData = ocrRes.result.data;
-      // 使用 OCR 匹配工具类进行匹配
-      const matched = await matchGoodsFromOcr(ocrData);
-
-      if (matched && matched.length > 0) {
-        this.setData({ recognizedGoods: matched });
-        this.applyRecognizedGoods(matched);
-      } else {
-        wx.showToast({ title: '未能识别出匹配商品', icon: 'none' });
-      }
-
-    } catch (err) {
-      console.error('识别失败', err);
-      wx.showToast({ title: '识别失败', icon: 'none' });
-    } finally {
-      wx.hideLoading();
-      this.setData({ isRecognizing: false });
+  /**
+   * 拍照识别
+   */
+  async takePhoto() {
+    const ocrData = await takePhotoAndRecognize(this, 'ocrRecognize');
+    if (ocrData) {
+      await handleRecognizedResult(this, ocrData, (matched) => this.applyRecognizedGoods(matched));
     }
   },
 
   /**
    * 语音识别相关
    */
-  startVoice: function () {
-    const recorderManager = wx.getRecorderManager();
-    this.setData({ isVoiceRecording: true });
-    
-    recorderManager.onStart(() => {
-      console.log('开始录音');
-    });
-
-    recorderManager.start({
-      duration: 60000,
-      sampleRate: 16000,
-      numberOfChannels: 1,
-      encodeBitRate: 48000,
-      format: 'mp3'
-    });
+  startVoice() {
+    startVoice(this);
   },
 
-  stopVoice: function () {
-    const recorderManager = wx.getRecorderManager();
-    this.setData({ isVoiceRecording: false });
-    
-    recorderManager.onStop(async (res) => {
-      const { tempFilePath } = res;
-      wx.showLoading({ title: '正在识别...' });
-
-      try {
-        // 1. 上传语音文件到云端
-        const cloudPath = `voice/${Date.now()}.mp3`;
-        const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath });
-        const fileId = uploadRes.fileID;
-
-        // 2. 调用语音识别云函数
-        const voiceRes = await wx.cloud.callFunction({
-          name: 'voiceRecognize',
-          data: { fileId }
-        });
-
-        if (voiceRes.result && voiceRes.result.success) {
-          const recognizedText = voiceRes.result.data;
-          wx.showLoading({ title: '正在匹配商品...' });
-          
-          // 3. 复用 OCR 的匹配逻辑进行业务解析
-          // matchGoodsFromOcr 已经具备从“名称+数量”文本中提取信息的能力
-          const matched = await matchGoodsFromOcr(recognizedText);
-
-          if (matched && matched.length > 0) {
-            this.applyRecognizedGoods(matched);
-            wx.showToast({ title: `识别到 ${matched.length} 种商品`, icon: 'success' });
-          } else {
-            wx.showToast({ title: '听到了：' + recognizedText + '，但没找到对应商品', icon: 'none', duration: 3000 });
-          }
-        } else {
-          wx.showToast({ title: voiceRes.result.message || '识别失败', icon: 'none' });
-        }
-
-      } catch (err) {
-        console.error('语音识别异常', err);
-        wx.showToast({ title: '语音服务暂时不可用', icon: 'none' });
-      } finally {
-        wx.hideLoading();
-      }
-    });
-
-    recorderManager.stop();
+  async stopVoice() {
+    const recognizedText = await stopVoice(this);
+    if (recognizedText) {
+      await handleRecognizedResult(this, recognizedText, (matched) => this.applyRecognizedGoods(matched));
+    }
   },
 
   /**

@@ -1,11 +1,12 @@
 /**
- * 新增借货页逻辑 (反编译还原整理)
+ * 新增借货页逻辑
  * 整理日期：2024-03-26
  */
 const db = wx.cloud.database();
 const _ = db.command;
 const { fetchAll } = require('../../utils/db');
 const { matchGoodsFromOcr } = require('../../utils/ocr');
+const { takePhotoAndRecognize, startVoice, stopVoice, handleRecognizedResult } = require('../../utils/recognize');
 
 Page({
   data: {
@@ -22,6 +23,7 @@ Page({
     isRecognizing: false,
     recognizedGoods: [],
     isVoiceRecording: false,
+    textInput: '',  // 文字批量输入
   },
 
   onLoad: function () {
@@ -183,8 +185,82 @@ Page({
   onRemarkInput: (e) => this.setData({ remark: e.detail.value }),
 
   /**
+   * 文字批量输入处理
+   */
+  onTextInput: function (e) {
+    this.setData({ textInput: e.detail.value });
+  },
+
+  clearTextInput: function () {
+    this.setData({ textInput: '' });
+  },
+
+  /**
+   * 解析文字输入并匹配商品
+   */
+  async parseTextInput() {
+    const text = this.data.textInput;
+    if (!text || !text.trim()) {
+      wx.showToast({ title: '请输入商品文字', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '解析中...' });
+
+    try {
+      // 调试：打印输入
+      console.log('【解析】输入文字:', text);
+      
+      // 调用 matchGoodsFromOcr 进行匹配
+      const matched = await matchGoodsFromOcr(text);
+
+      console.log('【解析】匹配结果:', matched);
+
+      wx.hideLoading();
+
+      if (matched && matched.length > 0) {
+        // 添加匹配到的商品到列表
+        console.log('【解析】当前商品列表:', this.data.selectedGoods);
+        const newList = [...this.data.selectedGoods];
+        let added = 0;
+
+        matched.forEach(item => {
+          if (!newList.some(g => g._id === item._id)) {
+            newList.push({
+              _id: item._id,
+              name: item.name,
+              unit: item.unit || '',
+              costPrice: item.costPrice || 0,
+              salePrice: item.salePrice || 0,
+              quantity: item.quantity || '',
+            });
+            added++;
+          }
+        });
+
+        console.log('【解析】添加后商品列表:', newList);
+
+        this.setData({
+          selectedGoods: newList,
+          textInput: '',  // 清空输入
+        });
+
+        wx.showToast({ title: `识别到 ${added} 个商品`, icon: 'success' });
+      } else {
+        // 调试：显示更多信息
+        wx.showToast({ title: '未能识别到商品', icon: 'none' });
+      }
+    } catch (err) {
+      wx.hideLoading();
+      console.error('【解析】失败:', err);
+      wx.showToast({ title: '解析失败: ' + err.message, icon: 'none' });
+    }
+  },
+
+  /**
    * 提交借货申请
    * 业务逻辑：借货会同时增加个人库存(user_goods)并记录借货单(borrow)
+   * 优化：使用 Promise.all 并行处理多个商品的借货操作
    */
   async submit() {
     const { selectedGoods, selectedLocation, borrowDate, remark } = this.data;
@@ -213,12 +289,13 @@ Page({
     wx.showLoading({ title: '借货中...' });
 
     try {
-      // 遍历提交每一项借货（原逻辑是循环提交）
-      for (const item of validGoods) {
+      // 并行处理所有商品的借货操作
+      const promises = validGoods.map(async (item) => {
         const qty = Number(item.quantity || 0);
-        
+        const borrowDateTime = new Date(borrowDate).getTime();
+
         // 1. 添加借货记录
-        await db.collection('borrow').add({
+        const borrowPromise = db.collection('borrow').add({
           data: {
             goodsId: item._id,
             goodsName: item.name,
@@ -230,9 +307,9 @@ Page({
             locationName: locName,
             borrowerId: userId,
             borrowerName: userName,
-            borrowDate: new Date(borrowDate).getTime(),
+            borrowDate: borrowDateTime,
             remark: remark || '',
-            status: 'pending', // 待归还/处理
+            status: 'pending',
             createTime: db.serverDate(),
             updateTime: db.serverDate(),
           }
@@ -244,9 +321,10 @@ Page({
           goodsId: item._id
         }).get();
 
+        let stockPromise;
         if (stockRes.data.length > 0) {
           // 已有记录，累加
-          await db.collection('user_goods').doc(stockRes.data[0]._id).update({
+          stockPromise = db.collection('user_goods').doc(stockRes.data[0]._id).update({
             data: {
               stock: _.inc(qty),
               updateTime: db.serverDate()
@@ -254,7 +332,7 @@ Page({
           });
         } else {
           // 无记录，新增
-          await db.collection('user_goods').add({
+          stockPromise = db.collection('user_goods').add({
             data: {
               userId: userId,
               userName: userName,
@@ -267,7 +345,13 @@ Page({
             }
           });
         }
-      }
+
+        // 并行执行单商品的借货记录和库存更新
+        return Promise.all([borrowPromise, stockPromise]);
+      });
+
+      // 等待所有商品处理完成
+      await Promise.all(promises);
 
       wx.hideLoading();
       wx.showToast({ title: '操作成功', icon: 'success' });
@@ -283,95 +367,32 @@ Page({
   goBack: () => wx.navigateBack(),
 
   /**
-   * OCR 拍照识别（借货场景）
+   * OCR 拍照识别
    */
-  takePhoto: function () {
-    wx.showActionSheet({
-      itemList: ['拍照识别', '从相册选择'],
-      success: (res) => {
-        const source = res.tapIndex === 0 ? ['camera'] : ['album'];
-        wx.chooseMedia({
-          count: 1,
-          mediaType: ['image'],
-          sourceType: source,
-          success: (res) => {
-            this.uploadAndRecognize(res.tempFiles[0].tempFilePath);
-          },
-        });
-      },
-    });
-  },
-
-  async uploadAndRecognize(filePath) {
-    wx.showLoading({ title: '识别中...' });
-    this.setData({ isRecognizing: true });
-
-    try {
-      const cloudPath = `recognize/borrow-${Date.now()}.jpg`;
-      const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath });
-      
-      const ocrRes = await wx.cloud.callFunction({
-        name: 'ocrRecognize',
-        data: { fileId: uploadRes.fileID }
-      });
-
-      if (ocrRes.result && ocrRes.result.success) {
-        const matched = await matchGoodsFromOcr(ocrRes.result.data);
-        if (matched.length > 0) {
-          this.applyRecognizedGoods(matched);
-        } else {
-          wx.showToast({ title: '未能匹配到商品', icon: 'none' });
-        }
-      }
-    } catch (err) {
-      console.error('OCR失败', err);
-    } finally {
-      wx.hideLoading();
-      this.setData({ isRecognizing: false });
+  async takePhoto() {
+    const ocrData = await takePhotoAndRecognize(this, 'ocrRecognize');
+    if (ocrData) {
+      await handleRecognizedResult(this, ocrData, (matched) => this.applyRecognizedGoods(matched));
     }
   },
 
   /**
-   * 语音识别相关 (借货页)
+   * 语音识别
    */
-  startVoice: function () {
-    const recorderManager = wx.getRecorderManager();
-    this.setData({ isVoiceRecording: true });
-    recorderManager.start({ duration: 60000, sampleRate: 16000, numberOfChannels: 1, encodeBitRate: 48000, format: 'mp3' });
+  startVoice() {
+    startVoice(this);
   },
 
-  stopVoice: function () {
-    const recorderManager = wx.getRecorderManager();
-    this.setData({ isVoiceRecording: false });
-    recorderManager.onStop(async (res) => {
-      const { tempFilePath } = res;
-      wx.showLoading({ title: '正在识别...' });
-      try {
-        const cloudPath = `voice/borrow-${Date.now()}.mp3`;
-        const uploadRes = await wx.cloud.uploadFile({ cloudPath, filePath: tempFilePath });
-        const voiceRes = await wx.cloud.callFunction({ name: 'voiceRecognize', data: { fileId: uploadRes.fileID } });
-
-        if (voiceRes.result && voiceRes.result.success) {
-          const recognizedText = voiceRes.result.data;
-          wx.showLoading({ title: '正在匹配商品...' });
-          const matched = await matchGoodsFromOcr(recognizedText);
-          if (matched.length > 0) {
-            this.applyRecognizedGoods(matched);
-            wx.showToast({ title: `识别到 ${matched.length} 种商品`, icon: 'success' });
-          } else {
-            wx.showToast({ title: '听到了：' + recognizedText + '，但没找到对应商品', icon: 'none', duration: 3000 });
-          }
-        }
-      } catch (err) {
-        console.error('语音识别异常', err);
-      } finally {
-        wx.hideLoading();
-      }
-    });
-    recorderManager.stop();
+  async stopVoice() {
+    const recognizedText = await stopVoice(this);
+    if (recognizedText) {
+      await handleRecognizedResult(this, recognizedText, (matched) => this.applyRecognizedGoods(matched));
+    }
   },
 
   applyRecognizedGoods(matched) {
+    console.log('【OCR识别】当前商品列表:', this.data.selectedGoods);
+    console.log('【OCR识别】匹配到的商品:', matched);
     const current = [...this.data.selectedGoods];
     matched.forEach(m => {
       if (!current.some(c => c._id === m._id)) {
@@ -386,6 +407,7 @@ Page({
         current.push(item);
       }
     });
+    console.log('【OCR识别】添加后商品列表:', current);
     this.setData({ selectedGoods: current });
   }
 });

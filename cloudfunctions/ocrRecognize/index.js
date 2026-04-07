@@ -1,15 +1,57 @@
 /**
  * 大模型智能识别云函数 (阿里云百炼版)
  * 功能：调用 Qwen-VL 识别图片/语音并精准解析业务数据
- * 整理日期：2024-03-26
+ * 修复：添加用户认证
  */
 const cloud = require('wx-server-sdk');
 const axios = require('axios');
 
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
+
+/**
+ * 校验用户登录状态
+ */
+async function checkAuth(userId, sessionToken) {
+  if (!userId || !sessionToken) {
+    throw new Error('登录状态已失效，请重新登录');
+  }
+
+  const userRes = await db.collection('users').doc(userId).get();
+  const user = userRes.data;
+
+  if (!user) {
+    throw new Error('用户不存在');
+  }
+
+  if (user.sessionToken !== sessionToken) {
+    throw new Error('登录状态已失效，请重新登录');
+  }
+
+  const expireAt = user.sessionExpireAt ? new Date(user.sessionExpireAt).getTime() : 0;
+  if (expireAt > 0 && expireAt <= Date.now()) {
+    throw new Error('登录已过期，请重新登录');
+  }
+
+  // 续期
+  await db.collection('users').doc(userId).update({
+    data: { sessionExpireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) }
+  });
+
+  return user;
+}
 
 exports.main = async (event, context) => {
-  const { fileId, text } = event;
+  const { userId, sessionToken, fileId, text } = event;
+
+  // 1. 校验登录状态
+  try {
+    await checkAuth(userId, sessionToken);
+  } catch (authErr) {
+    return { success: false, message: authErr.message };
+  }
+
+  // TODO: 上线前请在云函数环境变量中配置 ALIYUN_API_KEY
   const apiKey = process.env.ALIYUN_API_KEY || 'sk-428412f590234aee805e7a757340fbde';
   const baseUrl = "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions";
 
@@ -20,7 +62,7 @@ exports.main = async (event, context) => {
     if (fileId) {
       const res = await cloud.getTempFileURL({ fileList: [fileId] });
       const imageUrl = res.fileList[0].tempFileURL;
-      
+
       messages = [
         {
           role: "system",
@@ -42,10 +84,9 @@ exports.main = async (event, context) => {
           ]
         }
       ];
-      
-      // 图片识别用 qwen-vl-plus
-      var model = "qwen-vl-plus";
-    } 
+
+      var model = "qwen3.6-plus";
+    }
     // --- 场景 B: 语音识别/纯文本解析 ---
     else if (text) {
       messages = [
@@ -63,14 +104,13 @@ exports.main = async (event, context) => {
           content: text
         }
       ];
-      
-      // 文本用 qwen3.5-plus
-      var model = "qwen3.5-plus";
+
+      var model = "qwen3.6-plus";
     } else {
       return { success: false, message: '缺少识别参数' };
     }
 
-    // 调用阿里云百炼接口
+    // 调用阿里云百炼接口（超时时间 50 秒，注意不要超过云函数超时限制）
     const response = await axios.post(baseUrl, {
       model: model,
       messages: messages
@@ -78,23 +118,46 @@ exports.main = async (event, context) => {
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json'
-      }
+      },
+      timeout: 50000
     });
 
     const aiResult = response.data.choices[0].message.content;
 
+    // 预处理：对 AI 返回内容进行别名映射，统一型号格式
+    const processedResult = aiResult
+      .replace(/ctl-200(?!5)/gi, 'ctl-205')  // CTL-200 -> CTL-205（200不存在，只有205）
+      .replace(/gl-/gi, 'ctl-')              // GL- -> CTL-
+      .replace(/lm(?=[^a-z])/gi, 'hm')       // LM -> HM
+      .replace(/黑色粉/gi, '黑色硒鼓')
+      .replace(/红色粉/gi, '红色硒鼓')
+      .replace(/蓝色粉/gi, '蓝色硒鼓')
+      .replace(/黄色粉/gi, '黄色硒鼓');
+
+    console.log('========== OCR 识别结果 ==========');
+    console.log('【AI原始输出】:', aiResult);
+    console.log('【预处理后】:', processedResult);
+    console.log('================================');
+
     return {
       success: true,
-      data: aiResult,
+      data: processedResult,
+      rawData: aiResult,
       message: '解析成功'
     };
 
   } catch (err) {
     console.error('AI解析失败:', err);
+    console.error('错误类型:', err.name);
+    console.error('错误消息:', err.message);
+    console.error('err.response:', err.response ? JSON.stringify(err.response.data) : '无response');
+    const errMsg = err.response ? JSON.stringify(err.response.data) : err.message;
     return {
       success: false,
-      message: 'AI服务暂时不可用',
-      error: err.response ? err.response.data : err.message
+      message: 'AI服务暂时不可用，请稍后重试',
+      error: errMsg,
+      errType: err.name,
+      errMsg: err.message
     };
   }
 };

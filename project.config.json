@@ -5,6 +5,9 @@
     "minified": true,
     "uglifyFileName": false,
     "enhance": true,
+    "lazyloadPlaceholderEnable": true,
+    "bundle": false,
+    "ignoreUploadUnusedFiles": false,
     "packNpmRelationList": [],
     "babelSetting": {
       "ignore": [],
@@ -19,7 +22,12 @@
   "simulatorPluginLibVersion": {},
   "packOptions": {
     "ignore": [],
-    "include": []
+    "include": [
+      {
+        "type": "folder",
+        "value": "@babel/runtime"
+      }
+    ]
   },
   "appid": "wx6b4979a2bd3e0c24",
   "editorSetting": {}

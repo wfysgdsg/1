@@ -7,6 +7,16 @@
             </button>
         </view>
         <view class="form-section">
+            <view class="section-title">文字批量识别</view>
+            <view class="text-input-area">
+                <textarea bindinput="onTextInput" class="text-input" placeholder="粘贴或输入商品文字（如：CTL-205黑色 x 1, CTL-350红色 x 2），支持手机输入法语音输入" value="{{textInput}}"></textarea>
+                <view class="text-input-actions">
+                    <button bindtap="parseTextInput" class="parse-btn" disabled="{{!textInput}}">解析识别</button>
+                    <button bindtap="clearTextInput" class="clear-btn" disabled="{{!textInput}}">清空</button>
+                </view>
+            </view>
+        </view>
+        <view class="form-section">
             <view class="section-title">选择商品</view>
             <view class="goods-select">
                 <view class="input-wrapper">

@@ -1,8 +1,8 @@
 /**
  * 借货列表页逻辑
  */
-var db = wx.cloud.database();
-var _ = db.command;
+const db = wx.cloud.database();
+const _ = db.command;
 
 Page({
   data: {
@@ -33,13 +33,23 @@ Page({
   },
 
   onShow: function() {
-    this.setData({ currentPage: 1 });
+    this.setData({ currentPage: 1, stockPage: 1 });
     this.refreshData();
   },
 
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh: function() {
+    this.setData({ currentPage: 1, stockPage: 1 });
+    this.refreshData().then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
   getLoginInfo: function() {
-    var userInfo = wx.getStorageSync('userInfo') || {};
-    var userId = wx.getStorageSync('userId') || userInfo._id;
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    const userId = wx.getStorageSync('userId') || userInfo._id;
     return {
       userInfo: userInfo,
       userId: userId,
@@ -53,7 +63,7 @@ Page({
     var userId = info.userId;
     var isRoot = info.isRoot;
 
-    if (!userId) return;
+    if (!userId) return Promise.resolve();
 
     this.setData({ loading: true });
 
@@ -62,7 +72,7 @@ Page({
       borrowQuery = borrowQuery.where({ borrowerId: userId });
     }
 
-    borrowQuery.count().then(function(countRes) {
+    return borrowQuery.count().then(function(countRes) {
       var total = countRes.total;
       var pages = Math.ceil(total / that.data.pageSize);
       var skip = (that.data.currentPage - 1) * that.data.pageSize;

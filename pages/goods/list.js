@@ -1,8 +1,8 @@
 /**
  * 商品列表页逻辑
  */
-var db = wx.cloud.database();
-var _ = db.command;
+const db = wx.cloud.database();
+const _ = db.command;
 
 Page({
   data: {
@@ -19,16 +19,26 @@ Page({
     this.loadGoods();
   },
 
+  /**
+   * 下拉刷新
+   */
+  onPullDownRefresh: function() {
+    this.setData({ currentPage: 1, searchKeyword: '' });
+    this.loadGoods().then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
   loadGoods: function() {
-    var that = this;
+    const that = this;
     wx.showLoading({ title: '加载中...' });
 
-    var currentPage = this.data.currentPage;
-    var pageSize = this.data.pageSize;
-    var searchKeyword = this.data.searchKeyword;
+    const currentPage = this.data.currentPage;
+    const pageSize = this.data.pageSize;
+    const searchKeyword = this.data.searchKeyword;
 
-    var collection = db.collection('goods');
-    var query = collection;
+    let collection = db.collection('goods');
+    let query = collection;
 
     if (searchKeyword) {
       query = query.where({
@@ -39,10 +49,10 @@ Page({
       });
     }
 
-    query.count().then(function(countRes) {
-      var total = countRes.total;
-      var pages = Math.ceil(total / pageSize);
-      var skip = (currentPage - 1) * pageSize;
+    return query.count().then(function(countRes) {
+      const total = countRes.total;
+      const pages = Math.ceil(total / pageSize);
+      const skip = (currentPage - 1) * pageSize;
 
       return query.orderBy('updateTime', 'desc').orderBy('createTime', 'desc').skip(skip).limit(pageSize).get().then(function(res) {
         return { total: total, pages: pages, data: res.data };
