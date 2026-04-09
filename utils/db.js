@@ -25,25 +25,53 @@ async function fetchAll(query, options = {}) {
   
   let allResults = [];
   
-  for (let i = 0; i < maxPages; i++) {
-    // 关键修复：确保 query 对象能够正确链式调用 skip 和 limit
-    const res = await query.skip(i * pageSize).limit(pageSize).get();
-    const data = res.data || [];
+  try {
+    // 1. 先获取总数
+    const countRes = await query.count();
+    const total = countRes.total;
     
-    // 如果没有数据了，直接退出
-    if (data.length === 0) {
-      break;
-    }
+    if (total === 0) return [];
 
-    allResults = allResults.concat(data);
-    
-    // 如果返回数据少于一页，说明已经是最后一页
-    if (data.length < pageSize) {
-      break;
+    // 2. 根据总数分批获取
+    const totalPages = Math.ceil(total / pageSize);
+    const pagesToFetch = Math.min(totalPages, maxPages);
+
+    for (let i = 0; i < pagesToFetch; i++) {
+      const res = await query.skip(i * pageSize).limit(pageSize).get();
+      const data = res.data || [];
+      
+      if (data.length === 0) break;
+
+      allResults = allResults.concat(data);
+      
+      // 如果已经拿到了全部数据，提前退出
+      if (allResults.length >= total) break;
+
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
     }
-    
-    if (delayMs > 0) {
-      await sleep(delayMs);
+  } catch (err) {
+    console.error('fetchAll count error, fallback to legacy mode:', err);
+    // 回退到旧逻辑，但改进退出条件
+    for (let i = 0; i < maxPages; i++) {
+      const res = await query.skip(i * pageSize).limit(pageSize).get();
+      const data = res.data || [];
+      
+      if (data.length === 0) break;
+
+      const lastCount = allResults.length;
+      allResults = allResults.concat(data);
+      
+      // 如果本次没有新增数据，说明已经拿完（虽然 skip 应该会保证不重复，但以防万一）
+      if (allResults.length === lastCount) break;
+
+      // 在回退模式下，如果返回的数据量明显少于 pageSize 且不等于环境常见的限制(20)，大概率是拿完了
+      // 但由于环境限制不确定，这里我们保守一点，只靠 data.length === 0 或 maxPages 退出
+      
+      if (delayMs > 0) {
+        await sleep(delayMs);
+      }
     }
   }
   
