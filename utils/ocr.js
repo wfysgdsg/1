@@ -1,10 +1,20 @@
 /**
  * OCR 识别匹配工具类
  * 功能：通过模糊匹配算法，将 OCR 识别出的文本与数据库中的商品进行关联
- * 整理日期：2024-03-26
+ * 整理日期：2024-03-27
  */
 const db = wx.cloud.database();
 const { fetchAll } = require('./db');
+
+/**
+ * 颜色映射表：用于标准化颜色识别和双向映射
+ */
+const COLOR_VARIANTS = [
+  { key: 'black', label: '黑', patterns: ['xk', 'hk', 'black', '黑色', '黑'] },
+  { key: 'cyan', label: '蓝', patterns: ['xc', 'hc', 'cyan', '蓝色', '蓝', '青'] },
+  { key: 'yellow', label: '黄', patterns: ['xy', 'hy', 'yellow', '黄色', '黄'] },
+  { key: 'magenta', label: '红', patterns: ['xm', 'hm', 'magenta', '红色', '红', '粉'] },
+];
 
 /**
  * 文本清洗逻辑
@@ -34,6 +44,15 @@ function getTokens(text) {
 }
 
 /**
+ * 提取型号中的数字片段，用于强制校验
+ */
+function getNumbers(text) {
+  if (!text) return [];
+  // 提取所有连续数字
+  return text.match(/\d+/g) || [];
+}
+
+/**
  * 模糊匹配核心算法：计算两个文本的相似度分值 (0-1)
  */
 function calculateSimilarity(text1, text2) {
@@ -42,9 +61,25 @@ function calculateSimilarity(text1, text2) {
 
   if (!compact1 || !compact2) return 0;
   if (compact1 === compact2) return 1; // 完美匹配
-  if (compact1.includes(compact2) || compact2.includes(compact1)) return 0.96; // 包含匹配
+  
+  // 1. 型号数字强制校验
+  const nums1 = getNumbers(compact1);
+  const nums2 = getNumbers(compact2);
+  let numMismatch = false;
+  if (nums1.length > 0 && nums2.length > 0) {
+    // 检查是否存在数字上的交集 (如 "205" vs "205xk" 有交集, "205" vs "350" 无交集)
+    const hasOverlap = nums1.some(n1 => nums2.some(n2 => n1.includes(n2) || n2.includes(n1)));
+    if (!hasOverlap) {
+      numMismatch = true;
+    }
+  }
 
-  // 基于 Token 的分词匹配
+  // 包含匹配逻辑
+  if (compact1.includes(compact2) || compact2.includes(compact1)) {
+    return numMismatch ? 0.4 : 0.96;
+  }
+
+  // 2. 基于 Token 的分词匹配
   const tokens1 = getTokens(text1).filter(t => t.length >= 2);
   const tokens2 = getTokens(text2).filter(t => t.length >= 2);
 
@@ -54,7 +89,7 @@ function calculateSimilarity(text1, text2) {
   const score1 = tokens1.length ? hits1 / tokens1.length : 0;
   const score2 = tokens2.length ? hits2 / tokens2.length : 0;
 
-  // 基于字符集的重合度匹配
+  // 3. 基于字符集的重合度匹配
   let charHit = 0;
   const charSet1 = Array.from(new Set(compact1.split('')));
   charSet1.forEach(c => {
@@ -62,8 +97,15 @@ function calculateSimilarity(text1, text2) {
   });
   const charScore = charSet1.length ? charHit / charSet1.length : 0;
 
-  // 综合评分 (各算法取最大加权值)
-  return Math.max(0.85 * score1, 0.8 * score2, 0.72 * charScore);
+  // 4. 综合评分 (各算法取最大加权值)
+  let finalScore = Math.max(0.85 * score1, 0.8 * score2, 0.72 * charScore);
+  
+  // 如果数字不匹配，给予大幅度降权，防止型号混淆
+  if (numMismatch) {
+    finalScore *= 0.4;
+  }
+
+  return finalScore;
 }
 
 /**
@@ -84,79 +126,50 @@ async function loadOcrRules() {
         { pattern: '红色粉', replacement: '红色硒鼓', flags: 'gi' },
         { pattern: '蓝色粉', replacement: '蓝色硒鼓', flags: 'gi' },
         { pattern: '黄色粉', replacement: '黄色硒鼓', flags: 'gi' }
-      ],
-      colorMaps: {
-        'x': { 'xk': '黑', 'xc': '蓝', 'xy': '黄', 'xm': '红' },
-        'h': { 'hk': '黑', 'hc': '蓝', 'hy': '黄', 'hm': '红' }
-      }
+      ]
     };
   }
 }
 
 /**
- * 提取文本中的颜色词
+ * 获取文本所属的标准化颜色 Key
  */
-function extractColor(text, colorConfig) {
+function getColorKey(text) {
+  if (!text) return null;
   const clean = cleanText(text);
-  const xMap = (colorConfig && colorConfig.x) || { 'xk': '黑', 'xc': '蓝', 'xy': '黄', 'xm': '红' };
-  const hMap = (colorConfig && colorConfig.h) || { 'hk': '黑', 'hc': '蓝', 'hy': '黄', 'hm': '红' };
-
-  // 格式1: xk/xm/xc/xy
-  const xColorMatch = clean.match(/(xk|xc|xy|xm)\s*$/i);
-  if (xColorMatch) {
-    const val = xColorMatch[1].toLowerCase();
-    return { color: xMap[val], suffix: xColorMatch[0], rawSuffix: val };
-  }
-
-  // 格式2: HK/HM/HY/HC
-  const hColorMatch = clean.match(/(hk|hc|hy|hm)\s*$/i);
-  if (hColorMatch) {
-    const val = hColorMatch[1].toLowerCase();
-    return { color: hMap[val], suffix: hColorMatch[0], rawSuffix: val };
-  }
-
-  // 格式3: 中文颜色词
-  const colorWords = ['黑', '白', '红', '绿', '蓝', '黄', '青', '紫', '橙', '粉', '灰'];
-  for (const c of colorWords) {
-    if (clean.includes(c)) {
-      return { color: c, suffix: c, rawSuffix: c };
+  for (const c of COLOR_VARIANTS) {
+    for (const p of c.patterns) {
+      if (p.length <= 2) {
+        // 短后缀类：要求在末尾或者有非字母字符边界
+        const reg = new RegExp(`(${p}$|${p}[^a-z]|[^a-z]${p})`, 'i');
+        if (reg.test(clean)) return c.key;
+      } else {
+        if (clean.includes(p)) return c.key;
+      }
     }
   }
   return null;
 }
 
 /**
- * 计算文本与商品名的匹配度（包含 keywords 匹配 + 颜色精确匹配）
+ * 计算文本与商品名的匹配度（包含 keywords 匹配 + 增强型颜色校验）
  */
-function calculateGoodsMatchScore(text, goods, colorConfig) {
-  const textColor = extractColor(text, colorConfig);
-  const goodsName = goods.name;
-  const goodsNameLower = goodsName.toLowerCase();
+function calculateGoodsMatchScore(text, goods) {
+  const goodsName = goods.name.toLowerCase();
+  const textLower = text.toLowerCase();
+  
+  const textColorKey = getColorKey(textLower);
+  const goodsColorKey = getColorKey(goodsName);
 
-  // 1. 如果文本有颜色后缀，必须匹配包含相同颜色标识的商品
-  if (textColor && textColor.rawSuffix) {
-    const colorLower = textColor.rawSuffix.toLowerCase();
-    // 检查商品名是否包含这个颜色标识（xk/xc/xy/xm 或 hk/hc/hy/hm）
-    const goodsHasColor = goodsNameLower.includes(colorLower);
-    if (!goodsHasColor) {
-      // 如果识别的文本有颜色，但商品名没有包含，返回0完全排除
-      return 0;
-    }
+  // 1. 颜色冲突校验：如果双方都有明确颜色且不一致，直接排除
+  if (textColorKey && goodsColorKey && textColorKey !== goodsColorKey) {
+    return 0;
   }
 
-  // 2. 无颜色后缀时，排除所有带 xk/xc/xy/xm/hk/hc/hy/hm 的商品
-  if (!textColor) {
-    const hasColorSuffix = goodsNameLower.match(/(xk|xc|xy|xm|hk|hc|hy|hm)\s*$/i);
-    if (hasColorSuffix) {
-      // 有颜色后缀但识别时没写颜色，返回0不匹配
-      return 0;
-    }
-  }
+  // 2. 计算基础相似度（包含型号数字校验）
+  let maxScore = calculateSimilarity(text, goods.name);
 
-  // 3. 直接匹配商品名
-  let maxScore = calculateSimilarity(text, goodsName);
-
-  // 4. 匹配 keywords（别名/关联词）
+  // 3. 匹配 keywords（别名/关联词）
   if (goods.keywords) {
     const keywordList = goods.keywords.split(/[,，,]/).map(k => k.trim()).filter(Boolean);
     keywordList.forEach(keyword => {
@@ -165,6 +178,18 @@ function calculateGoodsMatchScore(text, goods, colorConfig) {
         maxScore = score;
       }
     });
+  }
+
+  // 4. 颜色逻辑优化与加权
+  if (textColorKey && goodsColorKey && textColorKey === goodsColorKey) {
+    // 双方颜色匹配成功 (如 识别“黑” vs 商品“XK”)，增加可信度
+    maxScore = Math.min(1.0, maxScore + 0.05);
+  } else if (!textColorKey && goodsColorKey) {
+    // 识别没写颜色，但商品是带颜色的型号：降权，优先让位给不带颜色的通用型号
+    maxScore *= 0.8;
+  } else if (textColorKey && !goodsColorKey) {
+    // 识别写了颜色，但商品没写颜色：轻微降权
+    maxScore *= 0.9;
   }
 
   return maxScore;
@@ -258,7 +283,7 @@ async function matchGoodsFromOcr(ocrResult) {
     let maxScore = 0;
 
     allGoods.forEach(goods => {
-      const score = calculateGoodsMatchScore(intent.name, goods, config.colorMaps);
+      const score = calculateGoodsMatchScore(intent.name, goods);
       if (score > maxScore) {
         maxScore = score;
         bestMatch = goods;
