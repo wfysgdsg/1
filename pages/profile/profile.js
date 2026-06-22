@@ -4,6 +4,7 @@
  */
 Page({
   data: {
+    _anim: true,
     userInfo: {},
     displayName: '',
     isLogged: false,
@@ -22,6 +23,9 @@ Page({
   },
 
   onShow: function () {
+    this.setData({ _anim: false });
+    var that = this;
+    setTimeout(function () { that.setData({ _anim: true }); }, 50);
     this.checkLoginStatus();
   },
 

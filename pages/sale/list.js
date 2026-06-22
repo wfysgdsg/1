@@ -52,16 +52,35 @@ function formatSaleItem(item) {
   var voidStatus = item.voidStatus || 'normal';
   var voidStatusStr = voidStatus === 'voided' ? '已红冲' : '';
 
+  // NEXUS-3D: 计算新 WXML 需要的字段
+  var status;
+  if (voidStatus === 'voided') {
+    status = 'voided';
+  } else if (item.payStatus === 'paid') {
+    status = 'paid';
+  } else {
+    status = 'unpaid';
+  }
+  var statusText = status === 'voided' ? '已红冲' : (status === 'paid' ? '已结清' : '未付款');
+  var goodsCount = goodsDetail.length;
+  var goodsPreview = goodsDetail.slice(0, 3).map(function(g) { return g.goodsName; }).join('、');
+  var remainingAmount = (totalInvoiceAmount || 0) - totalPaid;
+
   return {
     _id: item._id,
     customerName: customerName,
     saleDateStr: saleDateStr,
+    saleDate: saleDateStr,
     payStatus: item.payStatus,
     payStatusStr: payStatusStr,
     voidStatus: voidStatus,
     voidStatusStr: voidStatusStr,
+    status: status,
+    statusText: statusText,
     goodsDetail: goodsDetail,
-    totalAmount: item.totalAmount,
+    goodsCount: goodsCount,
+    goodsPreview: goodsPreview || '无商品',
+    totalAmount: parseFloat(item.totalAmount || 0).toFixed(2),
     totalAmountStr: parseFloat(item.totalAmount || 0).toFixed(2),
     totalCost: item.totalCost,
     totalCostStr: parseFloat(item.totalCost || 0).toFixed(2),
@@ -71,10 +90,11 @@ function formatSaleItem(item) {
     totalInvoiceAmountStr: parseFloat(totalInvoiceAmount || 0).toFixed(2),
     totalPaid: totalPaid,
     totalPaidStr: totalPaid.toFixed(2),
+    paidAmount: totalPaid.toFixed(2),
+    remainingAmount: remainingAmount.toFixed(2),
     hasPartial: hasPartial,
     remaining: parseFloat((totalInvoiceAmount || 0) - totalPaid).toFixed(2),
     payments: item.payments || [],
-    saleDate: formatDate(item.saleTime || item.createTime)
   };
 }
 
