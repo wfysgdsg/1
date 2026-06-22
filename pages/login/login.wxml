@@ -1,77 +1,99 @@
+<!-- 登录页 — 3D 透视 + Spring 动画增强版 -->
 <view class="container">
+    <!-- 3D 浮动光晕背景 -->
     <view class="bg-orb bg-orb-1"></view>
     <view class="bg-orb bg-orb-2"></view>
     <view class="bg-orb bg-orb-3"></view>
-    <view class="logo-section">
-        <view class="logo-circle">
-            <view class="logo-ring"></view>
-            <text class="logo-icon">{{uiText.logo}}</text>
+    <view class="bg-grid"></view>
+
+    <!-- 3D 透视场景 -->
+    <view class="scene-3d">
+        <!-- Logo 区域 — 3D 浮动 -->
+        <view class="logo-section">
+            <view class="logo-circle preserve-3d">
+                <view class="logo-ring"></view>
+                <view class="logo-ring-2"></view>
+                <view class="logo-glow"></view>
+                <text class="logo-icon">{{uiText.logo}}</text>
+            </view>
+            <text class="logo-title">{{uiText.title}}</text>
+            <text class="logo-subtitle">{{uiText.subtitle}}</text>
         </view>
-        <text class="logo-title">{{uiText.title}}</text>
-        <text class="logo-subtitle">{{uiText.subtitle}}</text>
+
+        <!-- 表单卡片 — 3D 透视倾斜 -->
+        <view class="form-card preserve-3d">
+            <!-- 卡片光泽边框 -->
+            <view class="card-border-glow"></view>
+
+            <!-- 账号输入框 -->
+            <view class="field-wrapper">
+                <view class="field-label">账号</view>
+                <view class="input-wrapper {{focusedAccount ? 'focused' : ''}}">
+                    <view class="field-icon">👤</view>
+                    <input
+                        bindinput="onUsernameInput"
+                        bindfocus="onAccountFocus"
+                        bindblur="onAccountBlur"
+                        class="field-input"
+                        placeholder="{{uiText.accountPlaceholder}}"
+                        placeholder-class="placeholder"
+                        value="{{username}}"
+                        cursor-color="#4F6EF7"
+                    />
+                    <view class="field-underline"></view>
+                </view>
+            </view>
+
+            <!-- 密码输入框 -->
+            <view class="field-wrapper">
+                <view class="field-label">密码</view>
+                <view class="input-wrapper {{focusedPwd ? 'focused' : ''}}">
+                    <view class="field-icon">🔒</view>
+                    <input
+                        bindinput="onPasswordInput"
+                        bindfocus="onPwdFocus"
+                        bindblur="onPwdBlur"
+                        class="field-input"
+                        password="{{!showPassword}}"
+                        placeholder="{{uiText.passwordPlaceholder}}"
+                        placeholder-class="placeholder"
+                        value="{{password}}"
+                        cursor-color="#4F6EF7"
+                    />
+                    <view bindtap="togglePassword" class="eye-btn {{showPassword ? 'showing' : ''}}">
+                        {{showPassword ? '🙈' : '👁'}}
+                    </view>
+                    <view class="field-underline"></view>
+                </view>
+            </view>
+
+            <!-- 选项行 -->
+            <view class="option-row">
+                <view bindtap="toggleRememberPassword" class="option-item">
+                    <view class="radio {{rememberPassword ? 'checked' : ''}}">
+                        <view class="radio-dot" wx:if="{{rememberPassword}}"></view>
+                    </view>
+                    <text class="option-text">{{uiText.rememberPassword}}</text>
+                </view>
+                <view bindtap="toggleAutoLogin" class="option-item">
+                    <view class="radio {{autoLogin ? 'checked' : ''}}">
+                        <view class="radio-dot" wx:if="{{autoLogin}}"></view>
+                    </view>
+                    <text class="option-text">{{uiText.autoLogin}}</text>
+                </view>
+            </view>
+
+            <!-- 登录按钮 — 3D 凸起 -->
+            <view class="btn-wrapper">
+                <view class="login-btn" bindtap="login">
+                    <text class="btn-text">{{uiText.login}}</text>
+                    <view class="btn-shine"></view>
+                    <view class="btn-glow"></view>
+                </view>
+            </view>
+        </view>
     </view>
-    <view class="form-card">
-        <!-- 账号输入框 -->
-        <view class="field-wrapper">
-            <view class="field-label">账号</view>
-            <view class="input-wrapper {{focusedAccount ? 'focused' : ''}}">
-                <view class="field-icon">👤</view>
-                <input
-                    bindinput="onUsernameInput"
-                    bindfocus="onAccountFocus"
-                    bindblur="onAccountBlur"
-                    class="field-input"
-                    placeholder="{{uiText.accountPlaceholder}}"
-                    placeholder-class="placeholder"
-                    value="{{username}}"
-                    cursor-color="#4F6EF7"
-                />
-            </view>
-        </view>
-        <!-- 密码输入框 -->
-        <view class="field-wrapper">
-            <view class="field-label">密码</view>
-            <view class="input-wrapper {{focusedPwd ? 'focused' : ''}}">
-                <view class="field-icon">🔒</view>
-                <input
-                    bindinput="onPasswordInput"
-                    bindfocus="onPwdFocus"
-                    bindblur="onPwdBlur"
-                    class="field-input"
-                    password="{{!showPassword}}"
-                    placeholder="{{uiText.passwordPlaceholder}}"
-                    placeholder-class="placeholder"
-                    value="{{password}}"
-                    cursor-color="#4F6EF7"
-                />
-                <view bindtap="togglePassword" class="eye-btn {{showPassword ? 'showing' : ''}}">
-                    {{showPassword ? '🙈' : '👁'}}
-                </view>
-            </view>
-        </view>
-        <!-- 选项行 -->
-        <view class="option-row">
-            <view bindtap="toggleRememberPassword" class="option-item">
-                <view class="radio {{rememberPassword ? 'checked' : ''}}">
-                    <view class="radio-dot" wx:if="{{rememberPassword}}"></view>
-                </view>
-                <text class="option-text">{{uiText.rememberPassword}}</text>
-            </view>
-            <view bindtap="toggleAutoLogin" class="option-item">
-                <view class="radio {{autoLogin ? 'checked' : ''}}">
-                    <view class="radio-dot" wx:if="{{autoLogin}}"></view>
-                </view>
-                <text class="option-text">{{uiText.autoLogin}}</text>
-            </view>
-        </view>
-        <!-- 登录按钮 -->
-        <view class="btn-wrapper">
-            <view class="login-btn" bindtap="login">
-                <text class="btn-text">{{uiText.login}}</text>
-                <view class="btn-shine"></view>
-            </view>
-        </view>
-    </view>
+
     <view class="extra-links">
         <text bindtap="forgotPassword" class="link">{{uiText.forgotPassword}}</text>
         <text class="divider">|</text>

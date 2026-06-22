@@ -1,0 +1,87 @@
+/**
+ * 3D Tilt Card 组件 — WXS 触摸驱动 3D 倾斜效果
+ * 
+ * 使用方式：
+ * 1. 在页面 WXSS 中给元素加 class="tilt-card"
+ * 2. 在页面 WXML 中引入此 WXS 并绑定 touch 事件
+ * 3. 元素需要有 perspective 父容器
+ * 
+ * 示例 WXML:
+ * <view class="scene-3d">
+ *   <wxs src="../../components/tilt-card/tilt.wxs" module="tilt" />
+ *   <view class="tilt-card" 
+ *     bindtouchstart="tilt.onStart"
+ *     bindtouchmove="tilt.onMove"
+ *     bindtouchend="tilt.onEnd"
+ *     transform="{{tilt.transform}}">
+ *     ...内容
+ *   </view>
+ * </view>
+ */
+
+//tilt.wxs — 3D 倾斜逻辑
+var MAX_ANGLE = 12;  // 最大倾斜角度
+var MAX_Z = 30;      // 最大 Z 轴位移
+
+function clamp(val, min, max) {
+  return Math.max(min, Math.min(max, val));
+}
+
+function onTouchStart(e, ownerInstance) {
+  var ins = ownerInstance.selectComponent('.tilt-card');
+  if (!ins) return;
+  ins.setStyle({
+    'transition': 'none'
+  });
+}
+
+function onTouchMove(e, ownerInstance) {
+  var ins = ownerInstance.selectComponent('.tilt-card');
+  if (!ins) return;
+  
+  var touches = e.touches;
+  if (!touches || touches.length === 0) return;
+  
+  var touch = touches[0];
+  // 获取元素位置
+  var dataset = ins.getDataset();
+  var rect = ins.getBoundingClientRect();
+  
+  if (!rect) return;
+  
+  var centerX = rect.left + rect.width / 2;
+  var centerY = rect.top + rect.height / 2;
+  
+  // 计算偏移比例 (-1 ~ 1)
+  var ratioX = (touch.clientX - centerX) / (rect.width / 2);
+  var ratioY = (touch.clientY - centerY) / (rect.height / 2);
+  
+  ratioX = clamp(ratioX, -1, 1);
+  ratioY = clamp(ratioY, -1, 1);
+  
+  // 计算角度
+  var rotateY = ratioX * MAX_ANGLE;
+  var rotateX = -ratioY * MAX_ANGLE;
+  var translateZ = MAX_Z;
+  
+  ins.setStyle({
+    'transform': 'perspective(800rpx) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateZ(' + translateZ + 'rpx)',
+    'transition': 'none'
+  });
+}
+
+function onTouchEnd(e, ownerInstance) {
+  var ins = ownerInstance.selectComponent('.tilt-card');
+  if (!ins) return;
+  
+  ins.setStyle({
+    'transform': 'perspective(800rpx) rotateX(0deg) rotateY(0deg) translateZ(0rpx)',
+    'transition': 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+  });
+}
+
+module.exports = {
+  onStart: onTouchStart,
+  onMove: onTouchMove,
+  onEnd: onTouchEnd
+};

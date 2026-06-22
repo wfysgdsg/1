@@ -1,18 +1,31 @@
+<!-- 个人中心 — 3D + Spring 动画增强版 -->
 <view class="container">
-    <view class="header-card" bindtap="editProfile">
-        <view class="avatar-section">
-            <image wx:if="{{userInfo.avatarUrl}}" class="avatar-img" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
-            <view wx:else class="avatar">{{displayName[0]||'?'}}</view>
-            <view class="user-detail">
-                <text class="username">{{displayName}}</text>
-                <text class="user-bio" wx:if="{{userInfo.bio}}">{{userInfo.bio}}</text>
-                <text class="role-tag">{{userInfo.role==='root'?uiText.admin:uiText.staff}}</text>
+    <!-- 3D 透视头部卡片 -->
+    <view class="scene-3d">
+        <view class="header-card" bindtap="editProfile">
+            <!-- 背景装饰 -->
+            <view class="header-bg-orb"></view>
+            <view class="header-bg-mesh"></view>
+
+            <view class="avatar-section preserve-3d">
+                <view class="avatar-wrapper">
+                    <image wx:if="{{userInfo.avatarUrl}}" class="avatar-img" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
+                    <view wx:else class="avatar">{{displayName[0]||'?'}}</view>
+                    <view class="avatar-ring"></view>
+                </view>
+                <view class="user-detail">
+                    <text class="username">{{displayName}}</text>
+                    <text class="user-bio" wx:if="{{userInfo.bio}}">{{userInfo.bio}}</text>
+                    <text class="role-tag">{{userInfo.role==='root'?uiText.admin:uiText.staff}}</text>
+                </view>
+                <text class="edit-hint">编辑</text>
             </view>
-            <text class="edit-hint">编辑</text>
         </view>
     </view>
+
+    <!-- 菜单卡片 — Spring 逐项入场 -->
     <view class="menu-card">
-        <view bindtap="changePassword" class="menu-item">
+        <view bindtap="changePassword" class="menu-item" style="animation-delay: 0.1s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#EEF1FE;">
                     <text class="menu-icon">🔑</text>
@@ -21,7 +34,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="exportData" class="menu-item">
+        <view bindtap="exportData" class="menu-item" style="animation-delay: 0.15s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#FFF7E6;">
                     <text class="menu-icon">📥</text>
@@ -30,7 +43,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="viewReport" class="menu-item">
+        <view bindtap="viewReport" class="menu-item" style="animation-delay: 0.2s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F6FFED;">
                     <text class="menu-icon">📊</text>
@@ -39,7 +52,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="viewDeliveryList" class="menu-item">
+        <view bindtap="viewDeliveryList" class="menu-item" style="animation-delay: 0.25s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F9F0FF;">
                     <text class="menu-icon">📋</text>
@@ -48,7 +61,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="manageStaff" class="menu-item" wx:if="{{isAdmin}}">
+        <view bindtap="manageStaff" class="menu-item" wx:if="{{isAdmin}}" style="animation-delay: 0.3s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#FFF1F0;">
                     <text class="menu-icon">👥</text>
@@ -57,7 +70,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="about" class="menu-item">
+        <view bindtap="about" class="menu-item" style="animation-delay: 0.35s">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F5F6FA;">
                     <text class="menu-icon">ℹ️</text>
@@ -67,5 +80,6 @@
             <text class="arrow">›</text>
         </view>
     </view>
+
     <button bindtap="logout" class="logout-btn" wx:if="{{isLogged}}">{{uiText.logout}}</button>
 </view>

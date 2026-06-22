@@ -1,3 +1,4 @@
+/* 登录页 — 3D 透视 + Spring 动画增强版 */
 page {
   background: linear-gradient(135deg, #1a1a2e, #16213e 50%, #0f3460);
   overflow: hidden;
@@ -14,16 +15,17 @@ page {
   position: relative;
 }
 
-/* 背景光晕 */
+/* ========================================
+   3D 浮动光晕背景 — 深度层次
+   ======================================== */
 .bg-orb {
-  animation: float 8s ease-in-out infinite;
   border-radius: 50%;
   filter: blur(80rpx);
   opacity: 0.6;
   position: absolute;
 }
 .bg-orb-1 {
-  animation-delay: 0s;
+  animation: floatOrb1 10s ease-in-out infinite;
   background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
   height: 400rpx;
   right: -100rpx;
@@ -31,7 +33,7 @@ page {
   width: 400rpx;
 }
 .bg-orb-2 {
-  animation-delay: -3s;
+  animation: floatOrb2 12s ease-in-out infinite;
   background: linear-gradient(135deg, #8B7CF7, #C4B5FD);
   bottom: 100rpx;
   height: 300rpx;
@@ -39,65 +41,141 @@ page {
   width: 300rpx;
 }
 .bg-orb-3 {
-  animation-delay: -5s;
+  animation: floatOrb3 8s ease-in-out infinite;
   background: linear-gradient(135deg, #4facfe, #00f2fe);
   bottom: -50rpx;
   height: 250rpx;
   right: 50rpx;
   width: 250rpx;
 }
-@keyframes float {
-  0%   { transform: translateY(0rpx)   scale(1)    rotate(0deg); }
-  33%  { transform: translateY(-24rpx) scale(1.04) rotate(5deg); }
-  66%  { transform: translateY(-12rpx) scale(0.98) rotate(-3deg); }
-  100% { transform: translateY(0rpx)   scale(1)    rotate(0deg); }
+
+/* 非线性浮动 — 每个光晕独立轨迹 */
+@keyframes floatOrb1 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(20rpx, -30rpx, 40rpx) scale(1.08); }
+  66%  { transform: translate3d(-15rpx, -15rpx, 20rpx) scale(0.95); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes floatOrb2 {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  40%  { transform: translate3d(-25rpx, 20rpx, 30rpx) scale(1.05); }
+  80%  { transform: translate3d(10rpx, -10rpx, 15rpx) scale(0.98); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes floatOrb3 {
+  0%   { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+  50%  { transform: translate3d(15rpx, -20rpx, 25rpx) scale(1.06) rotate(8deg); }
+  100% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
 }
 
-/* Logo 区域 */
+/* 3D 网格背景 */
+.bg-grid {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+  background-size: 60rpx 60rpx;
+  transform: perspective(800rpx) rotateX(60deg) translateY(200rpx);
+  transform-origin: center bottom;
+  opacity: 0.4;
+  mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 40%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.5) 40%, transparent 100%);
+}
+
+/* ========================================
+   3D 透视场景
+   ======================================== */
+.scene-3d {
+  perspective: 1200rpx;
+  perspective-origin: center center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ========================================
+   Logo 区域 — 3D 浮动
+   ======================================== */
 .logo-section {
-  animation: fadeInDown 0.8s ease-out;
+  animation: springInDown 1s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   margin-bottom: 60rpx;
   margin-top: 40rpx;
   position: relative;
   text-align: center;
   z-index: 10;
 }
-@keyframes fadeInDown {
-  from { opacity: 0; transform: translateY(-40rpx); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes springInDown {
+  0% { opacity: 0; transform: translateY(-60rpx) scale(0.8) rotateX(-20deg); }
+  60% { opacity: 1; transform: translateY(8rpx) scale(1.05) rotateX(5deg); }
+  80% { transform: translateY(-4rpx) scale(0.98) rotateX(-2deg); }
+  100% { opacity: 1; transform: translateY(0) scale(1) rotateX(0); }
 }
+
 .logo-circle {
   align-items: center;
   backdrop-filter: blur(20rpx);
   background: linear-gradient(135deg, hsla(0,0%,100%,0.2), hsla(0,0%,100%,0.1));
   border: 3rpx solid hsla(0,0%,100%,0.3);
   border-radius: 50%;
-  box-shadow: 0 30rpx 60rpx rgba(0,0,0,0.3);
+  box-shadow: 0 30rpx 60rpx rgba(0,0,0,0.3), inset 0 2rpx 10rpx hsla(0,0%,100%,0.1);
   display: flex;
   height: 160rpx;
   justify-content: center;
   margin: 0 auto 24rpx;
   position: relative;
   width: 160rpx;
+  animation: float3D 5s ease-in-out infinite;
 }
+@keyframes float3D {
+  0%, 100% { transform: translateY(0) rotateZ(0deg) rotateY(0deg); }
+  25% { transform: translateY(-8rpx) rotateZ(2deg) rotateY(8deg); }
+  50% { transform: translateY(-4rpx) rotateZ(0deg) rotateY(-5deg); }
+  75% { transform: translateY(-12rpx) rotateZ(-2deg) rotateY(3deg); }
+}
+
+/* 旋转光环 — 外环 */
 .logo-ring {
   position: absolute;
-  top: -8rpx;
-  left: -8rpx;
-  right: -8rpx;
-  bottom: -8rpx;
+  top: -8rpx; left: -8rpx; right: -8rpx; bottom: -8rpx;
   border-radius: 50%;
   border: 4rpx solid transparent;
   border-top-color: #4F6EF7;
   border-right-color: rgba(108, 92, 231, 0.5);
-  animation: logoSpin 3s linear infinite;
+  animation: spin360 3s linear infinite;
   opacity: 0.8;
 }
-@keyframes logoSpin {
-  to { transform: rotate(360deg); }
+
+/* 旋转光环 — 内环（反向） */
+.logo-ring-2 {
+  position: absolute;
+  top: 8rpx; left: 8rpx; right: 8rpx; bottom: 8rpx;
+  border-radius: 50%;
+  border: 2rpx solid transparent;
+  border-bottom-color: rgba(79, 172, 254, 0.6);
+  border-left-color: rgba(196, 181, 253, 0.3);
+  animation: spin360 4s linear infinite reverse;
+  opacity: 0.6;
 }
+
+/* 光晕脉冲 */
+.logo-glow {
+  position: absolute;
+  top: -20rpx; left: -20rpx; right: -20rpx; bottom: -20rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(79,110,247,0.3) 0%, transparent 70%);
+  animation: logoGlowPulse 3s ease-in-out infinite;
+}
+@keyframes logoGlowPulse {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.15); }
+}
+
 .logo-icon {
   font-size: 80rpx;
+  position: relative;
+  z-index: 2;
 }
 .logo-title {
   -webkit-text-fill-color: transparent;
@@ -119,25 +197,59 @@ page {
   text-transform: uppercase;
 }
 
-/* 表单卡片 */
+/* ========================================
+   表单卡片 — 3D 透视入场
+   ======================================== */
 .form-card {
-  animation: fadeInUp 0.8s ease-out 0.2s both;
+  animation: springInUp3D 1s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
   backdrop-filter: blur(30rpx);
   background: hsla(0,0%,100%,0.08);
   border: 1rpx solid hsla(0,0%,100%,0.15);
   border-radius: 40rpx;
-  box-shadow: 0 40rpx 80rpx rgba(0,0,0,0.25);
+  box-shadow:
+    0 40rpx 80rpx rgba(0,0,0,0.25),
+    0 0 0 1rpx hsla(0,0%,100%,0.05) inset,
+    0 2rpx 20rpx hsla(0,0%,100%,0.08) inset;
   padding: 56rpx 48rpx;
   position: relative;
   width: 100%;
   z-index: 10;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(40rpx); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes springInUp3D {
+  0% {
+    opacity: 0;
+    transform: translateY(60rpx) perspective(1000rpx) rotateX(15deg) scale(0.9);
+  }
+  60% {
+    opacity: 1;
+    transform: translateY(-6rpx) perspective(1000rpx) rotateX(-3deg) scale(1.03);
+  }
+  80% {
+    transform: translateY(3rpx) rotateX(1deg) scale(0.99);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) perspective(1000rpx) rotateX(0) scale(1);
+  }
 }
 
-/* 字段包装 */
+/* 卡片光泽边框 — 流动 */
+.card-border-glow {
+  position: absolute;
+  top: -2rpx; left: -2rpx; right: -2rpx; bottom: -2rpx;
+  border-radius: 42rpx;
+  background: linear-gradient(135deg, rgba(79,110,247,0.4), rgba(108,92,231,0.2), rgba(79,172,254,0.3));
+  background-size: 300% 300%;
+  z-index: -1;
+  animation: gradientShift 6s ease infinite;
+  opacity: 0.5;
+  filter: blur(4rpx);
+}
+
+/* ========================================
+   字段包装
+   ======================================== */
 .field-wrapper {
   margin-bottom: 36rpx;
 }
@@ -150,7 +262,7 @@ page {
   letter-spacing: 2rpx;
 }
 
-/* 输入框容器 */
+/* 输入框容器 — 3D 凸起效果 */
 .input-wrapper {
   align-items: center;
   background: hsla(0,0%,100%,0.06);
@@ -160,14 +272,37 @@ page {
   height: 96rpx;
   padding: 0 28rpx;
   position: relative;
-  transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform-style: preserve-3d;
 }
-/* 聚焦状态 */
+
+/* 聚焦状态 — Spring 弹起 + 深度阴影 */
 .input-wrapper.focused {
   background: hsla(0,0%,100%,0.1);
   border-color: #4F6EF7;
-  box-shadow: 0 0 0 4rpx rgba(79,110,247,0.15), 0 8rpx 32rpx rgba(102,126,234,0.1);
+  box-shadow:
+    0 0 0 4rpx rgba(79,110,247,0.15),
+    0 8rpx 32rpx rgba(102,126,234,0.1),
+    inset 0 2rpx 8rpx rgba(79,110,247,0.08);
+  transform: translateZ(10rpx);
 }
+
+/* 聚焦时底部光条 — 从中间展开 */
+.field-underline {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 3rpx;
+  background: linear-gradient(90deg, transparent, #4F6EF7, #6C5CE7, transparent);
+  border-radius: 2rpx;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.input-wrapper.focused .field-underline {
+  width: 80%;
+  left: 10%;
+}
+
 /* 聚焦时左侧光效 */
 .input-wrapper.focused::before {
   content: '';
@@ -179,12 +314,17 @@ page {
   height: 56rpx;
   background: linear-gradient(180deg, #4F6EF7, #6C5CE7);
   border-radius: 0 6rpx 6rpx 0;
+  box-shadow: 0 0 12rpx rgba(79,110,247,0.5);
 }
 
 .field-icon {
   font-size: 34rpx;
   margin-right: 20rpx;
   opacity: 0.8;
+  transition: transform 0.3s var(--spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+}
+.input-wrapper.focused .field-icon {
+  transform: scale(1.15) translateZ(20rpx);
 }
 
 .field-input {
@@ -203,17 +343,19 @@ page {
   font-size: 28rpx;
 }
 
-/* 密码可见切换按钮 */
+/* 密码可见切换按钮 — Spring 弹跳 */
 .eye-btn {
   font-size: 36rpx;
   padding: 10rpx 16rpx;
-  transition: transform 0.2s ease;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .eye-btn:active {
-  transform: scale(0.85);
+  transform: scale(0.85) rotate(-15deg);
 }
 
-/* 选项行 */
+/* ========================================
+   选项行
+   ======================================== */
 .option-row {
   display: flex;
   justify-content: space-between;
@@ -225,6 +367,8 @@ page {
   display: flex;
   padding: 12rpx 0;
 }
+
+/* Radio — 3D 弹跳选中 */
 .radio {
   border: 2rpx solid hsla(0,0%,100%,0.3);
   border-radius: 50%;
@@ -232,13 +376,14 @@ page {
   height: 36rpx;
   margin-right: 14rpx;
   position: relative;
-  transition: all 0.25s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   width: 36rpx;
 }
 .radio.checked {
   background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
   border-color: transparent;
-  box-shadow: 0 6rpx 16rpx rgba(79,110,247,0.35);
+  box-shadow: 0 6rpx 16rpx rgba(79,110,247,0.35), inset 0 2rpx 6rpx hsla(0,0%,100%,0.3);
+  transform: scale(1.1);
 }
 .radio-dot {
   background: #fff;
@@ -249,41 +394,54 @@ page {
   top: 50%;
   transform: translate(25%, -50%);
   width: 14rpx;
-  animation: popIn 0.2s ease;
+  animation: popInSpring 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
-@keyframes popIn {
-  from { transform: translate(25%, -50%) scale(0); }
-  to { transform: translate(25%, -50%) scale(1); }
+@keyframes popInSpring {
+  0% { transform: translate(25%, -50%) scale(0) rotate(-180deg); }
+  60% { transform: translate(25%, -50%) scale(1.3) rotate(10deg); }
+  100% { transform: translate(25%, -50%) scale(1) rotate(0); }
 }
 .option-text {
   color: hsla(0,0%,100%,0.8);
   font-size: 26rpx;
 }
 
-/* 登录按钮 */
+/* ========================================
+   登录按钮 — 3D 凸起 + 流光
+   ======================================== */
 .btn-wrapper {
   position: relative;
+  perspective: 800rpx;
 }
 .login-btn {
   align-items: center;
   background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
   background-size: 200% 200%;
   border-radius: 50rpx;
-  box-shadow: 0 12rpx 40rpx rgba(79,110,247,0.35);
+  box-shadow:
+    0 12rpx 40rpx rgba(79,110,247,0.35),
+    0 4rpx 12rpx rgba(108,92,231,0.2),
+    inset 0 2rpx 8rpx hsla(0,0%,100%,0.2);
   display: flex;
   height: 100rpx;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  transform-style: preserve-3d;
 }
 .login-btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 8rpx 28rpx rgba(79,110,247,0.45);
+  transform: scale(0.96) translateZ(30rpx);
+  box-shadow:
+    0 6rpx 20rpx rgba(79,110,247,0.4),
+    0 2rpx 8rpx rgba(108,92,231,0.15),
+    inset 0 2rpx 6rpx hsla(0,0%,100%,0.15);
 }
-/* 按钮流光效果 */
+
+/* 按钮流光效果 — 加速 */
 .btn-shine {
-  animation: shimmer 4.5s linear infinite;
-  background: linear-gradient(90deg, transparent, hsla(0,0%,100%,0.25), transparent);
+  animation: shimmer 3.5s linear infinite;
+  background: linear-gradient(90deg, transparent, hsla(0,0%,100%,0.3), transparent);
   height: 100%;
   position: absolute;
   top: 0;
@@ -294,6 +452,22 @@ page {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(200%); }
 }
+
+/* 按钮发光脉冲 */
+.btn-glow {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 120%; height: 200%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(ellipse at center, rgba(79,110,247,0.15) 0%, transparent 60%);
+  animation: btnGlowPulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes btnGlowPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+}
+
 .btn-text {
   color: #fff;
   font-size: 34rpx;
@@ -301,30 +475,33 @@ page {
   letter-spacing: 4rpx;
   position: relative;
   z-index: 1;
+  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.15);
 }
 
-/* 额外链接 */
+/* ========================================
+   额外链接 — Spring 入场
+   ======================================== */
 .extra-links {
-  animation: fadeIn 0.8s ease-out 0.4s both;
+  animation: fadeInSpring 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
   display: flex;
   justify-content: center;
   margin-top: 48rpx;
   position: relative;
   z-index: 10;
 }
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes fadeInSpring {
+  from { opacity: 0; transform: translateY(20rpx); }
+  to { opacity: 1; transform: translateY(0); }
 }
 .link {
   color: hsla(0,0%,100%,0.7);
   font-size: 28rpx;
   padding: 16rpx 24rpx;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .link:active {
   color: #fff;
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 .divider {
   color: hsla(0,0%,100%,0.35);
@@ -333,11 +510,23 @@ page {
 
 /* 底部提示 */
 .footer {
-  animation: fadeIn 0.8s ease-out 0.6s both;
+  animation: fadeInSpring 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s both;
   color: hsla(0,0%,100%,0.45);
   font-size: 24rpx;
   margin-top: 60rpx;
   position: relative;
   text-align: center;
   z-index: 10;
+}
+
+/* 旋转动画 */
+@keyframes spin360 {
+  to { transform: rotate(360deg); }
+}
+
+/* 渐变流动 */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

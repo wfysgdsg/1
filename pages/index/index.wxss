@@ -1,28 +1,83 @@
+/* 首页 — 3D + Spring 动画增强版 */
 page {
   background-color: #f7f8fa;
 }
 .container {
   padding-bottom: 60rpx;
 }
+
+/* ========================================
+   3D 视差头部
+   ======================================== */
 .header-banner {
+  position: relative;
   background: radial-gradient(
       circle at top right,
       hsla(0, 0%, 100%, 0.22),
       transparent 28%
     ),
     linear-gradient(180deg, #4F6EF7, #6C5CE7);
+  background-size: 200% 200%;
   border-bottom-left-radius: 64rpx;
   border-bottom-right-radius: 64rpx;
   min-height: 300rpx;
   padding: 42rpx 40rpx 96rpx;
+  overflow: hidden;
+  animation: gradientShift 8s ease infinite;
 }
+
+/* 3D 背景层 — 深度光球 */
+.header-bg-3d {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+.header-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40rpx);
+}
+.header-orb-1 {
+  width: 300rpx; height: 300rpx;
+  top: -80rpx; right: -60rpx;
+  background: radial-gradient(circle, rgba(255,255,255,0.2), transparent 70%);
+  animation: headerOrbFloat1 7s ease-in-out infinite;
+}
+.header-orb-2 {
+  width: 200rpx; height: 200rpx;
+  bottom: -40rpx; left: 40rpx;
+  background: radial-gradient(circle, rgba(108,92,231,0.25), transparent 70%);
+  animation: headerOrbFloat2 9s ease-in-out infinite;
+}
+@keyframes headerOrbFloat1 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(-20rpx, 15rpx, 30rpx) scale(1.1); }
+}
+@keyframes headerOrbFloat2 {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(25rpx, -10rpx, 20rpx) scale(1.08); }
+}
+
+/* 网格纹理 */
+.header-mesh {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 80rpx 80rpx;
+  opacity: 0.6;
+}
+
 .user-info {
   align-items: center;
   justify-content: space-between;
+  position: relative;
+  z-index: 2;
 }
 .user-info,
 .welcome-box {
-  display: -webkit-flex;
   display: flex;
 }
 .welcome-box {
@@ -32,22 +87,32 @@ page {
   color: #fff;
   font-size: 40rpx;
   font-weight: 700;
+  text-shadow: 0 2rpx 12rpx rgba(0,0,0,0.1);
 }
 .date {
   color: hsla(0, 0%, 100%, 0.82);
   font-size: 24rpx;
   margin-top: 10rpx;
 }
+
+/* 头像入口 — 3D 浮起 */
 .profile-entry {
   align-items: center;
   background: hsla(0, 0%, 100%, 0.22);
+  backdrop-filter: blur(10rpx);
+  border: 2rpx solid hsla(0, 0%, 100%, 0.3);
   border-radius: 50%;
-  display: -webkit-flex;
   display: flex;
   height: 80rpx;
   justify-content: center;
   overflow: hidden;
   width: 80rpx;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.1);
+}
+.profile-entry:active {
+  transform: scale(0.92) translateZ(20rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0,0,0,0.15);
 }
 .profile-avatar {
   width: 100%;
@@ -58,17 +123,49 @@ page {
   font-size: 28rpx;
   font-weight: 700;
 }
+
+/* ========================================
+   3D 统计主卡 — 浮在头部上方
+   ======================================== */
+.scene-3d-near {
+  perspective: 800rpx;
+  perspective-origin: center top;
+}
+
 .stats-card {
   align-items: center;
   background: #fff;
   border-radius: 32rpx;
-  box-shadow: 0 18rpx 44rpx rgba(21, 93, 165, 0.1);
+  box-shadow:
+    0 18rpx 44rpx rgba(21, 93, 165, 0.1),
+    0 4rpx 12rpx rgba(21, 93, 165, 0.06),
+    inset 0 2rpx 8rpx rgba(255,255,255,0.5);
   margin: -88rpx 32rpx 0;
   padding: 34rpx 32rpx;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  transform-style: preserve-3d;
 }
+.stats-card:active {
+  transform: scale(0.97) translateZ(20rpx);
+  box-shadow:
+    0 12rpx 30rpx rgba(21, 93, 165, 0.08),
+    0 2rpx 8rpx rgba(21, 93, 165, 0.04);
+}
+
+/* 卡片顶部光泽 */
+.stats-card-glow {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4rpx;
+  background: linear-gradient(90deg, transparent, #4F6EF7, #6C5CE7, #4F6EF7, transparent);
+  background-size: 200% 100%;
+  animation: gradientShift 4s linear infinite;
+}
+
 .stat-main,
 .stats-card {
-  display: -webkit-flex;
   display: flex;
 }
 .stat-main {
@@ -80,6 +177,7 @@ page {
   font-size: 54rpx;
   font-weight: 700;
   line-height: 1;
+  text-shadow: 0 2rpx 8rpx rgba(79,110,247,0.15);
 }
 .stat-lab {
   color: #8c8c8c;
@@ -88,7 +186,7 @@ page {
   letter-spacing: 1rpx;
 }
 .stat-divider {
-  background: #f0f0f0;
+  background: linear-gradient(180deg, transparent, #f0f0f0, transparent);
   height: 92rpx;
   margin: 0 24rpx;
   width: 1rpx;
@@ -100,7 +198,6 @@ page {
 }
 .stat-mini,
 .stat-side {
-  display: -webkit-flex;
   display: flex;
   justify-content: space-between;
 }
@@ -117,16 +214,19 @@ page {
   font-size: 22rpx;
   margin-top: 4rpx;
 }
+
+/* ========================================
+   网格统计 — 3D 翻转入场
+   ======================================== */
 .grid-stats {
   background: #fff;
   border-radius: 24rpx;
-  box-shadow: 0 10rpx 28rpx rgba(0, 0, 0, 0.04);
+  box-shadow: 0 10rpx 28rpx rgba(0, 0, 0, 0.04), 0 2rpx 8rpx rgba(0,0,0,0.02);
   margin: 24rpx 32rpx;
   padding: 28rpx 0;
 }
 .grid-item,
 .grid-stats {
-  display: -webkit-flex;
   display: flex;
 }
 .grid-item {
@@ -134,6 +234,10 @@ page {
   border-right: 1rpx solid #f5f5f5;
   flex: 1;
   flex-direction: column;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.grid-item:active {
+  transform: scale(0.9) translateZ(30rpx);
 }
 .grid-item:last-child {
   border-right: none;
@@ -148,6 +252,10 @@ page {
   font-size: 22rpx;
   margin-top: 6rpx;
 }
+
+/* ========================================
+   提醒条 — Spring 深度滑入
+   ======================================== */
 .alert-bar {
   align-items: center;
   background: #fff1f0;
@@ -155,11 +263,14 @@ page {
   border-left: 8rpx solid #ff4d4f;
   border-radius: 0 18rpx 18rpx 0;
   box-shadow: 0 4rpx 16rpx rgba(255, 77, 79, 0.08);
-  display: -webkit-flex;
   display: flex;
   justify-content: space-between;
   margin: 0 32rpx 12rpx;
   padding: 20rpx 24rpx;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.alert-bar:active {
+  transform: scale(0.97) translateX(8rpx);
 }
 .alert-bar.overdue-alert {
   background: #fff7e6;
@@ -175,9 +286,12 @@ page {
   color: #f5222d;
   font-size: 24rpx;
 }
+
+/* ========================================
+   区块标题
+   ======================================== */
 .section-title {
   align-items: baseline;
-  display: -webkit-flex;
   display: flex;
   justify-content: space-between;
   margin: 38rpx 32rpx 18rpx;
@@ -191,56 +305,105 @@ page {
   color: #8c8c8c;
   font-size: 22rpx;
 }
+
+/* ========================================
+   操作卡片 — 3D 透视倾斜
+   ======================================== */
 .action-grid {
   padding: 0 32rpx;
 }
+
+.scene-3d {
+  perspective: 1000rpx;
+  margin-bottom: 18rpx;
+}
+
 .action-card {
   border-radius: 28rpx;
-  box-shadow: 0 14rpx 30rpx rgba(0, 0, 0, 0.08);
+  box-shadow:
+    0 14rpx 30rpx rgba(0, 0, 0, 0.08),
+    0 4rpx 10rpx rgba(0,0,0,0.04);
   box-sizing: border-box;
-  display: -webkit-flex;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  margin-bottom: 18rpx;
+  align-items: center;
   min-height: 158rpx;
   overflow: hidden;
   padding: 30rpx 32rpx;
   position: relative;
   width: 100%;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  transform-style: preserve-3d;
 }
-.action-card::after {
-  content: '';
+.action-card:active {
+  transform: scale(0.96) translateZ(40rpx) rotateX(-3deg);
+  box-shadow:
+    0 8rpx 20rpx rgba(0, 0, 0, 0.06),
+    0 2rpx 6rpx rgba(0,0,0,0.03);
+}
+
+.action-card-blue {
+  background: linear-gradient(135deg, #4F6EF7 0%, #3D56D4 100%);
+  background-size: 200% 200%;
+}
+.action-card-orange {
+  background: linear-gradient(135deg, #FF9C6E 0%, #FF7A45 100%);
+  background-size: 200% 200%;
+}
+
+/* 背景装饰圆 — 3D 深度 */
+.action-card-bg {
   position: absolute;
-  right: -30rpx;
-  bottom: -30rpx;
-  width: 180rpx;
-  height: 180rpx;
+  right: -30rpx; bottom: -30rpx;
+  width: 180rpx; height: 180rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
+  transform: translateZ(-10rpx);
 }
-.action-card::before {
+.action-card-bg::after {
   content: '';
   position: absolute;
-  right: 60rpx;
-  bottom: -60rpx;
-  width: 240rpx;
-  height: 240rpx;
+  right: 60rpx; bottom: -60rpx;
+  width: 240rpx; height: 240rpx;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.05);
-  pointer-events: none;
+}
+
+.action-card-content {
+  flex: 1;
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
 }
 .action-title {
   color: #fff;
   font-size: 32rpx;
   font-weight: 700;
+  text-shadow: 0 2rpx 6rpx rgba(0,0,0,0.1);
 }
 .action-desc {
   color: hsla(0, 0%, 100%, 0.84);
   font-size: 22rpx;
   margin-top: 8rpx;
 }
+
+/* 箭头 — 3D 悬浮 */
+.action-card-arrow {
+  color: hsla(0, 0%, 100%, 0.6);
+  font-size: 40rpx;
+  font-weight: 200;
+  position: relative;
+  z-index: 2;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.action-card:active .action-card-arrow {
+  transform: translateX(10rpx) translateZ(30rpx);
+}
+
+/* ========================================
+   迷你操作行 — 3D 浮起
+   ======================================== */
 .mini-action-row {
   display: grid;
   gap: 16rpx;
@@ -250,15 +413,20 @@ page {
 .mini-action {
   background: #fff;
   border-radius: 22rpx;
-  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.035);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.035), 0 2rpx 6rpx rgba(0,0,0,0.02);
   flex-direction: column;
   padding: 24rpx 10rpx 18rpx;
   position: relative;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
+  transform-style: preserve-3d;
+}
+.mini-action:active {
+  transform: scale(0.93) translateZ(30rpx);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.03);
 }
 .mini-action,
 .mini-icon {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
 }
 .mini-icon {
@@ -270,6 +438,10 @@ page {
   justify-content: center;
   margin-bottom: 12rpx;
   width: 90rpx;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.mini-action:active .mini-icon {
+  transform: scale(1.1) translateZ(20rpx);
 }
 .mini-action text {
   color: #595959;
@@ -287,7 +459,17 @@ page {
   position: absolute;
   right: 10rpx;
   top: -6rpx;
+  box-shadow: 0 4rpx 10rpx rgba(255,77,79,0.3);
+  animation: badgePulse 2s ease-in-out infinite;
 }
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+/* ========================================
+   应收款面板
+   ======================================== */
 .receivable-title {
   margin-top: 42rpx;
 }
@@ -297,13 +479,17 @@ page {
 .receivable-card {
   background: #fff;
   border-radius: 24rpx;
-  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.045);
+  box-shadow: 0 12rpx 30rpx rgba(0, 0, 0, 0.045), 0 4rpx 10rpx rgba(0,0,0,0.02);
   margin-bottom: 16rpx;
   overflow: hidden;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.receivable-card:active {
+  transform: scale(0.97) translateZ(20rpx);
+  box-shadow: 0 8rpx 20rpx rgba(0, 0, 0, 0.03);
 }
 .receivable-header {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
   justify-content: space-between;
   padding: 24rpx;
@@ -326,7 +512,6 @@ page {
 }
 .receivable-right {
   align-items: flex-end;
-  display: -webkit-flex;
   display: flex;
   flex-direction: column;
 }
@@ -339,6 +524,10 @@ page {
   color: #8c8c8c;
   font-size: 22rpx;
   margin-top: 6rpx;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.receivable-arrow.expanded {
+  transform: rotate(180deg);
 }
 .receivable-body {
   border-top: 1rpx solid #f5f5f5;
@@ -347,7 +536,7 @@ page {
   max-height: 0;
   padding-top: 0;
   padding-bottom: 0;
-  transition: max-height 0.35s ease, padding 0.35s ease;
+  transition: max-height 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), padding 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .receivable-body.expanded {
   max-height: 2000rpx;
@@ -369,7 +558,6 @@ page {
 }
 .order-top {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
   gap: 20rpx;
   justify-content: space-between;
@@ -428,4 +616,11 @@ page {
   margin: 0 32rpx;
   padding: 56rpx 24rpx;
   text-align: center;
+}
+
+/* 渐变流动 */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

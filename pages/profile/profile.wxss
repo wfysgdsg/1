@@ -1,3 +1,4 @@
+/* 个人中心 — 3D + Spring 动画增强版 */
 page {
   background: #f5f6fa;
   min-height: 100vh;
@@ -5,40 +6,118 @@ page {
 .container {
   padding: 30rpx;
 }
+
+/* 3D 透视场景 */
+.scene-3d {
+  perspective: 1000rpx;
+  margin-bottom: 30rpx;
+}
+
+/* ========================================
+   头部卡片 — 3D 透视 + 深度层次
+   ======================================== */
 .header-card {
   background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
+  background-size: 200% 200%;
   border-radius: 24rpx;
-  box-shadow: 0 10rpx 40rpx rgba(79, 110, 247, 0.30);
-  margin-bottom: 30rpx;
+  box-shadow:
+    0 10rpx 40rpx rgba(79, 110, 247, 0.30),
+    0 4rpx 12rpx rgba(108, 92, 231, 0.15);
   padding: 50rpx 40rpx;
+  position: relative;
+  overflow: hidden;
+  transform-style: preserve-3d;
+  animation: springInScale 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both, gradientShift 8s ease infinite;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
 }
+.header-card:active {
+  transform: scale(0.97) translateZ(30rpx) rotateX(-2deg);
+  box-shadow:
+    0 6rpx 24rpx rgba(79, 110, 247, 0.25),
+    0 2rpx 8rpx rgba(108, 92, 231, 0.1);
+}
+
+/* 背景光球 */
+.header-bg-orb {
+  position: absolute;
+  top: -60rpx; right: -40rpx;
+  width: 260rpx; height: 260rpx;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.15), transparent 70%);
+  filter: blur(20rpx);
+  animation: headerOrbFloat 8s ease-in-out infinite;
+}
+@keyframes headerOrbFloat {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-15rpx, 20rpx) scale(1.1); }
+}
+
+/* 网格纹理 */
+.header-bg-mesh {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
+  background-size: 60rpx 60rpx;
+  opacity: 0.5;
+}
+
 .avatar-section {
-  display: -webkit-flex;
   display: flex;
   align-items: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* 头像 — 3D 浮起 + 旋转光环 */
+.avatar-wrapper {
+  position: relative;
+  margin-right: 30rpx;
+  flex-shrink: 0;
 }
 .avatar,
 .avatar-img {
   width: 120rpx;
   height: 120rpx;
   border-radius: 50%;
-  margin-right: 30rpx;
-  flex-shrink: 0;
 }
 .avatar {
   background: hsla(0, 0%, 100%, 0.3);
+  backdrop-filter: blur(10rpx);
   color: #fff;
   font-size: 48rpx;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  border: 3rpx solid hsla(0, 0%, 100%, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.15), inset 0 2rpx 10rpx hsla(0,0%,100%,0.1);
+  animation: avatarFloat 4s ease-in-out infinite;
+}
+@keyframes avatarFloat {
+  0%, 100% { transform: translateY(0) rotateY(0deg); }
+  50% { transform: translateY(-6rpx) rotateY(8deg); }
 }
 .avatar-img {
   border: 3rpx solid hsla(0, 0%, 100%, 0.4);
+  box-shadow: 0 8rpx 24rpx rgba(0,0,0,0.15);
+  animation: avatarFloat 4s ease-in-out infinite;
 }
+
+/* 旋转光环 */
+.avatar-ring {
+  position: absolute;
+  top: -10rpx; left: -10rpx;
+  right: -10rpx; bottom: -10rpx;
+  border-radius: 50%;
+  border: 3rpx solid transparent;
+  border-top-color: hsla(0, 0%, 100%, 0.6);
+  border-right-color: hsla(0, 0%, 100%, 0.2);
+  animation: spin360 4s linear infinite;
+}
+
 .user-detail {
-  display: -webkit-flex;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -47,6 +126,7 @@ page {
   color: #fff;
   font-size: 40rpx;
   font-weight: 700;
+  text-shadow: 0 2rpx 8rpx rgba(0,0,0,0.1);
 }
 .user-bio {
   color: hsla(0, 0%, 100%, 0.75);
@@ -58,6 +138,7 @@ page {
 }
 .role-tag {
   background: hsla(0, 0%, 100%, 0.2);
+  backdrop-filter: blur(8rpx);
   border-radius: 20rpx;
   color: hsla(0, 0%, 100%, 0.8);
   display: inline-block;
@@ -65,42 +146,49 @@ page {
   margin-top: 10rpx;
   padding: 4rpx 18rpx;
   align-self: flex-start;
+  border: 1rpx solid hsla(0,0%,100%,0.15);
 }
 .edit-hint {
   color: hsla(0, 0%, 100%, 0.7);
   font-size: 24rpx;
   flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.header-card:active {
-  opacity: 0.9;
-  transform: scale(0.98);
+.header-card:active .edit-hint {
+  transform: translateX(-6rpx);
 }
+
+/* ========================================
+   菜单卡片 — Spring 逐项入场
+   ======================================== */
 .menu-card {
   background: #fff;
   border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05), 0 2rpx 8rpx rgba(0,0,0,0.02);
   overflow: hidden;
 }
 .menu-item {
   align-items: center;
   border-bottom: 1rpx solid #f5f5f5;
-  display: -webkit-flex;
   display: flex;
   justify-content: space-between;
   padding: 28rpx 30rpx;
-  transition: background 0.15s ease;
+  transition: background 0.2s ease, transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  animation: slideInDepthRight 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 .menu-item:active {
   background: #F8F9FE;
+  transform: scale(0.98) translateZ(20rpx);
 }
 .menu-item:last-child {
   border-bottom: none;
 }
 .menu-left {
   align-items: center;
-  display: -webkit-flex;
   display: flex;
 }
+
+/* 菜单图标 — 3D 浮起 */
 .menu-icon-wrapper {
   width: 64rpx;
   height: 64rpx;
@@ -109,6 +197,11 @@ page {
   align-items: center;
   justify-content: center;
   margin-right: 24rpx;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 4rpx 10rpx rgba(0,0,0,0.04);
+}
+.menu-item:active .menu-icon-wrapper {
+  transform: scale(1.1) translateZ(20rpx);
 }
 .menu-icon {
   font-size: 32rpx;
@@ -123,14 +216,55 @@ page {
   color: #CCC;
   font-size: 36rpx;
   font-weight: 300;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.menu-item:active .arrow {
+  transform: translateX(6rpx);
+}
+
+/* ========================================
+   退出按钮 — 3D 凸起
+   ======================================== */
 .logout-btn {
   background: #fff;
   border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.05), 0 2rpx 8rpx rgba(255,77,79,0.04);
   color: #ff4d4f;
   font-size: 32rpx;
   height: 96rpx;
   line-height: 96rpx;
   margin-top: 40rpx;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;
+  animation: springInUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s both;
+}
+.logout-btn:active {
+  transform: scale(0.96) translateZ(30rpx);
+  box-shadow: 0 2rpx 10rpx rgba(255,77,79,0.06);
+}
+.logout-btn::after {
+  border: none;
+}
+
+/* 动画 */
+@keyframes springInScale {
+  0% { opacity: 0; transform: scale(0.85) rotateZ(-5deg); }
+  60% { opacity: 1; transform: scale(1.05) rotateZ(2deg); }
+  100% { opacity: 1; transform: scale(1) rotateZ(0); }
+}
+@keyframes slideInDepthRight {
+  0% { opacity: 0; transform: translateX(50rpx) translateZ(-50rpx) rotateY(-10deg); }
+  100% { opacity: 1; transform: translateX(0) translateZ(0) rotateY(0); }
+}
+@keyframes springInUp {
+  0% { opacity: 0; transform: translateY(40rpx) scale(0.95); }
+  60% { opacity: 1; transform: translateY(-6rpx) scale(1.02); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes spin360 {
+  to { transform: rotate(360deg); }
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

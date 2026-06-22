@@ -1,24 +1,26 @@
-<view class="page {{_anim ? 'anim-spring' : ''}}">
-  <!-- 1) 顶部渐变大头（Tab 页无返回按钮） -->
+<!-- 商品库列表 — 3D + Spring 动画增强版 -->
+<view class="page {{_anim ? 'animate-fade-in' : ''}}">
+  <!-- 3D 渐变大头 -->
   <view class="hero">
     <view class="hero-orb a"></view>
     <view class="hero-orb b"></view>
+    <view class="hero-mesh"></view>
     <view class="hero-top">
       <text class="hero-title">商品库</text>
       <text class="hero-sub">共 {{totalCount}} 件商品 · 借货 / 开票快速调用</text>
     </view>
 
-    <!-- 搜索框（悬浮在 hero 上） -->
+    <!-- 搜索框 — 3D 浮在 hero 上 -->
     <view class="search">
       <text class="search-ico">🔍</text>
       <input class="search-inp" bindinput="onSearch" placeholder="搜索商品名称" placeholder-class="search-ph"/>
     </view>
   </view>
 
-  <!-- 2) 列表内容区 -->
+  <!-- 列表内容区 -->
   <view class="body">
     <view class="list" wx:if="{{goodsList.length}}">
-      <view class="g-card {{_anim ? 'anim-spring' : ''}}" wx:for="{{goodsList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+      <view class="g-card {{_anim ? 'animate-card' : ''}} tilt-card" wx:for="{{goodsList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
         <view class="g-main">
           <text class="g-name">{{item.name}}</text>
           <view class="g-tags">
@@ -49,6 +51,6 @@
     </view>
   </view>
 
-  <!-- 3) 悬浮新增按钮 -->
+  <!-- 悬浮新增按钮 — 3D 浮起 -->
   <view bindtap="goToAdd" class="fab">+ 新增商品</view>
 </view>
