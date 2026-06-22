@@ -1,476 +1,568 @@
-/* ============================================================
-   NEXUS-3D Design System v1.0
-   前卫 3D + 非线性动画 + 玻璃拟态
-   ============================================================ */
+/* ========================================================
+   现代化设计系统 v6 —— 全局 Token
+   ======================================================== */
+page {
+  --ink:    #14152A;
+  --ink-2:  #5A5C70;
+  --ink-3:  #9A9CB0;
+  --line:   #EEF0F6;
+  --bg:     #F4F5FA;
+  --card:   #FFFFFF;
+  --field:  #F3F5FB;
+  --r-l: 30rpx; --r-m: 22rpx; --r-s: 14rpx; --pill: 999rpx;
+  --sh-s: 0 4rpx 18rpx rgba(20,21,42,.05);
+  --sh-m: 0 10rpx 30rpx rgba(20,21,42,.07);
+  --bg-card: #FFFFFF;
+  --text-disabled: #9A9CB0;
+  --radius-lg: 30rpx; --radius-sm: 14rpx;
+  --shadow-sm: 0 4rpx 18rpx rgba(20,21,42,.05);
+  --font-md: 26rpx; --font-lg: 32rpx;
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* 通用：渐变 Hero 头 */
+.x-hero {
+  position: relative; overflow: hidden;
+  padding: 36rpx 32rpx 56rpx;
+  border-radius: 0 0 40rpx 40rpx;
+  color: #fff;
+}
+.x-hero-orb { position: absolute; border-radius: 50%; background: rgba(255,255,255,.16); pointer-events: none; }
+.x-hero-orb.a { width: 240rpx; height: 240rpx; top: -90rpx; right: -60rpx; }
+.x-hero-orb.b { width: 160rpx; height: 160rpx; bottom: -70rpx; left: 30rpx; background: rgba(255,255,255,.10); }
+.x-hero-back  { position: relative; z-index: 1; font-size: 28rpx; opacity: .92; }
+.x-hero-title { position: relative; z-index: 1; display: block; font-size: 44rpx; font-weight: 800; letter-spacing: -.5px; margin-top: 6rpx; }
+.x-hero-sub   { position: relative; z-index: 1; display: block; font-size: 24rpx; opacity: .85; margin-top: 8rpx; }
+
+/* 通用：玻璃底栏 */
+.x-glass-bar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 100;
+  display: flex; gap: 18rpx;
+  padding: 18rpx 28rpx calc(28rpx + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, rgba(244,245,250,0) 0%, rgba(244,245,250,.92) 38%, #fff 100%);
+}
+
+/* 通用：按下反馈 */
+.x-tap:active { transform: scale(.97); opacity: .92; transition: transform .12s ease, opacity .12s ease; }
+
+/* ========================================
+   设计 Token — 统一配色体系
+   Primary:   #4F6EF7  主色（靛蓝）
+   Primary Dark: #3D56D4  深色变体
+   Gradient:  #4F6EF7 → #6C5CE7  主渐变
+   Success:   #52C41A  成功绿
+   Danger:    #FF4D4F  危险红
+   Warning:   #FA8C16  警告橙
+   Text:      #1A1A1A  主文字
+   Text Sec:  #8C8C8C  次级文字
+   Bg:        #F5F6FA  页面背景
+   Card:      #FFFFFF  卡片白
+   ======================================== */
 
 page {
-  /* ===== 深空色彩体系 ===== */
-  --void:      #060818;
-  --void-2:    #0B0E24;
-  --surface:   #121530;
-  --surface-2: #1A1E3F;
-  --surface-3: #232854;
-
-  /* ===== 玻璃材质 ===== */
-  --glass:        rgba(255,255,255,0.045);
-  --glass-2:      rgba(255,255,255,0.075);
-  --glass-border: rgba(255,255,255,0.10);
-  --glass-border-bright: rgba(255,255,255,0.18);
-
-  /* ===== 霓虹色系 ===== */
-  --neon-violet: #7B61FF;
-  --neon-blue:   #00D4FF;
-  --neon-coral:  #FF6B6B;
-  --neon-mint:   #00F5A0;
-  --neon-amber:  #FFB800;
-  --neon-pink:   #FF4FA3;
-
-  /* ===== 渐变 ===== */
-  --grad-primary: linear-gradient(135deg, #7B61FF 0%, #00D4FF 100%);
-  --grad-coral:   linear-gradient(135deg, #FF6B6B 0%, #FF4FA3 100%);
-  --grad-mint:    linear-gradient(135deg, #00F5A0 0%, #00D4FF 100%);
-  --grad-amber:   linear-gradient(135deg, #FFB800 0%, #FF6B6B 100%);
-  --grad-dark:    linear-gradient(160deg, #121530 0%, #060818 100%);
-
-  /* ===== 文字 ===== */
-  --text-primary:   #F0F2FF;
-  --text-secondary: rgba(240,242,255,0.62);
-  --text-tertiary:  rgba(240,242,255,0.35);
-
-  /* ===== 非线性动画曲线 ===== */
-  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
-  --ease-elastic: cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  --ease-expo:    cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-back:    cubic-bezier(0.68, -0.6, 0.32, 1.6);
-  --ease-smooth:  cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  --ease-snappy:  cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* ===== 3D 透视 ===== */
-  --perspective: 1200rpx;
-  --perspective-near: 800rpx;
-
-  /* ===== 圆角 ===== */
-  --r-xl: 40rpx;
-  --r-lg: 28rpx;
-  --r-md: 20rpx;
-  --r-sm: 12rpx;
-  --pill: 999rpx;
-
-  /* ===== 阴影 ===== */
-  --sh-glow-violet: 0 0 40rpx rgba(123,97,255,0.25);
-  --sh-glow-blue:   0 0 40rpx rgba(0,212,255,0.22);
-  --sh-glow-coral:  0 0 40rpx rgba(255,107,107,0.22);
-  --sh-deep:         0 20rpx 60rpx rgba(0,0,0,0.4);
-  --sh-card:         0 8rpx 32rpx rgba(0,0,0,0.25);
-
-  background: var(--void);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: #F5F6FA;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  color: #1A1A1A;
 }
 
-/* ============================================================
-   3D 透视容器
-   ============================================================ */
-.scene-3d {
-  perspective: var(--perspective);
-  perspective-origin: center top;
-}
-.scene-3d-near {
-  perspective: var(--perspective-near);
-}
+/* ========================================
+   动画系统
+   ======================================== */
 
-/* ============================================================
-   玻璃材质基础类
-   ============================================================ */
-.glass {
-  background: var(--glass);
-  backdrop-filter: blur(24rpx);
-  -webkit-backdrop-filter: blur(24rpx);
-  border: 1rpx solid var(--glass-border);
-  border-radius: var(--r-lg);
-}
-.glass-bright {
-  background: var(--glass-2);
-  backdrop-filter: blur(32rpx);
-  -webkit-backdrop-filter: blur(32rpx);
-  border: 1rpx solid var(--glass-border-bright);
-  border-radius: var(--r-lg);
-}
-
-/* ============================================================
-   非线性动画关键帧
-   ============================================================ */
-
-/* 3D 翻转入场 */
-@keyframes nexus-enter-3d {
-  0% {
+/* 页面入场：淡入 + 上浮 */
+@keyframes fadeInUp {
+  from {
     opacity: 0;
-    transform: perspective(1200rpx) rotateX(-25deg) translateY(60rpx) translateZ(-80rpx) scale(0.9);
+    transform: translateY(36rpx);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: perspective(1200rpx) rotateX(0) translateY(0) translateZ(0) scale(1);
+    transform: translateY(0);
   }
 }
 
-/* 弹性上浮 */
-@keyframes nexus-spring-up {
-  0% {
+/* 卡片入场：淡入 + 缩放 */
+@keyframes fadeInScale {
+  from {
     opacity: 0;
-    transform: translateY(50rpx) scale(0.85);
+    transform: scale(0.94);
   }
-  60% {
+  to {
     opacity: 1;
-    transform: translateY(-8rpx) scale(1.03);
-  }
-  80% {
-    transform: translateY(4rpx) scale(0.99);
-  }
-  100% {
-    transform: translateY(0) scale(1);
+    transform: scale(1);
   }
 }
 
-/* 3D 侧入 */
-@keyframes nexus-slide-3d-left {
-  0% {
+/* 从左滑入 */
+@keyframes slideInLeft {
+  from {
     opacity: 0;
-    transform: perspective(1000rpx) rotateY(35deg) translateX(-80rpx) translateZ(-40rpx);
+    transform: translateX(-48rpx);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: perspective(1000rpx) rotateY(0) translateX(0) translateZ(0);
+    transform: translateX(0);
   }
 }
 
-/* 3D 侧入右 */
-@keyframes nexus-slide-3d-right {
-  0% {
+/* 从右滑入（导航推入） */
+@keyframes slideInRight {
+  from {
     opacity: 0;
-    transform: perspective(1000rpx) rotateY(-35deg) translateX(80rpx) translateZ(-40rpx);
+    transform: translateX(60rpx);
   }
-  100% {
+  to {
     opacity: 1;
-    transform: perspective(1000rpx) rotateY(0) translateX(0) translateZ(0);
+    transform: translateX(0);
   }
 }
 
-/* 弹性缩放入场 */
-@keyframes nexus-pop {
+/* 弹入 */
+@keyframes bounceIn {
   0% {
     opacity: 0;
-    transform: scale(0.3) rotate(-8deg);
+    transform: scale(0.3);
   }
   50% {
-    opacity: 1;
-    transform: scale(1.08) rotate(3deg);
+    transform: scale(1.04);
   }
   70% {
-    transform: scale(0.96) rotate(-1deg);
-  }
-  100% {
-    transform: scale(1) rotate(0);
-  }
-}
-
-/* 深度浮现 */
-@keyframes nexus-depth-in {
-  0% {
-    opacity: 0;
-    transform: translateZ(-120rpx) scale(0.8);
+    transform: scale(0.96);
   }
   100% {
     opacity: 1;
-    transform: translateZ(0) scale(1);
+    transform: scale(1);
   }
 }
 
-/* 浮动光晕 */
-@keyframes nexus-float {
-  0%, 100% {
-    transform: translateY(0) scale(1) rotate(0deg);
-  }
-  33% {
-    transform: translateY(-30rpx) scale(1.06) rotate(8deg);
-  }
-  66% {
-    transform: translateY(-15rpx) scale(0.96) rotate(-5deg);
-  }
+/* ========== Design Tokens ========== */
+/*
+  圆角体系
+  --radius-hero: 64rpx   头部大圆角、FAB
+  --radius-lg:   32rpx   大卡片（stats-card、action-card）
+  --radius-md:   20rpx   普通卡片（goods-item、search-bar）
+  --radius-sm:   12rpx   小标签、分页按钮
+*/
+
+/* 通用动画工具类 */
+.animate-fade-in {
+  animation: fadeInUp 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-/* 脉冲辉光 */
-@keyframes nexus-pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20rpx rgba(123,97,255,0.3), 0 0 40rpx rgba(123,97,255,0.1);
-  }
-  50% {
-    box-shadow: 0 0 30rpx rgba(123,97,255,0.5), 0 0 80rpx rgba(123,97,255,0.2);
-  }
+.animate-card {
+  animation: fadeInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
 }
 
-/* 旋转边框 */
-@keyframes nexus-spin {
+.animate-bounce {
+  animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55) both;
+}
+
+.animate-slide-in {
+  animation: slideInRight 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+/* ========== 通用按压反馈 ========== */
+.goods-item:active,
+.receivable-card:active,
+.action-card:active,
+.mini-action:active,
+.grid-item:active,
+.menu-item:active {
+  transform: scale(0.97);
+  opacity: 0.88;
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+/* ========== Loading Spinner ========== */
+@keyframes spin {
   to { transform: rotate(360deg); }
 }
-
-/* 3D 翻转 */
-@keyframes nexus-flip-y {
-  0% { transform: rotateY(0); }
-  100% { transform: rotateY(180deg); }
-}
-
-/* 非线性摇摆 */
-@keyframes nexus-sway {
-  0%, 100% { transform: rotateZ(-2deg); }
-  50% { transform: rotateZ(2deg); }
-}
-
-/* 闪亮扫光 */
-@keyframes nexus-shine {
-  0% { transform: translateX(-150%) skewX(-25deg); }
-  100% { transform: translateX(250%) skewX(-25deg); }
-}
-
-/* 呼吸缩放 */
-@keyframes nexus-breathe {
-  0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.12); opacity: 0.9; }
-}
-
-/* 数据条增长 */
-@keyframes nexus-bar-grow {
-  0% { transform: scaleX(0); }
-  100% { transform: scaleX(1); }
-}
-
-/* ============================================================
-   动画工具类
-   ============================================================ */
-.anim-enter-3d {
-  animation: nexus-enter-3d 0.7s var(--ease-expo) both;
-}
-.anim-spring {
-  animation: nexus-spring-up 0.65s var(--ease-spring) both;
-}
-.anim-slide-left {
-  animation: nexus-slide-3d-left 0.6s var(--ease-expo) both;
-}
-.anim-slide-right {
-  animation: nexus-slide-3d-right 0.6s var(--ease-expo) both;
-}
-.anim-pop {
-  animation: nexus-pop 0.6s var(--ease-spring) both;
-}
-.anim-depth {
-  animation: nexus-depth-in 0.7s var(--ease-expo) both;
-}
-.anim-float {
-  animation: nexus-float 8s ease-in-out infinite;
-}
-
-/* ============================================================
-   3D 卡片悬浮效果
-   ============================================================ */
-.card-3d {
-  transform-style: preserve-3d;
-  transition: transform 0.4s var(--ease-spring), box-shadow 0.4s var(--ease-spring);
-}
-.card-3d:active {
-  transform: perspective(800rpx) rotateX(2deg) scale(0.97);
-  transition: transform 0.12s ease;
-}
-
-/* ============================================================
-   通用按压反馈（非线性）
-   ============================================================ */
-.tap-3d:active {
-  transform: scale(0.94) translateZ(20rpx);
-  transition: transform 0.1s var(--ease-snappy);
-}
-
-/* ============================================================
-   霓虹文字
-   ============================================================ */
-.neon-text-violet {
-  color: var(--neon-violet);
-  text-shadow: 0 0 12rpx rgba(123,97,255,0.5);
-}
-.neon-text-blue {
-  color: var(--neon-blue);
-  text-shadow: 0 0 12rpx rgba(0,212,255,0.5);
-}
-.neon-text-mint {
-  color: var(--neon-mint);
-  text-shadow: 0 0 12rpx rgba(0,245,160,0.5);
-}
-.neon-text-coral {
-  color: var(--neon-coral);
-  text-shadow: 0 0 12rpx rgba(255,107,107,0.5);
-}
-
-/* ============================================================
-   霓虹按钮
-   ============================================================ */
-.btn-neon {
-  position: relative;
-  overflow: hidden;
-  background: var(--grad-primary);
-  color: #fff;
-  border-radius: var(--pill);
-  padding: 26rpx 0;
-  font-size: 30rpx;
-  font-weight: 600;
-  text-align: center;
-  border: none;
-  box-shadow: 0 8rpx 32rpx rgba(123,97,255,0.35);
-  transition: transform 0.2s var(--ease-spring), box-shadow 0.2s var(--ease-spring);
-}
-.btn-neon:active {
-  transform: scale(0.96);
-  box-shadow: 0 4rpx 16rpx rgba(123,97,255,0.3);
-}
-.btn-neon::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 60%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  transform: translateX(-150%) skewX(-25deg);
-  pointer-events: none;
-}
-.btn-neon:active::after {
-  animation: nexus-shine 0.6s ease;
-}
-
-/* ============================================================
-   背景光晕粒子
-   ============================================================ */
-.bg-orb {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80rpx);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ============================================================
-   通用容器
-   ============================================================ */
-.container {
-  position: relative;
-  min-height: 100vh;
-  z-index: 1;
-}
-
-/* ============================================================
-   加载动画
-   ============================================================ */
 .loading-spinner {
-  width: 56rpx;
-  height: 56rpx;
-  border: 4rpx solid rgba(255,255,255,0.1);
-  border-top-color: var(--neon-violet);
-  border-right-color: var(--neon-blue);
+  width: 56rpx; height: 56rpx;
+  border: 4rpx solid #e8e8e8;
+  border-top-color: #4F6EF7;
   border-radius: 50%;
-  animation: nexus-spin 0.8s linear infinite;
+  animation: spin 0.8s linear infinite;
   margin: 0 auto;
 }
 
-/* ============================================================
-   分页栏（3D 风格）
-   ============================================================ */
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-  padding: 12rpx 16rpx;
-  margin: 16rpx 0;
-  background: var(--glass);
-  backdrop-filter: blur(20rpx);
-  border: 1rpx solid var(--glass-border);
-  border-radius: var(--pill);
+/* ========== FAB 呼吸脉冲 ========== */
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 8rpx 28rpx rgba(79, 110, 247, 0.25); }
+  50%      { box-shadow: 0 8rpx 40rpx rgba(79, 110, 247, 0.45), 0 0 0 12rpx rgba(79, 110, 247, 0.08); }
 }
-.page-btn {
-  background: var(--glass-2);
-  border: 1rpx solid var(--glass-border);
-  border-radius: var(--pill);
-  color: var(--text-primary);
-  font-size: 24rpx;
-  padding: 14rpx 28rpx;
-  line-height: 1.2;
-  transition: all 0.2s var(--ease-spring);
+.add-btn {
+  animation: fabPulse 2.5s ease-in-out infinite;
+  transition: transform 0.2s ease;
 }
-.page-btn:active {
-  background: var(--grad-primary);
-  color: #fff;
-  transform: scale(0.95);
-}
-.page-btn[disabled] {
-  opacity: 0.3;
-}
-.page-info {
-  color: var(--text-tertiary);
-  font-size: 22rpx;
-  margin: 0 12rpx;
+.add-btn:active {
+  transform: scale(0.92);
 }
 
-/* ============================================================
-   搜索栏（玻璃拟态）
-   ============================================================ */
+/* ========== 搜索框 ========== */
 .search-bar {
-  display: flex;
-  align-items: center;
-  background: var(--glass);
-  backdrop-filter: blur(20rpx);
-  border: 1rpx solid var(--glass-border);
-  border-radius: var(--pill);
-  padding: 16rpx 24rpx;
-  margin-bottom: 20rpx;
-  transition: all 0.3s var(--ease-expo);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .search-bar.focused {
-  border-color: var(--neon-violet);
-  box-shadow: 0 0 0 3rpx rgba(123,97,255,0.15), var(--sh-glow-violet);
+  box-shadow: 0 0 0 3rpx rgba(79, 110, 247, 0.15), 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
 }
 .search-input {
   transition: color 0.3s ease;
 }
 
-/* ============================================================
-   空状态
-   ============================================================ */
+/* ========== 空状态脉冲 ========== */
+@keyframes emptyPulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50%      { transform: scale(1.08); opacity: 0.85; }
+}
+.empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 24rpx;
+  animation: emptyPulse 2.4s ease-in-out infinite;
+}
+
+/* 容器 */
+.container {
+  padding: 28rpx;
+  min-height: 100vh;
+}
+
+/* ========== 二级/三级页面通用样式 ========== */
+.page-header {
+  padding: 20rpx 8rpx 16rpx;
+}
+.page-title {
+  font-size: 38rpx;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+.page-subtitle {
+  font-size: 24rpx;
+  color: #8c8c8c;
+  margin-top: 4rpx;
+}
+.section-card {
+  background: #fff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0,0,0,0.04);
+  padding: 28rpx 24rpx;
+  margin-bottom: 20rpx;
+  border-left: 5rpx solid #4F6EF7;
+  transition: box-shadow 0.2s ease;
+}
+.section-title {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #1a1a2e;
+  margin-bottom: 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+/* 输入框统一美化 */
+input, textarea {
+  background: #f8f9fc;
+  border: 1rpx solid #e8ecf2;
+  border-radius: 14rpx;
+  padding: 20rpx 24rpx;
+  font-size: 28rpx;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+input:focus, textarea:focus {
+  border-color: #4F6EF7;
+  background: #fff;
+}
+
+/* 主要操作按钮 */
+.btn-primary-full {
+  width: 100%;
+  background: linear-gradient(135deg, #4F6EF7, #3D56D4);
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  padding: 24rpx 0;
+  border: none;
+  box-shadow: 0 8rpx 24rpx rgba(79,110,247,0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary-full:active {
+  transform: scale(0.97);
+  box-shadow: 0 4rpx 12rpx rgba(79,110,247,0.2);
+}
+
+/* 按钮 */
+.btn-group {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 40rpx;
+  padding: 0 20rpx;
+}
+
+.submit-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
+  color: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 8rpx 24rpx rgba(79,110,247,0.25);
+}
+
+.cancel-btn {
+  flex: 1;
+  background-color: #F5F5F5;
+  color: #595959;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  font-size: 28rpx;
+  text-align: center;
+}
+
+/* 输入框 */
+.input {
+  width: 100%;
+  padding: 20rpx;
+  border: 2rpx solid #E8E8E8;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  background: #fff;
+}
+
+/* 表单卡片 */
+.form {
+  background-color: #fff;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
+}
+
+/* 错误提示 */
+.error-message {
+  color: #FF4D4F;
+  font-size: 20rpx;
+  margin-top: 10rpx;
+}
+
+/* 成功提示 */
+.success-message {
+  color: #52C41A;
+  font-size: 20rpx;
+  margin-top: 10rpx;
+}
+
+/* 加载状态 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 100rpx 0;
+}
+
+.loading-text {
+  margin-top: 20rpx;
+  font-size: 24rpx;
+  color: #8C8C8C;
+}
+
+/* 空状态 */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
+  color: #BFBFBF;
 }
+
 .empty-icon {
   font-size: 96rpx;
   margin-bottom: 24rpx;
-  animation: nexus-breathe 3s ease-in-out infinite;
+  opacity: 0.6;
 }
+
 .empty-text {
   font-size: 26rpx;
-  color: var(--text-tertiary);
+  color: #8C8C8C;
+}
+
+/* 通用分页栏 */
+.pagination {
+  display: flex; align-items: center; justify-content: center; gap: 12rpx;
+  padding: 12rpx 16rpx; margin: 16rpx 0;
+  background: var(--bg-card,#fff); border-radius: 40rpx;
+}
+.page-btn {
+  background: var(--field,#F3F5FB); border: none; border-radius: 30rpx;
+  color: var(--ink-2,#5A5C70); font-size: 24rpx; padding: 14rpx 28rpx;
+  line-height: 1.2; transition: all .15s ease;
+}
+.page-btn:active { background: var(--ink-3,#9A9CB0); color: #fff; }
+.page-btn[disabled] { opacity: .35; }
+
+.page-info {
+  color: #999;
+  font-size: 22rpx;
+  margin: 0 12rpx;
+}
+
+/* 通用浮动添加按钮 */
+.fab-btn {
+  position: fixed;
+  bottom: 40rpx;
+  left: 10%;
+  width: 80%;
+  height: 96rpx;
+  background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
+  border-radius: 48rpx;
+  box-shadow: 0 12rpx 36rpx rgba(79,110,247,0.35);
+  color: #fff;
+  font-size: 32rpx;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fab-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 8rpx 24rpx rgba(79,110,247,0.45);
+}
+
+/* 通用搜索栏 */
+.search-bar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 16rpx 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.04);
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  background: #F5F6FA;
+  border-radius: 16rpx;
+  min-height: 68rpx;
+  padding: 0 20rpx;
+}
+
+.search-icon {
+  color: #BFBFBF;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+
+.search-input {
+  flex: 1;
+  color: #1A1A1A;
+  font-size: 26rpx;
 }
 
 /* ============================================================
-   输入框统一美化
+   NEXUS-3D 动画增强系统
+   非线性弹簧曲线 + 3D 透视 + 交互动效
    ============================================================ */
-input, textarea {
-  background: var(--glass);
-  border: 1rpx solid var(--glass-border);
-  border-radius: var(--r-md);
-  padding: 20rpx 24rpx;
-  font-size: 28rpx;
-  color: var(--text-primary);
-  transition: all 0.25s var(--ease-expo);
+
+/* 弹性上浮 */
+@keyframes nexus-spring-up {
+  0%   { opacity: 0; transform: translateY(50rpx) scale(0.85); }
+  60%  { opacity: 1; transform: translateY(-8rpx) scale(1.03); }
+  80%  { transform: translateY(4rpx) scale(0.99); }
+  100% { transform: translateY(0) scale(1); }
 }
-input:focus, textarea:focus {
-  border-color: var(--neon-violet);
-  background: var(--glass-2);
-  box-shadow: 0 0 0 3rpx rgba(123,97,255,0.12);
+
+/* 弹性弹出 */
+@keyframes nexus-pop {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-8deg); }
+  50%  { opacity: 1; transform: scale(1.08) rotate(3deg); }
+  70%  { transform: scale(0.96) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+/* 3D 翻转入场 */
+@keyframes nexus-enter-3d {
+  0%   { opacity: 0; transform: perspective(1200rpx) rotateX(-25deg) translateY(60rpx) translateZ(-80rpx) scale(0.9); }
+  100% { opacity: 1; transform: perspective(1200rpx) rotateX(0) translateY(0) translateZ(0) scale(1); }
+}
+
+/* 3D 左侧滑入 */
+@keyframes nexus-slide-3d-left {
+  0%   { opacity: 0; transform: perspective(1000rpx) rotateY(35deg) translateX(-80rpx) translateZ(-40rpx); }
+  100% { opacity: 1; transform: perspective(1000rpx) rotateY(0) translateX(0) translateZ(0); }
+}
+
+/* 3D 右侧滑入 */
+@keyframes nexus-slide-3d-right {
+  0%   { opacity: 0; transform: perspective(1000rpx) rotateY(-35deg) translateX(80rpx) translateZ(-40rpx); }
+  100% { opacity: 1; transform: perspective(1000rpx) rotateY(0) translateX(0) translateZ(0); }
+}
+
+/* 深度浮现 */
+@keyframes nexus-depth-in {
+  0%   { opacity: 0; transform: translateZ(-120rpx) scale(0.8); }
+  100% { opacity: 1; transform: translateZ(0) scale(1); }
+}
+
+/* 浮动光晕 */
+@keyframes nexus-float {
+  0%,100% { transform: translateY(0) scale(1) rotate(0deg); }
+  33%     { transform: translateY(-30rpx) scale(1.06) rotate(8deg); }
+  66%     { transform: translateY(-15rpx) scale(0.96) rotate(-5deg); }
+}
+
+/* 旋转光环 */
+@keyframes nexus-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 脉冲辉光 */
+@keyframes nexus-pulse-glow {
+  0%,100% { box-shadow: 0 0 20rpx rgba(79,110,247,0.3), 0 0 40rpx rgba(79,110,247,0.1); }
+  50%     { box-shadow: 0 0 30rpx rgba(79,110,247,0.5), 0 0 80rpx rgba(79,110,247,0.2); }
+}
+
+/* 光泽扫过 */
+@keyframes nexus-shine {
+  0%   { transform: translateX(-150%) skewX(-25deg); }
+  100% { transform: translateX(250%) skewX(-25deg); }
+}
+
+/* 呼吸缩放 */
+@keyframes nexus-breathe {
+  0%,100% { transform: scale(1); opacity: 0.6; }
+  50%     { transform: scale(1.12); opacity: 0.9; }
+}
+
+/* ===== 动画工具类 ===== */
+.anim-spring      { animation: nexus-spring-up 0.65s cubic-bezier(0.34,1.56,0.64,1) both; }
+.anim-pop         { animation: nexus-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
+.anim-enter-3d    { animation: nexus-enter-3d 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-slide-left  { animation: nexus-slide-3d-left 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-slide-right { animation: nexus-slide-3d-right 0.6s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-depth       { animation: nexus-depth-in 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-float       { animation: nexus-float 8s ease-in-out infinite; }
+
+/* ===== 3D 卡片悬浮效果 ===== */
+.card-3d {
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+.card-3d:active {
+  transform: perspective(800rpx) rotateX(2deg) scale(0.97);
+  transition: transform 0.12s ease;
+}
+
+/* ===== 通用按压反馈 ===== */
+.tap-3d:active {
+  transform: scale(0.94);
+  transition: transform 0.1s cubic-bezier(0.22,1,0.36,1);
 }

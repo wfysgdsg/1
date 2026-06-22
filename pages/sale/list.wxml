@@ -1,137 +1,132 @@
-<view class="container scene-3d {{_anim ? 'anim-enter-3d' : ''}}">
-
-  <!-- 3D 深空头部 -->
-  <view class="header-3d">
-    <view class="header-bg"></view>
-    <view class="hero-orb a"></view>
-    <view class="hero-orb b"></view>
-
-    <view class="header-top">
-      <text class="page-title">{{uiText.title}}</text>
-      <text class="page-sub">{{uiText.subtitle}}</text>
-    </view>
-
-    <!-- 3D 状态标签 -->
-    <view class="status-tabs-3d">
-      <view class="status-tab {{statusFilter==='unpaid'?'active unpaid':''}}" bindtap="onStatusFilter" data-status="unpaid">
-        <view class="tab-glow coral" wx:if="{{statusFilter==='unpaid'}}"></view>
-        <text class="status-count">{{statusCounts.unpaid}}</text>
-        <text class="status-label">{{uiText.unpaid}}</text>
-      </view>
-      <view class="status-tab {{statusFilter==='paid'?'active paid':''}}" bindtap="onStatusFilter" data-status="paid">
-        <view class="tab-glow mint" wx:if="{{statusFilter==='paid'}}"></view>
-        <text class="status-count">{{statusCounts.paid}}</text>
-        <text class="status-label">{{uiText.paid}}</text>
-      </view>
-      <view class="status-tab {{statusFilter==='voided'?'active voided':''}}" bindtap="onStatusFilter" data-status="voided">
-        <view class="tab-glow neutral" wx:if="{{statusFilter==='voided'}}"></view>
-        <text class="status-count">{{statusCounts.voided}}</text>
-        <text class="status-label">{{uiText.voided}}</text>
-      </view>
-    </view>
-  </view>
-
-  <!-- 搜索栏 -->
-  <view class="search-section">
-    <view class="search glass">
-      <text class="search-ico">🔍</text>
-      <input class="search-inp" bindinput="onSearchInput" placeholder="搜索客户名称" placeholder-class="search-ph"/>
-    </view>
-  </view>
-
-  <!-- 销售列表 -->
-  <view class="sale-list" wx:if="{{saleList.length}}">
-    <view class="sale-card card-3d {{_anim ? 'anim-spring' : ''}}" wx:for="{{saleList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
-      <view class="sale-card-glow"></view>
-
-      <!-- 卡片头部 -->
-      <view class="sale-head">
-        <view class="sale-customer">
-          <view class="customer-avatar">
-            <text>{{item.customerName[0]}}</text>
-          </view>
-          <view class="sale-customer-info">
-            <text class="customer-name">{{item.customerName}}</text>
-            <text class="sale-date">{{item.saleDate}}</text>
-          </view>
+<view class="container">
+    <!-- 快捷状态标签 -->
+    <view class="status-tabs">
+        <view class="status-tab {{statusFilter==='unpaid'?'active':''}}" bindtap="onStatusFilter" data-status="unpaid">
+            <text class="status-count">{{statusCounts.unpaid}}</text>
+            <text class="status-label">{{uiText.unpaid}}</text>
         </view>
-        <view class="status-badge {{item.status}}">
-          <view class="badge-dot"></view>
-          <text>{{item.statusText}}</text>
+        <view class="status-tab {{statusFilter==='paid'?'active':''}}" bindtap="onStatusFilter" data-status="paid">
+            <text class="status-count">{{statusCounts.paid}}</text>
+            <text class="status-label">{{uiText.paid}}</text>
         </view>
-      </view>
-
-      <!-- 卡片内容 -->
-      <view class="sale-body">
-        <view class="goods-summary">
-          <text class="goods-count">{{item.goodsCount}} 件商品</text>
-          <text class="goods-preview">{{item.goodsPreview}}</text>
+        <view class="status-tab {{statusFilter==='voided'?'active':''}}" bindtap="onStatusFilter" data-status="voided">
+            <text class="status-count">{{statusCounts.voided}}</text>
+            <text class="status-label">{{uiText.voided}}</text>
         </view>
-        <view class="amount-row">
-          <view class="amount-block">
-            <text class="amount-label">总金额</text>
-            <text class="amount-val total">¥{{item.totalAmount}}</text>
-          </view>
-          <view class="amount-block" wx:if="{{item.paidAmount > 0}}">
-            <text class="amount-label">已付</text>
-            <text class="amount-val paid">¥{{item.paidAmount}}</text>
-          </view>
-          <view class="amount-block" wx:if="{{item.status === 'unpaid'}}">
-            <text class="amount-label">待付</text>
-            <text class="amount-val unpaid">¥{{item.remainingAmount}}</text>
-          </view>
+        <view class="status-tab {{statusFilter==='all'?'active':''}}" bindtap="onStatusFilter" data-status="all">
+            <text class="status-count">{{statusCounts.all}}</text>
+            <text class="status-label">{{uiText.all}}</text>
         </view>
-      </view>
-
-      <!-- 卡片操作 -->
-      <view class="sale-actions" wx:if="{{item.status === 'unpaid'}}">
-        <button bindtap="confirmPayment" class="act-btn pay tap-3d" data-id="{{item._id}}" data-remaining="{{item.remainingAmount}}">💰 收款</button>
-        <button bindtap="goToDelivery" class="act-btn view tap-3d" data-id="{{item._id}}">📋 详情</button>
-        <button bindtap="goToDelivery" class="act-btn delivery tap-3d" data-id="{{item._id}}">📦 送货单</button>
-      </view>
-      <view class="sale-actions" wx:else>
-        <button bindtap="goToDelivery" class="act-btn view tap-3d" data-id="{{item._id}}">📋 详情</button>
-        <button bindtap="goToDelivery" class="act-btn delivery tap-3d" data-id="{{item._id}}">📦 送货单</button>
-      </view>
     </view>
-  </view>
 
-  <!-- 空状态 -->
-  <view class="empty" wx:if="{{!saleList.length}}">
-    <view class="empty-state">
-      <text class="empty-icon">📝</text>
-      <text class="empty-text">{{uiText.noSales}}</text>
+    <!-- 搜索 + 月份 + 排序 -->
+    <view class="filter-bar">
+        <view class="search-box">
+            <text class="search-icon">🔍</text>
+            <input bindinput="onSearchInput" class="search-input" placeholder="{{uiText.search}}" value="{{searchKeyword}}"></input>
+        </view>
+        <view class="filter-right">
+            <picker bindchange="onMonthChange" fields="month" mode="date" value="{{filterMonth}}">
+                <view class="picker-btn">{{filterMonth||uiText.month}}</view>
+            </picker>
+            <picker bindchange="onSortChange" mode="selector" range="{{sortOptions}}" rangeKey="name">
+                <view class="sort-btn">{{selectedSort?selectedSort.name:uiText.sort}}</view>
+            </picker>
+        </view>
     </view>
-  </view>
+    <view class="summary">
+        <view class="summary-item">
+            <text class="label">{{uiText.totalInvoiceAmount}}</text>
+            <text class="value invoice">{{totalInvoiceAmount}}</text>
+        </view>
+        <view class="summary-item">
+            <text class="label">{{uiText.totalAmount}}</text>
+            <text class="value">{{totalAmount}}</text>
+        </view>
+        <view class="summary-item">
+            <text class="label">{{uiText.totalCost}}</text>
+            <text class="value">{{totalCost}}</text>
+        </view>
+        <view class="summary-item">
+            <text class="label">{{uiText.totalProfit}}</text>
+            <text class="value profit">{{totalProfit}}</text>
+        </view>
+    </view>
+    <view class="toolbar" wx:if="{{isRoot}}">
+        <button bindtap="recalculateProfit" class="recalc-btn" disabled="{{recalculating}}">{{recalculating ? '重算中...' : '重算利润'}}</button>
+    </view>
+    <view class="sale-list" wx:if="{{saleList.length}}">
+        <view class="sale-item {{_anim ? 'animate-card' : ''}}" wx:for="{{saleList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+            <view class="sale-header">
+                <text class="customer-name">{{item.customerName}}</text>
+                <view class="status-tags">
+                    <text class="status-tag voided" wx:if="{{item.voidStatus==='voided'}}">{{uiText.voided}}</text>
+                    <text class="status-tag {{item.payStatus}}">{{item.hasPartial ? item.payStatusStr : (item.payStatus==='paid'?uiText.paid:uiText.unpaid)}}</text>
+                    <text class="sale-date">{{item.saleDate}}</text>
+                </view>
+            </view>
+            <view class="goods-detail">
+                <view class="goods-row header">
+                    <text>{{uiText.goods}}</text>
+                    <text>{{uiText.quantity}}</text>
+                    <text>{{uiText.unitPrice}}</text>
+                    <text>{{uiText.profit}}</text>
+                </view>
+                <view class="goods-row" wx:for="{{item.goodsDetail}}" wx:for-item="goods" wx:key="goodsId">
+                    <text>{{goods.goodsName}}</text>
+                    <text>{{goods.quantity}}{{goods.unit}}</text>
+                    <text>{{goods.salePrice}}</text>
+                    <text class="profit">{{goods.profit}}</text>
+                </view>
+            </view>
+            <view class="sale-footer">
+                <view class="amount-info">
+                    <text class="invoice-text">开票: ¥{{item.totalInvoiceAmountStr}}</text>
+                    <text class="paid-text" wx:if="{{item.hasPartial}}">已付: ¥{{item.totalPaidStr}} / 待付: ¥{{item.remaining}}</text>
+                    <text>{{uiText.total}}: {{item.totalAmountStr}}</text>
+                    <text class="profit-text">{{uiText.profit}}: {{item.totalProfitStr}}</text>
+                </view>
+                <view class="action-btns" wx:if="{{item.payStatus==='unpaid' && item.voidStatus!=='voided'}}">
+                    <button bindtap="goToDelivery" class="delivery-btn" data-id="{{item._id}}">📋 送货单</button>
+                    <button bindtap="voidSale" class="void-btn" data-id="{{item._id}}" data-wxid="{{item._id}}">{{uiText.voidSale}}</button>
+                    <button bindtap="confirmPayment" class="pay-btn" data-id="{{item._id}}" data-remaining="{{item.remaining}}">{{item.hasPartial ? '收余款 ¥' + item.remaining : '确认收款'}}</button>
+                </view>
+                <view class="action-btns" wx:elif="{{item.voidStatus==='voided'}}">
+                    <text class="voided-hint">该单已红冲，库存已恢复</text>
+                </view>
+                <view class="action-btns" wx:else>
+                    <button bindtap="goToDelivery" class="delivery-btn" data-id="{{item._id}}">📋 送货单</button>
+                </view>
+            </view>
+        </view>
+    </view>
+    <view class="empty" wx:if="{{!saleList.length}}">
+        <text>{{uiText.noSales}}</text>
+    </view>
+    
+    <!-- 分页 -->
+    <view class="pagination" wx:if="{{totalCount > 0}}">
+        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
+        <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
+        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+    </view>
+    
+    <view bindtap="goToAdd" class="add-btn">{{uiText.addSale}}</view>
 
-  <!-- 分页 -->
-  <view class="pagination" wx:if="{{totalCount > 0}}">
-    <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
-    <text class="page-info">{{currentPage}} / {{totalPages}} · 共 {{totalCount}} 条</text>
-    <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
-  </view>
-
-  <!-- 悬浮新增按钮 -->
-  <view bindtap="goToAdd" class="fab">
-    <view class="fab-glow"></view>
-    <text class="fab-text">+ {{uiText.addSale}}</text>
-  </view>
-
-  <!-- 收款弹窗 -->
-  <view class="pay-modal-mask" wx:if="{{showPayModal}}" bindtap="cancelPayment"></view>
-  <view class="pay-modal glass-bright" wx:if="{{showPayModal}}">
-    <view class="pay-modal-glow"></view>
-    <view class="pay-modal-title">确认收款</view>
-    <view class="pay-amount-display">
-      <text class="pay-currency">¥</text>
-      <text class="pay-amount">{{payingAmount}}</text>
+    <!-- 收款弹窗 -->
+    <view class="pay-modal-mask" wx:if="{{showPayModal}}" bindtap="cancelPayment"></view>
+    <view class="pay-modal" wx:if="{{showPayModal}}">
+        <view class="pay-modal-title">确认收款</view>
+        <view class="pay-modal-body">
+            <text class="pay-modal-label">剩余待付：¥{{payingRemaining}}</text>
+            <view class="pay-input-box">
+                <text class="pay-input-prefix">¥</text>
+                <input type="digit" class="pay-input" value="{{payingAmount}}" bindinput="onPayAmountInput" focus="{{true}}" placeholder="请输入收款金额"></input>
+            </view>
+        </view>
+        <view class="pay-modal-footer">
+            <button bindtap="cancelPayment" class="pay-cancel-btn">取消</button>
+            <button bindtap="submitPayment" class="pay-confirm-btn">确认收款</button>
+        </view>
     </view>
-    <view class="pay-input-wrapper">
-      <input class="pay-input" type="digit" bindinput="onPayAmountInput" placeholder="输入收款金额" placeholder-class="pay-ph" value="{{payingAmount}}"/>
-    </view>
-    <view class="pay-modal-actions">
-      <button bindtap="cancelPayment" class="pay-btn cancel">取消</button>
-      <button bindtap="submitPayment" class="pay-btn confirm">确认收款</button>
-    </view>
-  </view>
 </view>
