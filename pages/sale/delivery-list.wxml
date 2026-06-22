@@ -7,7 +7,7 @@
   </view>
 
   <view class="body">
-    <view class="list-card {{_anim ? 'animate-card' : ''}}" wx:for="{{list}}" wx:key="_id"
+    <view class="list-card {{_anim ? tap-3d'anim-spring' : ''}}" wx:for="{{list}}" wx:key="_id"
       style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s"
       bindtap="goDetail" data-id="{{item._id}}">
       <view class="lc-top">

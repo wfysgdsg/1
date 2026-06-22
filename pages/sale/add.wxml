@@ -20,22 +20,22 @@
         <view class="search-box">
           <text class="search-ico">🔍</text>
           <input bindinput="onSearchInput" class="search-inp" confirmType="search" placeholder="输入商品名称搜索" value="{{searchKeyword}}"></input>
-          <view bindtap="clearSearch" class="clear-search x-tap" wx:if="{{searchKeyword}}">×</view>
+          <view bindtap="clearSearch" class="clear-search x-tap tap-3d" wx:if="{{searchKeyword}}">×</view>
         </view>
 
         <view class="search-result" wx:if="{{showSearchResults&&searchResults.length>0}}">
           <view class="result-item" wx:for="{{searchResults}}" wx:key="_id">
-            <view bindtap="toggleCheck" class="check-box {{checkedIds[item._id] ? 'checked' : ''}}" data-id="{{item._id}}">
+            <view bindtap="toggleCheck" class="check-box {{checkedIds[item._id] ? 'checked' : ''}} tap-3d" data-id="{{item._id}}">
               <text class="check-mark" wx:if="{{checkedIds[item._id]}}">✓</text>
             </view>
-            <view bindtap="selectGoods" class="result-info" data-id="{{item._id}}">
+            <view bindtap="selectGoods" class="result-info tap-3d" data-id="{{item._id}}">
               <text class="result-name">{{item.name}}</text>
               <text class="result-price">¥{{item.salePrice}}</text>
             </view>
           </view>
           <view class="batch-bar" wx:if="{{checkedCount > 0}}">
             <text class="batch-count">已选 {{checkedCount}} 项</text>
-            <button bindtap="batchAddGoods" class="batch-add-btn x-tap">批量添加</button>
+            <button bindtap="batchAddGoods" class="batch-add-btn x-tap tap-3d">批量添加</button>
           </view>
         </view>
 
@@ -56,7 +56,7 @@
               <text class="goods-name">{{item.name}}</text>
               <text class="goods-unit">单位：{{item.unit||'未填'}}</text>
             </view>
-            <text bindtap="removeGoods" class="remove-btn x-tap" data-index="{{index}}">×</text>
+            <text bindtap="removeGoods" class="remove-btn x-tap tap-3d" data-index="{{index}}">×</text>
           </view>
           <view class="goods-body">
             <view class="price-row">
@@ -91,7 +91,7 @@
           <input bindfocus="onContactFocus" bindinput="onContactKeywordInput" class="search-inp" placeholder="输入关键字搜索客户" value="{{contactKeyword}}"></input>
         </view>
         <view class="contact-results" wx:if="{{showContactResults&&contactResults.length>0}}">
-          <view bindtap="selectContact" class="contact-item" data-item="{{item}}" wx:for="{{contactResults}}" wx:key="_id">
+          <view bindtap="selectContact" class="contact-item tap-3d" data-item="{{item}}" wx:for="{{contactResults}}" wx:key="_id">
             <text class="contact-name">{{item.name}}</text>
             <text class="result-detail" wx:if="{{item.contact}}">{{item.contact}}</text>
           </view>
@@ -103,10 +103,10 @@
 
       <view class="selected-location" wx:if="{{selectedContact}}">
         <text class="selected-text">已选：{{selectedContact.name}}</text>
-        <text bindtap="clearContact" class="clear-btn x-tap">×</text>
+        <text bindtap="clearContact" class="clear-btn x-tap tap-3d">×</text>
       </view>
 
-      <view bindtap="goToAddContact" class="add-link x-tap">＋ 新增客户</view>
+      <view bindtap="goToAddContact" class="add-link x-tap tap-3d">＋ 新增客户</view>
     </view>
 
     <!-- 本单预览 -->
@@ -172,8 +172,8 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button bindtap="goBack" class="btn ghost x-tap">返回</button>
-    <button bindtap="submit" class="btn main x-tap" disabled="{{submitting}}">{{submitting ? '提交中...' : '确认开票'}}</button>
+    <button bindtap="goBack" class="btn ghost x-tap tap-3d">返回</button>
+    <button bindtap="submit" class="btn main x-tap tap-3d" disabled="{{submitting}}">{{submitting ? '提交中...' : '确认开票'}}</button>
   </view>
 
 </view>

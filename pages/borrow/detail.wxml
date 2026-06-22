@@ -19,7 +19,7 @@ module.exports = { includes: includes };
         <text class="x-hero-title">{{customerName}}</text>
         <text class="x-hero-sub">共 {{rawRecords.length}} 条借货记录</text>
       </view>
-      <view bindtap="toggleBatchMode" class="batch-switch x-tap">
+      <view bindtap="toggleBatchMode" class="batch-switch x-tap tap-3d">
         <text>{{isBatchMode?'取消选择':'批量操作'}}</text>
       </view>
     </view>
@@ -30,8 +30,8 @@ module.exports = { includes: includes };
     <view>
       <!-- 子 Tab -->
       <view class="sub-tabs">
-        <view bindtap="switchTab" class="sub-tab {{tab==='time'?'active':''}}" data-tab="time">按时间</view>
-        <view bindtap="switchTab" class="sub-tab {{tab==='goods'?'active':''}}" data-tab="goods">按商品</view>
+        <view bindtap="switchTab" class="sub-tab {{tab==='time'?'active':''}} tap-3d" data-tab="time">按时间</view>
+        <view bindtap="switchTab" class="sub-tab {{tab==='goods'?'active':''}} tap-3d" data-tab="goods">按商品</view>
       </view>
 
       <view class="selection-tip" wx:if="{{isBatchMode}}">已选 {{selectedIds.length}} 项</view>
@@ -41,7 +41,7 @@ module.exports = { includes: includes };
         <view class="time-group" wx:for="{{timeGroups}}" wx:key="date">
           <view class="date-group-card">
             <view class="date-header"><view class="date-dot"></view>{{item.date}}</view>
-            <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-card {{utils.includes(selectedIds,r._id)?'selected':''}}" data-id="{{r._id}}" wx:for="{{item.items}}" wx:for-item="r" wx:key="_id">
+            <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-card {{utils.includes(selectedIds,r._id)?'selected':''}} tap-3d" data-id="{{r._id}}" wx:for="{{item.items}}" wx:for-item="r" wx:key="_id">
               <view class="record-check" wx:if="{{isBatchMode}}">
                 <view class="checkbox {{utils.includes(selectedIds,r._id)?'checked':''}}">
                   <text class="checkmark" wx:if="{{utils.includes(selectedIds,r._id)}}">✓</text>
@@ -71,7 +71,7 @@ module.exports = { includes: includes };
           </view>
           <view class="detail-items">
             <block wx:for="{{item.items}}" wx:for-item="r" wx:key="_id">
-              <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-card {{utils.includes(selectedIds,r._id)?'selected':''}}" data-id="{{r._id}}">
+              <view bindtap="{{isBatchMode?'onItemSelect':''}}" class="record-card {{utils.includes(selectedIds,r._id)?'selected':''}} tap-3d" data-id="{{r._id}}">
                 <view class="record-check" wx:if="{{isBatchMode}}">
                   <view class="checkbox {{utils.includes(selectedIds,r._id)?'checked':''}}">
                     <text class="checkmark" wx:if="{{utils.includes(selectedIds,r._id)}}">✓</text>
@@ -103,21 +103,21 @@ module.exports = { includes: includes };
 
   <!-- 批量工具栏（position:fixed，必须在动画容器外） -->
   <view class="batch-toolbar" wx:if="{{isBatchMode}}">
-    <view bindtap="selectAll" class="toolbar-info">
+    <view bindtap="selectAll" class="toolbar-info tap-3d">
       <view class="checkbox {{selectedIds.length===rawRecords.length&&rawRecords.length>0?'checked':''}}">
         <text class="checkmark" wx:if="{{selectedIds.length===rawRecords.length&&rawRecords.length>0}}">✓</text>
       </view>
       <text>全选（已选 {{selectedIds.length}}）</text>
     </view>
     <view class="toolbar-btns">
-      <view bindtap="batchReturn" class="tool-btn return-btn x-tap">归还</view>
-      <view bindtap="batchTransfer" class="tool-btn move-btn x-tap">移货</view>
-      <view bindtap="batchSale" class="tool-btn sale-btn x-tap">去开票</view>
+      <view bindtap="batchReturn" class="tool-btn return-btn x-tap tap-3d">归还</view>
+      <view bindtap="batchTransfer" class="tool-btn move-btn x-tap tap-3d">移货</view>
+      <view bindtap="batchSale" class="tool-btn sale-btn x-tap tap-3d">去开票</view>
     </view>
   </view>
 
   <!-- 弹窗（position:fixed，必须在动画容器外） -->
-  <view bindtap="closeStaffPicker" class="modal-mask" wx:if="{{showStaffPicker}}"></view>
+  <view bindtap="closeStaffPicker" class="modal-mask tap-3d" wx:if="{{showStaffPicker}}"></view>
   <view class="staff-picker-modal" wx:if="{{showStaffPicker}}">
     <view class="modal-title">移货详情</view>
     <view class="modal-body">
@@ -128,9 +128,9 @@ module.exports = { includes: includes };
             <text class="transfer-goods-max">最多 {{item.maxQty}} {{item.unit}}</text>
           </view>
           <view class="transfer-qty-stepper">
-            <view bindtap="onTransferQtyMinus" data-index="{{index}}" class="stepper-btn minus">-</view>
+            <view bindtap="onTransferQtyMinus" data-index="{{index}}" class="stepper-btn minus tap-3d">-</view>
             <text class="stepper-val">{{item.transferQty}}</text>
-            <view bindtap="onTransferQtyPlus" data-index="{{index}}" class="stepper-btn plus">+</view>
+            <view bindtap="onTransferQtyPlus" data-index="{{index}}" class="stepper-btn plus tap-3d">+</view>
           </view>
         </view>
       </view>
@@ -142,8 +142,8 @@ module.exports = { includes: includes };
       </picker-view>
     </view>
     <view class="modal-footer">
-      <view bindtap="closeStaffPicker" class="modal-btn cancel x-tap">取消</view>
-      <view bindtap="confirmTransfer" class="modal-btn confirm x-tap">确定发送</view>
+      <view bindtap="closeStaffPicker" class="modal-btn cancel x-tap tap-3d">取消</view>
+      <view bindtap="confirmTransfer" class="modal-btn confirm x-tap tap-3d">确定发送</view>
     </view>
   </view>
 </view>

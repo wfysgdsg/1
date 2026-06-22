@@ -9,9 +9,9 @@
   <view class="body">
     <!-- 类型切换 -->
     <view class="tabs">
-      <view bindtap="switchTab" class="tab x-tap {{activeTab==='all'?'active':''}}" data-tab="all">全部</view>
-      <view bindtap="switchTab" class="tab x-tap {{activeTab==='customer'?'active':''}}" data-tab="customer">客户</view>
-      <view bindtap="switchTab" class="tab x-tap {{activeTab==='supplier'?'active':''}}" data-tab="supplier">厂家</view>
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='all'?'active':''}} tap-3d" data-tab="all">全部</view>
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='customer'?'active':''}} tap-3d" data-tab="customer">客户</view>
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='supplier'?'active':''}} tap-3d" data-tab="supplier">厂家</view>
     </view>
 
     <!-- 搜索条 -->
@@ -22,14 +22,14 @@
 
     <!-- 顶部分页 -->
     <view class="pagination" wx:if="{{totalCount > 0}}">
-      <button bindtap="prevPage" class="page-btn x-tap" disabled="{{currentPage === 1}}">上一页</button>
+      <button bindtap="prevPage" class="page-btn x-tap tap-3d" disabled="{{currentPage === 1}}">上一页</button>
       <text class="page-info">{{currentPage}} / {{totalPages}} · 共 {{totalCount}} 条</text>
-      <button bindtap="nextPage" class="page-btn x-tap" disabled="{{currentPage >= totalPages}}">下一页</button>
+      <button bindtap="nextPage" class="page-btn x-tap tap-3d" disabled="{{currentPage >= totalPages}}">下一页</button>
     </view>
 
     <!-- 列表 -->
     <view class="list">
-      <view bindtap="editContact" class="item x-tap {{_anim ? 'animate-card' : ''}}" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
+      <view bindtap="editContact" class="item x-tap {{_anim ? 'anim-spring' : ''}} tap-3d" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
         <view class="item-avatar {{item.type==='supplier'?'supplier':'customer'}}">{{item.type==='supplier'?'🏭':'👤'}}</view>
         <view class="item-info">
           <view class="name-row">
@@ -49,13 +49,13 @@
 
     <!-- 底部分页 -->
     <view class="pagination" wx:if="{{totalCount > 0}}">
-      <button bindtap="prevPage" class="page-btn x-tap" disabled="{{currentPage === 1}}">上一页</button>
+      <button bindtap="prevPage" class="page-btn x-tap tap-3d" disabled="{{currentPage === 1}}">上一页</button>
       <text class="page-info">{{currentPage}} / {{totalPages}} · 共 {{totalCount}} 条</text>
-      <button bindtap="nextPage" class="page-btn x-tap" disabled="{{currentPage >= totalPages}}">下一页</button>
+      <button bindtap="nextPage" class="page-btn x-tap tap-3d" disabled="{{currentPage >= totalPages}}">下一页</button>
     </view>
   </view>
 
   <view class="x-glass-bar">
-    <button bindtap="goToAdd" class="btn main x-tap">+ 新增往来单位</button>
+    <button bindtap="goToAdd" class="btn main x-tap tap-3d">+ 新增往来单位</button>
   </view>
 </view>

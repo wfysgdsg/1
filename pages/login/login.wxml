@@ -44,20 +44,20 @@
                     value="{{password}}"
                     cursor-color="#4F6EF7"
                 />
-                <view bindtap="togglePassword" class="eye-btn {{showPassword ? 'showing' : ''}}">
+                <view bindtap="togglePassword" class="eye-btn {{showPassword ? 'showing' : ''}} tap-3d">
                     {{showPassword ? '🙈' : '👁'}}
                 </view>
             </view>
         </view>
         <!-- 选项行 -->
         <view class="option-row">
-            <view bindtap="toggleRememberPassword" class="option-item">
+            <view bindtap="toggleRememberPassword" class="option-item tap-3d">
                 <view class="radio {{rememberPassword ? 'checked' : ''}}">
                     <view class="radio-dot" wx:if="{{rememberPassword}}"></view>
                 </view>
                 <text class="option-text">{{uiText.rememberPassword}}</text>
             </view>
-            <view bindtap="toggleAutoLogin" class="option-item">
+            <view bindtap="toggleAutoLogin" class="option-item tap-3d">
                 <view class="radio {{autoLogin ? 'checked' : ''}}">
                     <view class="radio-dot" wx:if="{{autoLogin}}"></view>
                 </view>
@@ -66,16 +66,16 @@
         </view>
         <!-- 登录按钮 -->
         <view class="btn-wrapper">
-            <view class="login-btn" bindtap="login">
+            <view class="login-btn tap-3d" bindtap="login">
                 <text class="btn-text">{{uiText.login}}</text>
                 <view class="btn-shine"></view>
             </view>
         </view>
     </view>
     <view class="extra-links">
-        <text bindtap="forgotPassword" class="link">{{uiText.forgotPassword}}</text>
+        <text bindtap="forgotPassword" class="link tap-3d">{{uiText.forgotPassword}}</text>
         <text class="divider">|</text>
-        <text bindtap="changePassword" class="link">{{uiText.changePassword}}</text>
+        <text bindtap="changePassword" class="link tap-3d">{{uiText.changePassword}}</text>
     </view>
     <view class="footer">
         <text>{{uiText.firstLoginTip}}</text>

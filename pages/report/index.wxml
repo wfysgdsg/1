@@ -6,8 +6,8 @@
     <text class="x-hero-title">销售报表</text>
     <text class="x-hero-sub">{{reportMode==='year'?'年度经营概览':'月度经营概览'}}</text>
     <view class="seg">
-      <view class="seg-item {{reportMode==='month'?'on':''}}" bindtap="switchMode" data-mode="month">月度</view>
-      <view class="seg-item {{reportMode==='year'?'on':''}}" bindtap="switchMode" data-mode="year">年度</view>
+      <view class="seg-item {{reportMode=== tap-3d'month'?'on':''}}" bindtap="switchMode" data-mode="month">月度</view>
+      <view class="seg-item {{reportMode=== tap-3d'year'?'on':''}}" bindtap="switchMode" data-mode="year">年度</view>
     </view>
   </view>
 
@@ -78,7 +78,7 @@
         <text class="more">Top 10</text>
       </view>
       <view class="rank-list">
-        <view class="rank-item animate-card" wx:for="{{topGoods}}" wx:key="name" style="animation-delay: {{index * 0.04}}s">
+        <view class="rank-item anim-spring" wx:for="{{topGoods}}" wx:key="name" style="animation-delay: {{index * 0.04}}s">
           <view class="rank-info">
             <text class="index">{{index+1}}</text>
             <text class="name">{{item.name}}</text>
@@ -99,7 +99,7 @@
         <text class="more">按利润</text>
       </view>
       <view class="customer-list">
-        <view class="customer-item animate-card" wx:for="{{topCustomers}}" wx:key="name" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+        <view class="customer-item anim-spring" wx:for="{{topCustomers}}" wx:key="name" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
           <view class="cust-info">
             <text class="cust-name">{{item.name}}</text>
             <view class="progress-bar">
@@ -117,7 +117,7 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button bindtap="exportCSV" class="btn main x-tap" disabled="{{exporting}}">
+    <button bindtap="exportCSV" class="btn main x-tap tap-3d" disabled="{{exporting}}">
       {{exporting ? '导出中...' : '导出 CSV 报表'}}
     </button>
   </view>

@@ -1,4 +1,4 @@
-<view class="page {{_anim ? 'animate-fade-in' : ''}}">
+<view class="page {{_anim ? 'anim-spring' : ''}}">
   <!-- 1) 顶部渐变大头（Tab 页无返回按钮） -->
   <view class="hero">
     <view class="hero-orb a"></view>
@@ -18,7 +18,7 @@
   <!-- 2) 列表内容区 -->
   <view class="body">
     <view class="list" wx:if="{{goodsList.length}}">
-      <view class="g-card {{_anim ? 'animate-card' : ''}}" wx:for="{{goodsList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+      <view class="g-card {{_anim ? 'anim-spring' : ''}}" wx:for="{{goodsList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
         <view class="g-main">
           <text class="g-name">{{item.name}}</text>
           <view class="g-tags">
@@ -28,8 +28,8 @@
           </view>
         </view>
         <view class="g-acts" wx:if="{{isAdmin}}">
-          <text bindtap="editGoods" class="g-btn edit x-tap" data-id="{{item._id}}">编辑</text>
-          <text bindtap="deleteGoods" class="g-btn del x-tap" data-id="{{item._id}}">删除</text>
+          <text bindtap="editGoods" class="g-btn edit x-tap tap-3d" data-id="{{item._id}}">编辑</text>
+          <text bindtap="deleteGoods" class="g-btn del x-tap tap-3d" data-id="{{item._id}}">删除</text>
         </view>
       </view>
     </view>
@@ -43,12 +43,12 @@
 
     <!-- 分页 -->
     <view class="pager" wx:if="{{totalPages > 1}}">
-      <button bindtap="prevPage" class="pg-btn" disabled="{{currentPage === 1}}">上一页</button>
+      <button bindtap="prevPage" class="pg-btn tap-3d" disabled="{{currentPage === 1}}">上一页</button>
       <text class="pg-info">{{currentPage}} / {{totalPages}}</text>
-      <button bindtap="nextPage" class="pg-btn" disabled="{{currentPage === totalPages}}">下一页</button>
+      <button bindtap="nextPage" class="pg-btn tap-3d" disabled="{{currentPage === totalPages}}">下一页</button>
     </view>
   </view>
 
   <!-- 3) 悬浮新增按钮 -->
-  <view bindtap="goToAdd" class="fab">+ 新增商品</view>
+  <view bindtap="goToAdd" class="fab tap-3d">+ 新增商品</view>
 </view>

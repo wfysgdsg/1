@@ -5,21 +5,21 @@
     <view class="x-hero-orb b"></view>
     <text class="x-hero-title">员工管理</text>
     <text class="x-hero-sub">管理团队成员账号与权限</text>
-    <button bindtap="addUser" class="hero-add x-tap" wx:if="{{isRoot}}">+ 添加员工</button>
+    <button bindtap="addUser" class="hero-add x-tap tap-3d" wx:if="{{isRoot}}">+ 添加员工</button>
   </view>
 
   <!-- 内容区 -->
   <view class="body">
     <view class="user-list" wx:if="{{userList.length>0}}">
-      <view class="user-item animate-card" wx:for="{{userList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+      <view class="user-item anim-spring" wx:for="{{userList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
         <view class="avatar {{item.role==='root' ? 'is-root' : ''}}">{{item.name||item.username}}</view>
         <view class="user-info">
           <text class="user-name">{{item.name||item.username}}</text>
           <text class="user-role {{item.role==='root' ? 'role-root' : ''}}">{{item.role==='root'?'管理员':'员工'}}</text>
         </view>
         <view class="user-actions" wx:if="{{isRoot&&item.role!=='root'}}">
-          <text bindtap="resetPassword" class="action-btn x-tap" data-id="{{item._id}}">改密码</text>
-          <text bindtap="deleteUser" class="action-btn delete x-tap" data-id="{{item._id}}" data-name="{{item.name}}">删除</text>
+          <text bindtap="resetPassword" class="action-btn x-tap tap-3d" data-id="{{item._id}}">改密码</text>
+          <text bindtap="deleteUser" class="action-btn delete x-tap tap-3d" data-id="{{item._id}}" data-name="{{item.name}}">删除</text>
         </view>
       </view>
     </view>

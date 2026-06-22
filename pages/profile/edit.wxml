@@ -10,7 +10,7 @@
   <!-- 2) 内容卡片区 -->
   <view class="body">
     <!-- 头像卡片 -->
-    <view class="card avatar-card x-tap" bindtap="chooseAvatar">
+    <view class="card avatar-card x-tap tap-3d" bindtap="chooseAvatar">
       <view class="avatar-wrapper">
         <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill"></image>
         <text wx:else class="avatar-placeholder">{{initialName}}</text>
@@ -36,7 +36,7 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button class="btn main x-tap" bindtap="saveProfile" disabled="{{saving}}">
+    <button class="btn main x-tap tap-3d" bindtap="saveProfile" disabled="{{saving}}">
       {{saving ? '保存中...' : '保存'}}
     </button>
   </view>

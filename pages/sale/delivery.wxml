@@ -12,7 +12,7 @@
   <view class="body">
 
     <!-- 送货单纸面卡片 -->
-    <view class="doc-card animate-card">
+    <view class="doc-card anim-spring">
 
       <!-- 单据抬头 -->
       <view class="doc-head">
@@ -95,20 +95,20 @@
           <!-- 送货人签名 -->
           <view class="sign-col">
             <text class="sign-label">送货人</text>
-            <view class="sign-area small x-tap" data-role="seller" bindtap="openSignPage">
+            <view class="sign-area small x-tap tap-3d" data-role="seller" bindtap="openSignPage">
               <image wx:if="{{hasSellerSign}}" class="signature-img" src="{{sellerSignPath}}" mode="aspectFit"></image>
               <text wx:else class="sign-hint">✍️ 点击签名</text>
             </view>
-            <text wx:if="{{hasSellerSign}}" class="sign-clear" data-role="seller" bindtap="clearSignature">清空</text>
+            <text wx:if="{{hasSellerSign}}" class="sign-clear tap-3d" data-role="seller" bindtap="clearSignature">清空</text>
           </view>
           <!-- 收货单位签名 -->
           <view class="sign-col">
             <text class="sign-label">收货单位（人）</text>
-            <view class="sign-area small x-tap" data-role="customer" bindtap="openSignPage">
+            <view class="sign-area small x-tap tap-3d" data-role="customer" bindtap="openSignPage">
               <image wx:if="{{hasCustomerSign}}" class="signature-img" src="{{customerSignPath}}" mode="aspectFit"></image>
               <text wx:else class="sign-hint">✍️ 点击签名</text>
             </view>
-            <text wx:if="{{hasCustomerSign}}" class="sign-clear" data-role="customer" bindtap="clearSignature">清空</text>
+            <text wx:if="{{hasCustomerSign}}" class="sign-clear tap-3d" data-role="customer" bindtap="clearSignature">清空</text>
           </view>
         </view>
       </view>
@@ -122,10 +122,10 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button class="btn ghost x-tap" bindtap="saveDelivery" disabled="{{saving}}">
+    <button class="btn ghost x-tap tap-3d" bindtap="saveDelivery" disabled="{{saving}}">
       {{saving ? '保存中...' : (saved ? '💾 更新保存' : '💾 保存')}}
     </button>
-    <button class="btn main x-tap" bindtap="doShare" disabled="{{exporting}}">
+    <button class="btn main x-tap tap-3d" bindtap="doShare" disabled="{{exporting}}">
       {{exporting ? '生成中...' : '📤 分享'}}
     </button>
   </view>

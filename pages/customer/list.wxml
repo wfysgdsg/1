@@ -16,7 +16,7 @@
 
     <!-- 列表 -->
     <view class="list">
-      <view class="item x-tap animate-card" wx:for="{{customerList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
+      <view class="item x-tap anim-spring" wx:for="{{customerList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
         <view class="item-avatar">📍</view>
         <view class="item-info">
           <text class="item-name">{{item.name}}</text>
@@ -25,8 +25,8 @@
           </view>
         </view>
         <view class="item-actions">
-          <text bindtap="editCustomer" class="act edit x-tap" data-id="{{item._id}}">编辑</text>
-          <text bindtap="deleteCustomer" class="act del x-tap" data-id="{{item._id}}">删除</text>
+          <text bindtap="editCustomer" class="act edit x-tap tap-3d" data-id="{{item._id}}">编辑</text>
+          <text bindtap="deleteCustomer" class="act del x-tap tap-3d" data-id="{{item._id}}">删除</text>
         </view>
       </view>
     </view>
@@ -40,6 +40,6 @@
 
   <!-- 底部悬浮新增 -->
   <view class="x-glass-bar">
-    <button bindtap="goToAdd" class="btn main x-tap">+ 新增存放位置</button>
+    <button bindtap="goToAdd" class="btn main x-tap tap-3d">+ 新增存放位置</button>
   </view>
 </view>

@@ -1,4 +1,4 @@
-<view class="page {{_anim ? 'animate-fade-in' : ''}}">
+<view class="page {{_anim ? 'anim-spring' : ''}}">
 
   <!-- 顶部渐变大头 -->
   <view class="x-hero hero {{tab==='paid' ? 'paid' : 'unpaid'}}">
@@ -12,10 +12,10 @@
 
     <!-- Tab 切换（分段控件） -->
     <view class="tab-bar">
-      <view class="tab-item {{tab==='unpaid'?'active':''}}" bindtap="switchTab" data-tab="unpaid">
+      <view class="tab-item {{tab=== tap-3d'unpaid'?'active':''}} tap-3d" class="tap-3d" bindtap="switchTab" data-tab="unpaid">
         <text>{{uiText.unpaidTab}}</text>
       </view>
-      <view class="tab-item {{tab==='paid'?'active':''}}" bindtap="switchTab" data-tab="paid">
+      <view class="tab-item {{tab=== tap-3d'paid'?'active':''}} tap-3d" class="tap-3d" bindtap="switchTab" data-tab="paid">
         <text>{{uiText.paidTab}}</text>
       </view>
     </view>
@@ -32,8 +32,8 @@
       </view>
 
       <view class="customer-list">
-        <view class="customer-debt-item {{_anim ? 'animate-card' : ''}}" wx:for="{{debtList}}" wx:key="contactId" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
-          <view bindtap="toggleCustomer" class="customer-header x-tap" data-id="{{item.contactId}}">
+        <view class="customer-debt-item {{_anim ? 'anim-spring' : ''}}" wx:for="{{debtList}}" wx:key="contactId" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+          <view bindtap="toggleCustomer" class="customer-header x-tap tap-3d" data-id="{{item.contactId}}">
             <view class="customer-info">
               <view class="avatar unpaid">👤</view>
               <view class="customer-meta">
@@ -79,7 +79,7 @@
                   <text class="col-total">{{row.lineTotal}}</text>
                 </view>
               </view>
-              <button bindtap="confirmPayment" class="pay-btn-sm x-tap" data-id="{{order._id}}" data-remaining="{{order.remaining}}">{{order.hasPartial ? uiText.payRemaining + ' ¥' + order.remaining : uiText.confirmPayment}}</button>
+              <button bindtap="confirmPayment" class="pay-btn-sm x-tap tap-3d" data-id="{{order._id}}" data-remaining="{{order.remaining}}">{{order.hasPartial ? uiText.payRemaining + ' ¥' + order.remaining : uiText.confirmPayment}}</button>
             </view>
           </view>
         </view>
@@ -103,8 +103,8 @@
       </view>
 
       <view class="customer-list">
-        <view class="customer-debt-item {{_anim ? 'animate-card' : ''}}" wx:for="{{paidList}}" wx:key="contactId" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
-          <view bindtap="togglePaidCustomer" class="customer-header x-tap" data-id="{{item.contactId}}">
+        <view class="customer-debt-item {{_anim ? 'anim-spring' : ''}}" wx:for="{{paidList}}" wx:key="contactId" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+          <view bindtap="togglePaidCustomer" class="customer-header x-tap tap-3d" data-id="{{item.contactId}}">
             <view class="customer-info">
               <view class="avatar paid">👤</view>
               <view class="customer-meta">
@@ -163,7 +163,7 @@
   </view>
 
   <!-- 收款弹窗 -->
-  <view class="pay-modal-mask" wx:if="{{showPayModal}}" bindtap="cancelPayment"></view>
+  <view class="pay-modal-mask tap-3d" wx:if="{{showPayModal}}" class="tap-3d" bindtap="cancelPayment"></view>
   <view class="pay-modal" wx:if="{{showPayModal}}">
     <view class="pay-modal-title">确认收款</view>
     <view class="pay-modal-body">
@@ -174,8 +174,8 @@
       </view>
     </view>
     <view class="pay-modal-footer">
-      <button bindtap="cancelPayment" class="pay-cancel-btn x-tap">取消</button>
-      <button bindtap="submitPayment" class="pay-confirm-btn x-tap">确认收款</button>
+      <button bindtap="cancelPayment" class="pay-cancel-btn x-tap tap-3d">取消</button>
+      <button bindtap="submitPayment" class="pay-confirm-btn x-tap tap-3d">确认收款</button>
     </view>
   </view>
 
