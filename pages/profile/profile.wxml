@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container anim-enter-3d">
     <view class="header-card anim-enter-3d" bindtap="editProfile">
         <view class="avatar-section">
             <image wx:if="{{userInfo.avatarUrl}}" class="avatar-img" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>

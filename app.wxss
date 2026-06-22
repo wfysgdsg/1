@@ -488,12 +488,13 @@ input:focus, textarea:focus {
   100% { transform: scale(1) rotate(0); }
 }
 
-/* 3D 翻转入场（兼容版 — 使用 scaleX 模拟翻转，无需 perspective） */
+/* 页面翻转入场（强烈版 — 大幅上滑+缩放+回弹） */
 @keyframes nexus-enter-3d {
-  0%   { opacity: 0; transform: scaleX(0.5) translateY(40rpx); }
-  55%  { opacity: 1; transform: scaleX(1.04) translateY(-6rpx); }
-  80%  { transform: scaleX(0.97) translateY(3rpx); }
-  100% { transform: scaleX(1) translateY(0); }
+  0%   { opacity: 0; transform: translateY(120rpx) scale(0.85) rotate(-3deg); }
+  50%  { opacity: 1; transform: translateY(-16rpx) scale(1.03) rotate(1deg); }
+  70%  { transform: translateY(8rpx) scale(0.98) rotate(-0.5deg); }
+  85%  { transform: translateY(-4rpx) scale(1.01); }
+  100% { transform: translateY(0) scale(1) rotate(0); }
 }
 
 /* 左侧滑入（兼容版 — scaleX+translateX 模拟3D旋转） */
@@ -547,7 +548,7 @@ input:focus, textarea:focus {
 /* ===== 动画工具类 ===== */
 .anim-spring      { animation: nexus-spring-up 0.65s cubic-bezier(0.34,1.56,0.64,1) both; }
 .anim-pop         { animation: nexus-pop 0.6s cubic-bezier(0.34,1.56,0.64,1) both; }
-.anim-enter-3d    { animation: nexus-enter-3d 0.7s cubic-bezier(0.16,1,0.3,1) both; }
+.anim-enter-3d    { animation: nexus-enter-3d 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.05s both; }
 .anim-slide-left  { animation: nexus-slide-3d-left 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 .anim-slide-right { animation: nexus-slide-3d-right 0.6s cubic-bezier(0.16,1,0.3,1) both; }
 .anim-depth       { animation: nexus-depth-in 0.7s cubic-bezier(0.16,1,0.3,1) both; }

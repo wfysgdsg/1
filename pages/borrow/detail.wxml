@@ -9,7 +9,7 @@ function includes(arr, item) {
 module.exports = { includes: includes };
 </wxs>
 
-<view class="page">
+<view class="page anim-enter-3d">
   <!-- 顶部渐变大头 -->
   <view class="x-hero hero anim-enter-3d">
     <view class="x-hero-orb a"></view>
