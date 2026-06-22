@@ -1,6 +1,6 @@
 <view class="page">
   <!-- 1) 顶部渐变大头 -->
-  <view class="x-hero hero">
+  <view class="x-hero hero anim-enter-3d">
     <view class="x-hero-orb a"></view>
     <view class="x-hero-orb b"></view>
     <text class="x-hero-title">数据导出</text>

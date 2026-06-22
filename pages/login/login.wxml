@@ -1,4 +1,4 @@
-<view class="container">
+<view class="container anim-enter-3d">
     <view class="bg-orb bg-orb-1"></view>
     <view class="bg-orb bg-orb-2"></view>
     <view class="bg-orb bg-orb-3"></view>
@@ -10,7 +10,7 @@
         <text class="logo-title">{{uiText.title}}</text>
         <text class="logo-subtitle">{{uiText.subtitle}}</text>
     </view>
-    <view class="form-card">
+    <view class="form-card anim-spring" style="animation-delay:0.15s">
         <!-- 账号输入框 -->
         <view class="field-wrapper">
             <view class="field-label">账号</view>
@@ -50,7 +50,7 @@
             </view>
         </view>
         <!-- 选项行 -->
-        <view class="option-row">
+        <view class="option-row anim-spring" style="animation-delay:0.25s">
             <view bindtap="toggleRememberPassword" class="option-item">
                 <view class="radio {{rememberPassword ? 'checked' : ''}}">
                     <view class="radio-dot" wx:if="{{rememberPassword}}"></view>
@@ -65,7 +65,7 @@
             </view>
         </view>
         <!-- 登录按钮 -->
-        <view class="btn-wrapper">
+        <view class="btn-wrapper anim-spring" style="animation-delay:0.3s">
             <view class="login-btn" bindtap="login">
                 <text class="btn-text">{{uiText.login}}</text>
                 <view class="btn-shine"></view>

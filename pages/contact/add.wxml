@@ -1,5 +1,5 @@
 <view class="page">
-  <view class="x-hero hero">
+  <view class="x-hero hero anim-enter-3d">
     <view class="x-hero-orb a"></view>
     <view class="x-hero-orb b"></view>
     <text class="x-hero-title">{{isEdit ? '编辑往来单位' : '新增往来单位'}}</text>

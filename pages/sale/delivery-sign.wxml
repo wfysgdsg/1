@@ -1,4 +1,4 @@
-<view class="sign-page">
+<view class="sign-page anim-enter-3d">
   <!-- 画布区 -->
   <view class="canvas-area">
     <canvas

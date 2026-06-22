@@ -1,7 +1,7 @@
 <view class="page">
 
   <!-- 1) 顶部渐变大头 -->
-  <view class="x-hero hero">
+  <view class="x-hero hero anim-enter-3d">
     <view class="x-hero-orb a"></view>
     <view class="x-hero-orb b"></view>
     <text class="x-hero-title">销售开票</text>
@@ -110,7 +110,7 @@
     </view>
 
     <!-- 本单预览 -->
-    <view class="card preview-card" wx:if="{{selectedGoods.length>0&&hasAllQuantities}}">
+    <view class="card preview-card anim-spring" style="animation-delay:0.18s" wx:if="{{selectedGoods.length>0&&hasAllQuantities}}">
       <view class="card-h light"><view class="dot light"></view>本单预览</view>
       <view class="profit-row highlight">
         <text>开票金额</text>
