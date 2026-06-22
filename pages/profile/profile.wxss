@@ -6,38 +6,55 @@ page {
   padding: 30rpx;
 }
 .header-card {
-  background: linear-gradient(135deg, #667eea, #764ba2);
+  background: linear-gradient(135deg, #4F6EF7, #6C5CE7);
   border-radius: 24rpx;
-  box-shadow: 0 10rpx 40rpx rgba(102, 126, 234, 0.3);
+  box-shadow: 0 10rpx 40rpx rgba(79, 110, 247, 0.30);
   margin-bottom: 30rpx;
   padding: 50rpx 40rpx;
 }
-.avatar,
 .avatar-section {
-  align-items: center;
   display: -webkit-flex;
   display: flex;
+  align-items: center;
+}
+.avatar,
+.avatar-img {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 30rpx;
+  flex-shrink: 0;
 }
 .avatar {
   background: hsla(0, 0%, 100%, 0.3);
-  border-radius: 50%;
   color: #fff;
   font-size: 48rpx;
   font-weight: 700;
-  height: 120rpx;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  margin-right: 30rpx;
-  width: 120rpx;
+}
+.avatar-img {
+  border: 3rpx solid hsla(0, 0%, 100%, 0.4);
 }
 .user-detail {
   display: -webkit-flex;
   display: flex;
   flex-direction: column;
+  flex: 1;
 }
 .username {
   color: #fff;
   font-size: 40rpx;
   font-weight: 700;
+}
+.user-bio {
+  color: hsla(0, 0%, 100%, 0.75);
+  font-size: 24rpx;
+  margin-top: 6rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .role-tag {
   background: hsla(0, 0%, 100%, 0.2);
@@ -45,8 +62,18 @@ page {
   color: hsla(0, 0%, 100%, 0.8);
   display: inline-block;
   font-size: 24rpx;
-  margin-top: 12rpx;
-  padding: 6rpx 20rpx;
+  margin-top: 10rpx;
+  padding: 4rpx 18rpx;
+  align-self: flex-start;
+}
+.edit-hint {
+  color: hsla(0, 0%, 100%, 0.7);
+  font-size: 24rpx;
+  flex-shrink: 0;
+}
+.header-card:active {
+  opacity: 0.9;
+  transform: scale(0.98);
 }
 .menu-card {
   background: #fff;
@@ -60,7 +87,11 @@ page {
   display: -webkit-flex;
   display: flex;
   justify-content: space-between;
-  padding: 32rpx 30rpx;
+  padding: 28rpx 30rpx;
+  transition: background 0.15s ease;
+}
+.menu-item:active {
+  background: #F8F9FE;
 }
 .menu-item:last-child {
   border-bottom: none;
@@ -70,17 +101,28 @@ page {
   display: -webkit-flex;
   display: flex;
 }
+.menu-icon-wrapper {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 18rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 24rpx;
+}
 .menu-icon {
-  font-size: 36rpx;
-  margin-right: 20rpx;
+  font-size: 32rpx;
+  line-height: 1;
 }
 .menu-text {
-  color: #333;
+  color: #1A1A1A;
   font-size: 30rpx;
+  font-weight: 500;
 }
 .arrow {
-  color: #ccc;
-  font-size: 32rpx;
+  color: #CCC;
+  font-size: 36rpx;
+  font-weight: 300;
 }
 .logout-btn {
   background: #fff;

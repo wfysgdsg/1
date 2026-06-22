@@ -1,0 +1,16 @@
+<view class="pagination" wx:if="{{totalPages > 1 || (totalCount > 0 && showTotal)}}">
+  <button
+    bindtap="onPrev"
+    class="page-btn"
+    disabled="{{currentPage <= 1}}"
+  >上一页</button>
+  <text class="page-info">
+    {{currentPage}} / {{totalPages}}
+    <block wx:if="{{showTotal && totalCount > 0}}"> 共 {{totalCount}} 条</block>
+  </text>
+  <button
+    bindtap="onNext"
+    class="page-btn"
+    disabled="{{currentPage >= totalPages}}"
+  >下一页</button>
+</view>

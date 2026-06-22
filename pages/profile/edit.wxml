@@ -1,0 +1,43 @@
+<view class="page">
+  <!-- 1) 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">编辑资料</text>
+    <text class="x-hero-sub">完善你的头像与个人信息</text>
+  </view>
+
+  <!-- 2) 内容卡片区 -->
+  <view class="body">
+    <!-- 头像卡片 -->
+    <view class="card avatar-card x-tap" bindtap="chooseAvatar">
+      <view class="avatar-wrapper">
+        <image wx:if="{{avatarUrl}}" class="avatar-img" src="{{avatarUrl}}" mode="aspectFill"></image>
+        <text wx:else class="avatar-placeholder">{{initialName}}</text>
+        <view class="avatar-camera">📷</view>
+      </view>
+      <text class="avatar-hint">点击更换头像</text>
+    </view>
+
+    <!-- 资料卡片 -->
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>基本资料</view>
+      <view class="field">
+        <text class="lab">昵称</text>
+        <input bindinput="onNicknameInput" class="inp" maxlength="20" placeholder="给自己取个名字" value="{{nickname}}"></input>
+      </view>
+      <view class="field last">
+        <text class="lab">个性签名</text>
+        <textarea bindinput="onBioInput" class="inp area" maxlength="50" placeholder="写一句话介绍自己..." value="{{bio}}"></textarea>
+        <text class="char-count">{{bio.length}}/50</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3) 底部玻璃操作栏 -->
+  <view class="x-glass-bar">
+    <button class="btn main x-tap" bindtap="saveProfile" disabled="{{saving}}">
+      {{saving ? '保存中...' : '保存'}}
+    </button>
+  </view>
+</view>

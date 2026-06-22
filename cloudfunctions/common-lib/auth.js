@@ -1,0 +1,65 @@
+/**
+ * 统一鉴权模块
+ * 所有云函数通过 require('common-lib/auth') 引用，不再各自复制
+ */
+var cloud = require('wx-server-sdk');
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+var db = cloud.database();
+var crypto = require('crypto');
+
+var SESSION_TTL = 30 * 24 * 60 * 60 * 1000; // 30 天
+
+// ★ L1: 定长安全比较，防时序攻击
+function safeEqual(a, b) {
+  var sa = String(a || '');
+  var sb = String(b || '');
+  if (sa.length !== sb.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(sa), Buffer.from(sb));
+}
+
+/**
+ * 校验登录态
+ * @param {string} userId
+ * @param {string} token sessionToken
+ * @param {boolean} needRoot 是否要求 root 角色
+ * @returns {object} user 对象
+ */
+async function checkAuth(userId, token, needRoot) {
+  if (!userId || !token) {
+    throw new Error('登录状态已失效，请重新登录');
+  }
+
+  var userRes;
+  try {
+    userRes = await db.collection('users').doc(userId).get();
+  } catch (e) {
+    throw new Error('用户不存在');
+  }
+
+  var user = userRes.data;
+  if (!user) throw new Error('用户不存在');
+  if (!safeEqual(user.sessionToken, token)) throw new Error('登录状态已失效，请重新登录');
+
+  // 检查过期
+  var expireAt = user.sessionExpireAt ? new Date(user.sessionExpireAt).getTime() : 0;
+  if (expireAt > 0 && expireAt <= Date.now()) {
+    throw new Error('登录已过期，请重新登录');
+  }
+
+  // root 权限检查
+  if (needRoot && user.role !== 'root') {
+    throw new Error('没有权限执行该操作');
+  }
+
+  // 节流续期：剩余不足一半时自动续期
+  if (expireAt > 0 && (expireAt - Date.now()) < SESSION_TTL / 2) {
+    var newExpire = new Date(Date.now() + SESSION_TTL);
+    db.collection('users').doc(userId).update({
+      data: { sessionExpireAt: newExpire }
+    }).catch(function () { /* 非关键，忽略错误 */ });
+  }
+
+  return user;
+}
+
+module.exports = { checkAuth: checkAuth };

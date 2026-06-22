@@ -1,0 +1,13 @@
+<view class="search-bar">
+  <text class="search-icon">{{icon}}</text>
+  <input
+    bindinput="onInput"
+    class="search-input"
+    placeholder="{{placeholder}}"
+    value="{{value}}"
+  />
+  <view class="search-clear" wx:if="{{value}}" bindtap="onClear">
+    <text>✕</text>
+  </view>
+  <slot name="extra"></slot>
+</view>

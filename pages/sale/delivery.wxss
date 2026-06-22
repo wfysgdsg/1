@@ -1,0 +1,276 @@
+/* ========== 送货单页面（已改版 v6） ========== */
+page { --grad: linear-gradient(135deg,#5B6CF7,#7C5CFF); --accent:#5B6CF7; }
+
+.page { min-height: 100vh; padding-bottom: 220rpx; }
+.hero { background: var(--grad); }
+
+/* 内容区：上移盖住 hero 圆角 */
+.body { padding: 28rpx; margin-top: -32rpx; position: relative; z-index: 2; }
+
+/* ===== 送货单纸面卡片 ===== */
+.doc-card {
+  background: var(--card);
+  border-radius: var(--r-l);
+  padding: 36rpx 28rpx 28rpx;
+  box-shadow: var(--sh-m);
+}
+
+/* 单据抬头 */
+.doc-head {
+  text-align: center;
+  padding-bottom: 24rpx;
+  margin-bottom: 24rpx;
+  border-bottom: 3rpx solid var(--ink);
+}
+.doc-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 8rpx;
+}
+.doc-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16rpx;
+}
+.doc-no {
+  font-size: 24rpx;
+  color: #FF4D4F;
+  font-weight: 700;
+  letter-spacing: 1rpx;
+}
+.doc-date { font-size: 24rpx; color: var(--ink-3); }
+
+/* 收货单位信息 */
+.info-block {
+  background: var(--field);
+  border-radius: var(--r-m);
+  padding: 20rpx 24rpx;
+  margin-bottom: 24rpx;
+}
+.info-row {
+  display: flex;
+  align-items: center;
+  padding: 8rpx 0;
+}
+.info-lab {
+  font-size: 26rpx;
+  color: var(--ink-2);
+  font-weight: 600;
+  width: 200rpx;
+  white-space: nowrap;
+}
+.info-val { flex: 1; font-size: 28rpx; color: var(--ink); }
+.info-val.strong { font-weight: 700; }
+.info-val.muted { color: var(--ink-3); }
+
+/* ===== 商品表格 ===== */
+.goods-table {
+  border: 2rpx solid #D6DAE8;
+  border-radius: var(--r-s);
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+.table-header {
+  display: flex;
+  background: linear-gradient(135deg,#EEF1FE,#F0EDFF);
+  border-bottom: 2rpx solid #D6DAE8;
+}
+.th {
+  padding: 16rpx 4rpx;
+  font-size: 23rpx;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  border-right: 2rpx solid #E3E7F3;
+  box-sizing: border-box;
+}
+.th:last-child { border-right: none; }
+
+.table-body { min-height: 280rpx; }
+.table-row {
+  display: flex;
+  border-bottom: 2rpx solid var(--line);
+  min-height: 60rpx;
+}
+.table-row:last-child { border-bottom: none; }
+.td {
+  padding: 12rpx 4rpx;
+  font-size: 24rpx;
+  color: var(--ink);
+  text-align: center;
+  border-right: 2rpx solid var(--line);
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.td:last-child { border-right: none; }
+.td.name { color: var(--ink); font-weight: 600; }
+.td.money { color: var(--accent); font-weight: 600; }
+.empty-row { min-height: 60rpx; }
+
+.table-footer {
+  display: flex;
+  background: var(--field);
+  border-top: 2rpx solid #D6DAE8;
+}
+.tf {
+  padding: 18rpx 4rpx;
+  font-size: 26rpx;
+  font-weight: 700;
+  color: var(--ink);
+  text-align: center;
+  border-right: 2rpx solid #E3E7F3;
+  box-sizing: border-box;
+}
+.tf.amount { color: var(--accent); font-size: 28rpx; }
+.tf:last-child { border-right: none; }
+
+/* ===== 金额：大写 + 小写 ===== */
+.amount-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 24rpx;
+  margin-bottom: 24rpx;
+  background: var(--field);
+  border-radius: var(--r-m);
+}
+.amount-chinese {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.chinese-label {
+  font-size: 24rpx;
+  color: var(--ink-2);
+  white-space: nowrap;
+  margin-right: 12rpx;
+}
+.chinese-value {
+  font-size: 28rpx;
+  color: var(--ink);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.amount-number {
+  font-size: 26rpx;
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+  margin-left: 16rpx;
+}
+
+/* ===== 签名区：四列并排 ===== */
+.signature-area { padding-top: 8rpx; }
+.sign-quad-row {
+  display: flex;
+  gap: 14rpx;
+}
+.sign-col {
+  flex: 1;
+  min-width: 0;
+}
+.sign-label {
+  display: block;
+  font-size: 22rpx;
+  color: var(--ink-2);
+  font-weight: 600;
+  margin-bottom: 12rpx;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sign-block {
+  height: 110rpx;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  font-size: 22rpx;
+  color: var(--ink-3);
+}
+
+/* 可点击签名框 */
+.sign-area {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2rpx dashed #C8CDDE;
+  border-radius: var(--r-s);
+  background: var(--field);
+}
+.sign-area.small { height: 110rpx; }
+.sign-area:active {
+  background: #EEF1FE;
+  border-color: var(--accent);
+}
+.sign-hint {
+  color: var(--ink-3);
+  font-size: 22rpx;
+}
+.signature-img {
+  width: 100%;
+  height: 100%;
+}
+.sign-clear {
+  display: block;
+  text-align: center;
+  font-size: 22rpx;
+  color: #FF4D4F;
+  margin-top: 8rpx;
+  padding: 4rpx 0;
+}
+
+/* ===== 备注 ===== */
+.remark-area {
+  margin-top: 24rpx;
+  padding: 18rpx 22rpx;
+  background: var(--field);
+  border-radius: var(--r-m);
+  font-size: 24rpx;
+}
+.remark-label { color: var(--ink-2); font-weight: 600; margin-right: 8rpx; }
+.remark-text { color: var(--ink); }
+
+/* ===== 底部玻璃栏按钮 ===== */
+.btn {
+  border: none;
+  border-radius: var(--pill);
+  font-size: 30rpx;
+  font-weight: 600;
+  height: 92rpx;
+  line-height: 92rpx;
+}
+.btn::after { border: none; }
+.btn.ghost {
+  flex: 1;
+  background: #EEF0F6;
+  color: var(--accent);
+}
+.btn.main {
+  flex: 1;
+  background: var(--grad);
+  color: #fff;
+  box-shadow: 0 12rpx 30rpx rgba(91,108,247,.36);
+}
+.btn[disabled] {
+  background: #E0E2EC;
+  color: #9A9CB0;
+  box-shadow: none;
+}
+
+/* 隐藏导出 Canvas */
+.export-canvas {
+  position: fixed;
+  left: -9999rpx;
+  top: -9999rpx;
+}

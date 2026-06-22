@@ -1,0 +1,41 @@
+<view class="page">
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">送货单记录</text>
+    <text class="x-hero-sub">查看、补签历史送货单</text>
+  </view>
+
+  <view class="body">
+    <view class="list-card {{_anim ? 'animate-card' : ''}}" wx:for="{{list}}" wx:key="_id"
+      style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s"
+      bindtap="goDetail" data-id="{{item._id}}">
+      <view class="lc-top">
+        <text class="lc-no">{{item.receiptNo || '无单号'}}</text>
+        <view class="lc-status">
+          <text wx:if="{{item.hasCustomerSign && item.hasSellerSign}}" class="lc-tag done">✅ 已签</text>
+          <text wx:elif="{{item.hasCustomerSign || item.hasSellerSign}}" class="lc-tag half">⚠️ 部分签</text>
+          <text wx:else class="lc-tag none">✍️ 待签</text>
+        </view>
+      </view>
+      <view class="lc-info">
+        <view class="lc-row"><text class="lc-lab">客户</text><text class="lc-val">{{item.contactName}}</text></view>
+        <view class="lc-row"><text class="lc-lab">日期</text><text class="lc-val">{{item.saleDateStr}}</text></view>
+        <view class="lc-row"><text class="lc-lab">金额</text><text class="lc-val lc-amount">¥{{item.totalInvoiceAmountStr}}</text></view>
+        <view class="lc-row"><text class="lc-lab">送货人</text><text class="lc-val">{{item.sellerName}}</text></view>
+      </view>
+    </view>
+
+    <view class="loading-more" wx:if="{{loading}}">
+      <view class="loading-spinner"></view>
+      <text>加载中...</text>
+    </view>
+    <view class="no-more" wx:elif="{{!hasMore && list.length > 0}}">
+      <text>— 已加载全部 —</text>
+    </view>
+    <view class="empty-state" wx:if="{{!loading && list.length === 0}}">
+      <text class="empty-icon">📋</text>
+      <text class="empty-text">暂无送货单记录</text>
+    </view>
+  </view>
+</view>

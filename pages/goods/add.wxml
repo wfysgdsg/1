@@ -1,45 +1,75 @@
-<view class="container">
-    <view class="form">
-        <view class="form-item">
-            <text class="label">{{uiText.goodsName}}</text>
-            <input bindinput="onNameInput" class="input" placeholder="{{uiText.goodsNamePlaceholder}}" value="{{name}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.category}}</text>
-            <radio-group bindchange="onCategoryChange" class="radio-group">
-                <label class="radio-label">
-                    <radio checked="{{category==='hardware'}}" color="#1890ff" value="hardware"></radio>硬件 (1.13)</label>
-                <label class="radio-label">
-                    <radio checked="{{category==='software'}}" color="#1890ff" value="software"></radio>软件 (1.06)</label>
-            </radio-group>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.spec}}</text>
-            <input bindinput="onSpecInput" class="input" placeholder="{{uiText.specPlaceholder}}" value="{{spec}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.keywords}}</text>
-            <input bindinput="onKeywordsInput" class="input" placeholder="{{uiText.keywordsPlaceholder}}" value="{{keywords}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.unit}}</text>
-            <input bindinput="onUnitInput" class="input" placeholder="{{uiText.unitPlaceholder}}" value="{{unit}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.costPrice}}</text>
-            <input bindinput="onCostPriceInput" class="input" placeholder="{{uiText.costPricePlaceholder}}" type="digit" value="{{costPrice}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.salePrice}}</text>
-            <input bindinput="onSalePriceInput" class="input" placeholder="{{uiText.salePricePlaceholder}}" type="digit" value="{{salePrice}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.remark}}</text>
-            <textarea bindinput="onRemarkInput" class="textarea" placeholder="{{uiText.remarkPlaceholder}}" value="{{remark}}"></textarea>
-        </view>
+<view class="page">
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">商品信息</text>
+    <text class="x-hero-sub">填写商品资料，方便借货、开票时快速调用</text>
+  </view>
+
+  <view class="body">
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>基本信息</view>
+      <view class="field">
+        <text class="lab">{{uiText.goodsName}}</text>
+        <input class="inp" bindinput="onNameInput" placeholder="{{uiText.goodsNamePlaceholder}}" value="{{name}}"/>
+      </view>
+      <view class="field">
+        <text class="lab">{{uiText.category}}</text>
+        <radio-group class="seg" bindchange="onCategoryChange">
+          <label class="seg-item {{category==='hardware'?'on':''}}">
+            <radio class="seg-radio" checked="{{category==='hardware'}}" value="hardware"/>
+            <text class="seg-t">硬件</text>
+            <text class="seg-s">税率 13%</text>
+          </label>
+          <label class="seg-item {{category==='software'?'on':''}}">
+            <radio class="seg-radio" checked="{{category==='software'}}" value="software"/>
+            <text class="seg-t">软件</text>
+            <text class="seg-s">税率 6%</text>
+          </label>
+        </radio-group>
+      </view>
+      <view class="field">
+        <text class="lab">{{uiText.spec}}</text>
+        <input class="inp" bindinput="onSpecInput" placeholder="{{uiText.specPlaceholder}}" value="{{spec}}"/>
+      </view>
+      <view class="field">
+        <text class="lab">{{uiText.keywords}}</text>
+        <input class="inp" bindinput="onKeywordsInput" placeholder="{{uiText.keywordsPlaceholder}}" value="{{keywords}}"/>
+      </view>
+      <view class="field last">
+        <text class="lab">{{uiText.unit}}</text>
+        <input class="inp" bindinput="onUnitInput" placeholder="{{uiText.unitPlaceholder}}" value="{{unit}}"/>
+      </view>
     </view>
-    <view class="btn-group">
-        <button bindtap="goBack" class="cancel-btn">{{uiText.cancel}}</button>
-        <button bindtap="submit" class="submit-btn">{{uiText.save}}</button>
+
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>价格设置</view>
+      <view class="price-row">
+        <view class="price-box">
+          <text class="price-lab">{{uiText.costPrice}}</text>
+          <view class="price-inp-wrap">
+            <text class="cny">¥</text>
+            <input class="price-inp" type="digit" bindinput="onCostPriceInput" placeholder="0.00" value="{{costPrice}}"/>
+          </view>
+        </view>
+        <view class="price-box hot">
+          <text class="price-lab">{{uiText.salePrice}}</text>
+          <view class="price-inp-wrap">
+            <text class="cny">¥</text>
+            <input class="price-inp" type="digit" bindinput="onSalePriceInput" placeholder="0.00" value="{{salePrice}}"/>
+          </view>
+        </view>
+      </view>
     </view>
+
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>{{uiText.remark}}</view>
+      <textarea class="area" bindinput="onRemarkInput" placeholder="{{uiText.remarkPlaceholder}}" value="{{remark}}"/>
+    </view>
+  </view>
+
+  <view class="x-glass-bar">
+    <button class="btn ghost x-tap" bindtap="goBack">{{uiText.cancel}}</button>
+    <button class="btn main x-tap" bindtap="submit">{{uiText.save}}</button>
+  </view>
 </view>

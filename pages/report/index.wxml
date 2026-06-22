@@ -1,75 +1,124 @@
-<view class="container">
-    <view class="filter-bar">
-        <picker bindchange="onMonthChange" fields="month" mode="date" value="{{filterMonth}}">
-            <view class="picker-btn">{{filterMonth||uiText.thisMonth}} ▼</view>
-        </picker>
+<view class="page">
+  <!-- 1) 顶部渐变大头 + 月/年切换 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">销售报表</text>
+    <text class="x-hero-sub">{{reportMode==='year'?'年度经营概览':'月度经营概览'}}</text>
+    <view class="seg">
+      <view class="seg-item {{reportMode==='month'?'on':''}}" bindtap="switchMode" data-mode="month">月度</view>
+      <view class="seg-item {{reportMode==='year'?'on':''}}" bindtap="switchMode" data-mode="year">年度</view>
     </view>
-    <view class="summary-card">
-        <view class="summary-title">{{uiText.summary}}</view>
-        <view class="summary-row">
-            <view class="summary-item">
-                <text class="label">{{uiText.totalAmount}}</text>
-                <text class="value">{{totalAmount}}</text>
-            </view>
-            <view class="summary-item">
-                <text class="label">{{uiText.totalCost}}</text>
-                <text class="value">{{totalCost}}</text>
-            </view>
-            <view class="summary-item">
-                <text class="label">{{uiText.totalProfit}}</text>
-                <text class="value profit">{{totalProfit}}</text>
-            </view>
+  </view>
+
+  <!-- 2) 内容区 -->
+  <view class="body">
+    <!-- 筛选条 -->
+    <view class="filter-card">
+      <picker wx:if="{{reportMode==='month'}}" class="x-tap" bindchange="onMonthChange" fields="month" mode="date" value="{{selectedMonth}}">
+        <view class="picker-btn"><text class="picker-main">{{selectedMonth}} 报表</text><text class="arrow">▼</text></view>
+      </picker>
+      <picker wx:if="{{reportMode==='year'}}" class="x-tap" bindchange="onYearChange" mode="date" fields="year" value="{{selectedYear}}">
+        <view class="picker-btn"><text class="picker-main">{{selectedYear}} 年报</text><text class="arrow">▼</text></view>
+      </picker>
+      <picker wx:if="{{isRoot}}" class="x-tap" bindchange="onStaffChange" range="{{pickerStaffList}}" rangeKey="name" value="{{selectedStaffIndex}}">
+        <view class="staff-picker">{{pickerStaffList[selectedStaffIndex].name}} ▼</view>
+      </picker>
+    </view>
+
+    <!-- 空数据提示 -->
+    <view class="empty-banner" wx:if="{{loaded && totalSales === '0.00' && totalCost === '0.00'}}">
+      <text class="empty-banner-icon">📋</text>
+      <text class="empty-banner-text">该时段暂无销售数据</text>
+      <text class="empty-banner-hint">切换月份或年份试试</text>
+    </view>
+
+    <!-- 核心指标 -->
+    <view class="summary-grid">
+      <view class="summary-card main">
+        <text class="label">{{reportMode==='year'?'年度净利润':'本月净利润'}}</text>
+        <text class="value">¥{{profit}}</text>
+        <view class="trend-row" wx:if="{{compareProfit>0}}">
+          <view class="trend {{trend>=0?'up':'down'}}">{{trend>=0?'↑':'↓'}} {{trendLabel}} {{absTrend}}%</view>
+          <text class="last-info">{{compareLabel}} ¥{{compareProfit}}</text>
         </view>
-    </view>
-    <view class="report-card">
-        <view class="report-title">{{uiText.byGoods}}</view>
-        <view class="report-list">
-            <view class="report-row header">
-                <text>{{uiText.goods}}</text>
-                <text>{{uiText.quantity}}</text>
-                <text>{{uiText.amount}}</text>
-                <text>{{uiText.profit}}</text>
-            </view>
-            <view class="report-row" wx:for="{{goodsSummary}}" wx:key="name">
-                <text>{{item.name}}</text>
-                <text>{{item.quantity}}</text>
-                <text>{{item.amount}}</text>
-                <text class="profit">{{item.profit}}</text>
-            </view>
+      </view>
+      <view class="summary-sub">
+        <view class="sub-card">
+          <text class="sub-label">销售总额(不含税)</text>
+          <text class="sub-value">¥{{totalSales}}</text>
         </view>
-    </view>
-    <view class="report-card">
-        <view class="report-title">{{uiText.byCustomer}}</view>
-        <view class="report-list">
-            <view class="report-row header">
-                <text>{{uiText.customer}}</text>
-                <text>{{uiText.count}}</text>
-                <text>{{uiText.amount}}</text>
-                <text>{{uiText.profit}}</text>
-            </view>
-            <view class="report-row" wx:for="{{customerSummary}}" wx:key="name">
-                <text>{{item.name}}</text>
-                <text>{{item.count}}</text>
-                <text>{{item.amount}}</text>
-                <text class="profit">{{item.profit}}</text>
-            </view>
+        <view class="sub-card">
+          <text class="sub-label">总成本</text>
+          <text class="sub-value">¥{{totalCost}}</text>
         </view>
-    </view>
-    <view class="report-card">
-        <view class="report-title">{{uiText.byStaff}}</view>
-        <view class="report-list">
-            <view class="report-row header">
-                <text>{{uiText.staff}}</text>
-                <text>{{uiText.count}}</text>
-                <text>{{uiText.amount}}</text>
-                <text>{{uiText.profit}}</text>
-            </view>
-            <view class="report-row" wx:for="{{staffSummary}}" wx:key="name">
-                <text>{{item.name}}</text>
-                <text>{{item.count}}</text>
-                <text>{{item.amount}}</text>
-                <text class="profit">{{item.profit}}</text>
-            </view>
+      </view>
+      <view class="summary-sub">
+        <view class="sub-card warn">
+          <text class="sub-label">应收账款</text>
+          <text class="sub-value">¥{{unpaidAmount}}</text>
         </view>
+        <view class="sub-card empty-placeholder"></view>
+      </view>
     </view>
+
+    <!-- 年度走势图 -->
+    <view class="section chart-section" wx:if="{{showChart}}">
+      <view class="section-title">
+        <text>月度利润走势</text>
+        <text class="more">{{selectedYear}} 年</text>
+      </view>
+      <canvas canvas-id="trendChart" class="chart-canvas" style="width:690rpx;height:400rpx;"></canvas>
+    </view>
+
+    <!-- 商品销量排行 -->
+    <view class="section">
+      <view class="section-title">
+        <text>商品销量排行</text>
+        <text class="more">Top 10</text>
+      </view>
+      <view class="rank-list">
+        <view class="rank-item animate-card" wx:for="{{topGoods}}" wx:key="name" style="animation-delay: {{index * 0.04}}s">
+          <view class="rank-info">
+            <text class="index">{{index+1}}</text>
+            <text class="name">{{item.name}}</text>
+          </view>
+          <view class="rank-data">
+            <text class="qty">{{item.qty}}件</text>
+            <text class="profit">¥{{item.profit}}</text>
+          </view>
+        </view>
+        <view class="empty-small" wx:if="{{topGoods.length===0}}">无销售记录</view>
+      </view>
+    </view>
+
+    <!-- 客户贡献排行 -->
+    <view class="section" wx:if="{{topCustomers.length>0}}">
+      <view class="section-title">
+        <text>大客户贡献榜</text>
+        <text class="more">按利润</text>
+      </view>
+      <view class="customer-list">
+        <view class="customer-item animate-card" wx:for="{{topCustomers}}" wx:key="name" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+          <view class="cust-info">
+            <text class="cust-name">{{item.name}}</text>
+            <view class="progress-bar">
+              <view class="progress" style="width:{{item.percent}}%;"></view>
+            </view>
+          </view>
+          <view class="cust-data">
+            <text class="cust-profit">¥{{item.profit}}</text>
+            <text class="cust-count">{{item.count}}单</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3) 底部玻璃操作栏 -->
+  <view class="x-glass-bar">
+    <button bindtap="exportCSV" class="btn main x-tap" disabled="{{exporting}}">
+      {{exporting ? '导出中...' : '导出 CSV 报表'}}
+    </button>
+  </view>
 </view>

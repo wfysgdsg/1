@@ -3,7 +3,6 @@
  * 整理日期：2024-03-26
  */
 const db = wx.cloud.database();
-const _ = db.command;
 
 Page({
   data: {
@@ -40,6 +39,12 @@ Page({
 
   onLoad: function (options) {
     if (options.id) {
+      var userInfo = wx.getStorageSync('userInfo');
+      if (!userInfo || userInfo.role !== 'root') {
+        wx.showToast({ title: '仅管理员可编辑商品', icon: 'none' });
+        setTimeout(function () { wx.navigateBack(); }, 1000);
+        return;
+      }
       this.setData({
         id: options.id,
         isEdit: true
@@ -106,6 +111,9 @@ Page({
       return;
     }
 
+    var userInfo = wx.getStorageSync('userInfo');
+    var sessionToken = wx.getStorageSync('sessionToken');
+
     const goodsData = {
       name: this.data.name,
       category: this.data.category,
@@ -115,26 +123,26 @@ Page({
       costPrice: parseFloat(this.data.costPrice),
       salePrice: parseFloat(this.data.salePrice),
       remark: this.data.remark,
-      updateTime: db.serverDate(),
     };
 
     try {
-      if (this.data.isEdit) {
-        // 更新现有商品
-        await db.collection('goods').doc(this.data.id).update({
-          data: goodsData
-        });
+      var res = await wx.cloud.callFunction({
+        name: 'goodsManage',
+        data: {
+          action: this.data.isEdit ? 'update' : 'add',
+          userId: userInfo ? userInfo._id : '',
+          sessionToken: sessionToken,
+          goodsId: this.data.isEdit ? this.data.id : null,
+          data: goodsData,
+        }
+      });
+
+      if (res.result && res.result.success) {
+        wx.showToast({ title: '保存成功' });
+        setTimeout(() => wx.navigateBack(), 1500);
       } else {
-        // 新增商品
-        goodsData.createTime = db.serverDate();
-        await db.collection('goods').add({
-          data: goodsData
-        });
+        wx.showToast({ title: (res.result && res.result.message) || '保存失败', icon: 'none' });
       }
-
-      wx.showToast({ title: '保存成功' });
-      setTimeout(() => wx.navigateBack(), 1500);
-
     } catch (err) {
       console.error('保存失败', err);
       wx.showToast({ title: '保存失败', icon: 'none' });

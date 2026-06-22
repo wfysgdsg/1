@@ -1,16 +1,27 @@
-<view class="container">
-    <view class="form-card">
-        <view class="form-item">
-            <text class="label">存放位置 *</text>
-            <input bindinput="onNameInput" class="input" placeholder="请输入存放位置名称" value="{{name}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">备注</text>
-            <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
-        </view>
+<view class="page">
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">{{isEdit ? '编辑存放位置' : '新增存放位置'}}</text>
+    <text class="x-hero-sub">填写存放点名称与备注信息</text>
+  </view>
+
+  <view class="body">
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>基本信息</view>
+      <view class="field">
+        <text class="lab">存放位置 *</text>
+        <input bindinput="onNameInput" class="inp" placeholder="请输入存放位置名称" value="{{name}}"></input>
+      </view>
+      <view class="field">
+        <text class="lab">备注</text>
+        <textarea bindinput="onRemarkInput" class="txt" placeholder="可选填写" value="{{remark}}"></textarea>
+      </view>
     </view>
-    <view class="btn-group">
-        <button bindtap="goBack" class="cancel-btn">取消</button>
-        <button bindtap="submit" class="submit-btn">保存</button>
-    </view>
+  </view>
+
+  <view class="x-glass-bar">
+    <button bindtap="goBack" class="btn ghost x-tap">取消</button>
+    <button bindtap="submit" class="btn main x-tap">保存</button>
+  </view>
 </view>

@@ -8,6 +8,7 @@ const { fetchAll } = require('../../utils/db');
 
 Page({
   data: {
+    _anim: true,
     goodsCount: 0,
     borrowCount: 0,
     saleCount: 0,
@@ -15,10 +16,14 @@ Page({
     transferCount: 0,
     todaySales: '0.00',
     stockTotal: 0,
+    avatarUrl: '',
     userName: '',
     currentDate: '',
     receivableList: [],
     receivableExpandedId: '',
+    overdueBorrows: [],
+    overdueTipText: '',
+    transferTipText: '',
     uiText: {
       greeting: '你好，',
       profileIcon: '我',
@@ -56,18 +61,42 @@ Page({
   },
 
   onShow: function () {
+    this.setData({ _anim: false });
+    setTimeout(() => this.setData({ _anim: true }), 50);
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
       const now = new Date();
       this.setData({
-        userName: userInfo.name || userInfo.username,
+        userName: userInfo.nickname || userInfo.name || userInfo.username,
         currentDate: `${now.getMonth() + 1}月${now.getDate()}日`,
+        avatarUrl: '',
       });
+      this.loadAvatar(userInfo.avatarUrl);
       this.loadStats();
       this.loadReceivables();
+      this.loadOverdueBorrows();
     } else {
       wx.redirectTo({ url: '/pages/login/login' });
     }
+  },
+
+  /**
+   * 加载头像（cloud:// → 临时 URL）
+   */
+  loadAvatar: function (cloudFileId) {
+    if (!cloudFileId || cloudFileId.indexOf('cloud://') !== 0) {
+      if (cloudFileId) this.setData({ avatarUrl: cloudFileId });
+      return;
+    }
+    const that = this;
+    wx.cloud.getTempFileURL({
+      fileList: [cloudFileId],
+      success: function (res) {
+        if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+          that.setData({ avatarUrl: res.fileList[0].tempFileURL });
+        }
+      }
+    });
   },
 
   /**
@@ -78,65 +107,27 @@ Page({
     if (!userInfo) return;
 
     try {
-      const now = new Date();
-      // 获取今天凌晨的时间戳
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const res = await wx.cloud.callFunction({
+        name: 'homeStats',
+        data: {
+          userId: wx.getStorageSync('userId'),
+          sessionToken: wx.getStorageSync('sessionToken'),
+        }
+      });
 
-      // 定义查询集合
-      let borrowColl = db.collection('borrow');
-      let saleColl = db.collection('sale');
-      let userGoodsColl = db.collection('user_goods');
-
-      // 权限过滤：非 root 用户只能看自己的数据
-      if (userInfo.role !== 'root') {
-        borrowColl = borrowColl.where({ borrowerId: userInfo._id });
-        saleColl = saleColl.where({ sellerId: userInfo._id });
-        userGoodsColl = userGoodsColl.where({ userId: userInfo._id });
-      }
-
-      // 并发请求所有统计数据
-      const results = await Promise.all([
-        db.collection('goods').count(), // 1. 商品总种类
-        borrowColl.where({ status: 'pending' }).count(), // 2. 待还借货数
-        // 3. 今日销售单 - 使用 fetchAll 获取完整数据，解决 20 条限制问题
-        fetchAll(saleColl.where({ saleTime: _.gte(todayStart) }), { maxPages: 10 }),
-        db.collection('sale').where({
-          payStatus: 'unpaid',
-          sellerId: userInfo.role === 'root' ? _.exists(true) : userInfo._id,
-        }).count(), // 4. 待结清单数
-        userGoodsColl.get(), // 5. 个人库存数据
-        db.collection('transfer_requests').where({
-          receiverId: userInfo._id,
-          status: 'pending'
-        }).count(), // 6. 待处理调货
-      ]);
-
-      const [
-        goodsCountRes,
-        borrowCountRes,
-        todaySalesRes,
-        unpaidCountRes,
-        stockRes,
-        transferCountRes
-      ] = results;
-
-      // 计算今日销售额
-      const todaySalesTotal = (todaySalesRes || []).reduce((sum, item) => {
-        return sum + (Number(item.totalAmount) || 0);
-      }, 0);
-
-      // 计算总库存件数
-      const stockTotalQty = (stockRes.data || []).reduce((sum, item) => {
-        return sum + (parseFloat(item.stock) || 0);
-      }, 0);
+      if (!res.result || !res.result.success) return;
+      const d = res.result.data;
+      const todaySalesTotal = parseFloat(d.todaySales) || 0;
+      const stockTotalQty = d.stockTotal || 0;
 
       this.setData({
-        goodsCount: goodsCountRes.total,
-        borrowCount: borrowCountRes.total,
-        saleCount: (todaySalesRes || []).length,
-        unpaidCount: unpaidCountRes.total,
-        transferCount: transferCountRes.total,
-        todaySales: todaySalesTotal.toFixed(2),
+        goodsCount: d.goodsCount,
+        borrowCount: d.borrowCount,
+        saleCount: d.todayCount || 0,
+        unpaidCount: d.unpaidCount,
+        transferCount: d.transferCount,
+        transferTipText: d.transferCount > 0 ? '您有 ' + d.transferCount + ' 条待处理的移货申请' : '',
+        todaySales: d.todaySales,
         stockTotal: stockTotalQty,
       });
 
@@ -153,24 +144,27 @@ Page({
     if (!userInfo) return;
 
     try {
-      let query = db.collection('sale').where({ payStatus: 'unpaid' });
-      
-      if (userInfo.role !== 'root') {
-        query = query.where({ sellerId: userInfo._id });
-      }
-      
-      // 按时间倒序
-      query = query.orderBy('createTime', 'desc');
-
-      // 使用封装的 fetchAll 获取数据（最多取 10 页共 200 条作为首页展示）
-      const sales = await fetchAll(query, { maxPages: 2 });
+      // 使用封装的 fetchAll 获取数据（最多取 200 条作为首页展示）
+      const sales = await fetchAll(function() {
+        var q = db.collection('sale').where(_.and([
+          { payStatus: 'unpaid' },
+          _.or([
+            { voidStatus: _.exists(false) },
+            { voidStatus: 'normal' },
+          ]),
+        ]));
+        if (userInfo.role !== 'root') {
+          q = q.where({ sellerId: userInfo._id });
+        }
+        return q.orderBy('createTime', 'desc');
+      }, { maxPages: 2 });
       
       const customerMap = {};
-      
+
       sales.forEach(sale => {
         const custId = sale.contactId || sale.locationId || sale._id;
         const custName = sale.contactName || sale.locationName || '未填写客户';
-        
+
         // 解析商品明细
         const goodsRows = Array.isArray(sale.goodsDetail) ? sale.goodsDetail.map(g => {
           const qty = Number(g.quantity || 0);
@@ -187,6 +181,12 @@ Page({
 
         const orderTotal = goodsRows.reduce((sum, g) => sum + Number(g.lineTotal), 0);
         const orderProfit = goodsRows.reduce((sum, g) => sum + Number(g.profit), 0);
+        const invoiceAmount = sale.totalInvoiceAmount || orderTotal;
+        const totalPaid = Number(sale.totalPaid || 0);
+        const remainingAmount = invoiceAmount - totalPaid;
+
+        // 跳过已全部付清的订单
+        if (remainingAmount <= 0.01) return;
 
         if (!customerMap[custId]) {
           customerMap[custId] = {
@@ -199,15 +199,18 @@ Page({
           };
         }
 
-        customerMap[custId].totalAmount += orderTotal;
+        customerMap[custId].totalAmount += remainingAmount;
         customerMap[custId].totalProfit += orderProfit;
         customerMap[custId].orderCount += 1;
         customerMap[custId].orders.push({
           _id: sale._id,
           saleDate: sale.saleDate,
           goodsRows: goodsRows,
-          totalAmount: orderTotal.toFixed(2),
+          totalAmount: remainingAmount.toFixed(2),
           totalProfit: orderProfit.toFixed(2),
+          invoiceAmount: invoiceAmount.toFixed(2),
+          totalPaid: totalPaid.toFixed(2),
+          hasPartial: totalPaid > 0,
         });
       });
 
@@ -231,6 +234,38 @@ Page({
     }
   },
 
+  /**
+   * 加载超期借货（借出超过 30 天仍未归还）
+   */
+  async loadOverdueBorrows() {
+    const userInfo = wx.getStorageSync('userInfo');
+    if (!userInfo) return;
+
+    try {
+      const thirtyDaysAgo = Date.now() - 30 * 24 * 60 * 60 * 1000;
+
+      let query = db.collection('borrow').where({
+        status: 'pending',
+        borrowDate: _.lt(thirtyDaysAgo),
+      });
+
+      if (userInfo.role !== 'root') {
+        query = query.where({ borrowerId: userInfo._id });
+      }
+
+      const res = await fetchAll(() => query.orderBy('borrowDate', 'asc'));
+      var overdueBorrows = res || [];
+      var overdueTipText = overdueBorrows.length > 0 ? '有 ' + overdueBorrows.length + ' 笔借货超期（超30天未还）' : '';
+      this.setData({ overdueBorrows: overdueBorrows, overdueTipText: overdueTipText });
+    } catch (err) {
+      console.error('加载超期借货失败', err);
+    }
+  },
+
+  buildOverdueTip: function () {
+    return this.data.overdueTipText;
+  },
+
   toggleReceivable: function (e) {
     const id = e.currentTarget.dataset.id;
     this.setData({
@@ -247,6 +282,21 @@ Page({
   goToAddSale: () => wx.navigateTo({ url: '/pages/sale/add' }),
   goToDebt: () => wx.navigateTo({ url: '/pages/sale/debt' }),
   goToContact: () => wx.navigateTo({ url: '/pages/contact/list' }),
-  goToReport: () => wx.navigateTo({ url: '/pages/report/month' }),
+  goToReport: () => wx.navigateTo({ url: '/pages/report/index' }),
   goToTransfer: () => wx.navigateTo({ url: '/pages/borrow/transfer-list' }),
+
+  buildTransferTip: function () {
+    return '您有 ' + this.data.transferCount + ' 条待处理的移货申请';
+  },
+
+  buildOrderMeta: function (orderCount) {
+    return orderCount + ' 笔未结订单';
+  },
+
+  buildOrderTotal: function (order) {
+    if (order.hasPartial) {
+      return '待付 ¥' + order.totalAmount + '（已付 ¥' + order.totalPaid + '）';
+    }
+    return '待付 ¥' + order.totalAmount;
+  },
 });

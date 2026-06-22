@@ -6,11 +6,12 @@
                 <text class="date">{{currentDate}}</text>
             </view>
             <view bindtap="goToProfile" class="profile-entry">
-                <text class="profile-icon">{{uiText.profileIcon}}</text>
+                <image wx:if="{{avatarUrl}}" class="profile-avatar" src="{{avatarUrl}}" mode="aspectFill"></image>
+                <text wx:else class="profile-icon">{{uiText.profileIcon}}</text>
             </view>
         </view>
     </view>
-    <view class="stats-card">
+    <view class="stats-card {{_anim ? 'animate-fade-in' : ''}}" style="animation-delay: 0.05s">
         <view class="stat-main">
             <text class="stat-val">{{todaySales}}</text>
             <text class="stat-lab">{{uiText.todaySales}}</text>
@@ -27,7 +28,7 @@
             </view>
         </view>
     </view>
-    <view class="grid-stats">
+    <view class="grid-stats {{_anim ? 'animate-fade-in' : ''}}" style="animation-delay: 0.12s">
         <view bindtap="goToGoods" class="grid-item">
             <text class="grid-num">{{goodsCount}}</text>
             <text class="grid-label">{{uiText.goodsCount}}</text>
@@ -43,7 +44,13 @@
     </view>
     <view bindtap="goToTransfer" class="alert-bar" wx:if="{{transferCount>0}}">
         <view class="alert-content">
-            <text class="alert-text">{{buildTransferTip()}}</text>
+            <text class="alert-text">{{transferTipText}}</text>
+        </view>
+        <text class="alert-btn">去处理</text>
+    </view>
+    <view bindtap="goToBorrow" class="alert-bar overdue-alert" wx:if="{{overdueBorrows.length>0}}">
+        <view class="alert-content">
+            <text class="alert-text">{{overdueTipText}}</text>
         </view>
         <text class="alert-btn">去处理</text>
     </view>
@@ -51,12 +58,12 @@
         <text>{{uiText.quickActions}}</text>
         <text class="title-tip">{{uiText.quickTip}}</text>
     </view>
-    <view class="action-grid">
-        <view bindtap="goToAddSale" class="action-card" style="background:linear-gradient(135deg, #69c0ff 0%, #1890ff 100%);">
+    <view class="action-grid {{_anim ? 'animate-fade-in' : ''}}" style="animation-delay: 0.18s">
+        <view bindtap="goToAddSale" class="action-card" style="background:linear-gradient(135deg, #4F6EF7 0%, #3D56D4 100%);">
             <text class="action-title">{{uiText.addSale}}</text>
             <text class="action-desc">{{uiText.addSaleDesc}}</text>
         </view>
-        <view bindtap="goToAddBorrow" class="action-card" style="background:linear-gradient(135deg, #ffbb96 0%, #ff7a45 100%);">
+        <view bindtap="goToAddBorrow" class="action-card" style="background:linear-gradient(135deg, #FF9C6E 0%, #FF7A45 100%);">
             <text class="action-title">{{uiText.addBorrow}}</text>
             <text class="action-desc">{{uiText.addBorrowDesc}}</text>
         </view>
@@ -86,22 +93,22 @@
         <text bindtap="goToDebt" class="title-tip">{{uiText.viewAll}}</text>
     </view>
     <view class="receivable-panel" wx:if="{{receivableList.length>0}}">
-        <view class="receivable-card" wx:for="{{receivableList}}" wx:key="customerId">
+        <view class="receivable-card {{_anim ? 'animate-card' : ''}}" wx:for="{{receivableList}}" wx:key="customerId" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
             <view bindtap="toggleReceivable" class="receivable-header" data-id="{{item.customerId}}">
                 <view class="receivable-left">
                     <text class="receivable-name">{{item.customerName}}</text>
                     <text class="receivable-meta">{{buildOrderMeta(item.orderCount)}}</text>
                 </view>
                 <view class="receivable-right">
-                    <text class="receivable-amount">{{item.totalAmount}}</text>
+                    <text class="receivable-amount">¥{{item.totalAmount}}</text>
                     <text class="receivable-arrow">{{receivableExpandedId===item.customerId?uiText.collapse:uiText.expand}}</text>
                 </view>
             </view>
-            <view class="receivable-body" wx:if="{{receivableExpandedId===item.customerId}}">
-                <view class="receivable-order" wx:for="{{item.orders}}" wx:for-item="order" wx:key="_id">
+            <view class="receivable-body {{receivableExpandedId===item.customerId ? 'expanded' : ''}}">
+                <view class="receivable-order {{order.hasPartial ? 'partial-paid' : ''}}" wx:for="{{item.orders}}" wx:for-item="order" wx:key="_id">
                     <view class="order-top">
                         <text class="order-date">{{order.saleDate}}</text>
-                        <text class="order-total">{{buildOrderTotal(order)}}</text>
+                        <text class="order-total {{order.hasPartial ? 'partial' : ''}}">{{buildOrderTotal(order)}}</text>
                     </view>
                     <view class="goods-table">
                         <view class="goods-table-head">

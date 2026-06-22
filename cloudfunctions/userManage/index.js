@@ -1,445 +1,200 @@
-var e = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  r = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  t = require('wx-server-sdk'),
-  s = require('crypto');
-t.init({ env: t.DYNAMIC_CURRENT_ENV });
-var n = t.database(),
-  a = n.command;
-function u(e, r) {
-  return s
-    .createHash('sha256')
-    .update(e + r)
-    .digest('hex');
+/**
+ * 用户管理云函数
+ * 功能：添加员工、删除员工、重置密码、修改密码
+ * 升级：密码哈希统一走 pwdCrypto（按 pwdAlgo 精确校验 + 写入统一 scrypt）
+ *
+ * 注意：请把 pwdCrypto.js 复制到本云函数目录下。
+ */
+const cloud = require('wx-server-sdk');
+const crypto = require('crypto');
+const pwd = require('./pwdCrypto');
+
+cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
+const db = cloud.database();
+const _ = db.command;
+
+function generateToken() {
+  return crypto.randomBytes(32).toString('hex');
 }
-function c() {
-  return s.randomBytes(16).toString('hex');
+
+// ★ L6: 密码强度校验（至少8位，含字母和数字）
+function validatePassword(pwd) {
+  if (!pwd || pwd.length < 8) return false;
+  if (!/[a-zA-Z]/.test(pwd)) return false;
+  if (!/\d/.test(pwd)) return false;
+  return true;
 }
-function o() {
-  return s.randomBytes(32).toString('hex');
+
+const { checkAuth } = require('./auth');
+
+async function deleteUserData(targetUserId) {
+  const collections = [
+    { name: 'borrow', key: 'borrowerId' },
+    { name: 'sale', key: 'sellerId' },
+    { name: 'user_goods', key: 'userId' }
+  ];
+
+  const result = {};
+  for (const col of collections) {
+    const countRes = await db.collection(col.name).where({ [col.key]: targetUserId }).count();
+    if (countRes.total > 0) {
+      result[col.name] = await db.collection(col.name).where({ [col.key]: targetUserId }).remove();
+    }
+  }
+
+  const transferRes = await db.collection('transfer_requests').where(
+    _.or([{ senderId: targetUserId }, { receiverId: targetUserId }])
+  ).count();
+  if (transferRes.total > 0) {
+    result.transfer_requests = await db.collection('transfer_requests').where(
+      _.or([{ senderId: targetUserId }, { receiverId: targetUserId }])
+    ).remove();
+  }
+
+  return result;
 }
-function i(e) {
-  return p.apply(this, arguments);
-}
-function p() {
-  return (p = r(
-    e().mark(function r(t) {
-      var s, a;
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              return (
-                (s = o()),
-                (a = new Date(Date.now() + 2592e6)),
-                (e.next = 4),
-                n
-                  .collection('users')
-                  .doc(t)
-                  .update({ data: { sessionToken: s, sessionExpireAt: a } })
-              );
-            case 4:
-              return e.abrupt('return', s);
-            case 5:
-            case 'end':
-              return e.stop();
-          }
-      }, r);
-    }),
-  )).apply(this, arguments);
-}
-function d(e, r) {
-  return l.apply(this, arguments);
-}
-function l() {
-  return (l = r(
-    e().mark(function r(t, s) {
-      var a, u, c;
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              if (t && s) {
-                e.next = 2;
-                break;
-              }
-              throw new Error('登录状态已失效，请重新登录');
-            case 2:
-              return (e.next = 4), n.collection('users').doc(t).get();
-            case 4:
-              if (((a = e.sent), (u = a.data))) {
-                e.next = 8;
-                break;
-              }
-              throw new Error('用户不存在');
-            case 8:
-              if (u.sessionToken === s) {
-                e.next = 10;
-                break;
-              }
-              throw new Error('登录状态已失效，请重新登录');
-            case 10:
-              if (
-                (c = u.sessionExpireAt
-                  ? new Date(u.sessionExpireAt).getTime()
-                  : 0) &&
-                !(c <= Date.now())
-              ) {
-                e.next = 13;
-                break;
-              }
-              throw new Error('登录已过期，请重新登录');
-            case 13:
-              return (
-                (e.next = 15),
-                n
-                  .collection('users')
-                  .doc(t)
-                  .update({
-                    data: { sessionExpireAt: new Date(Date.now() + 2592e6) },
-                  })
-              );
-            case 15:
-              return e.abrupt('return', u);
-            case 16:
-            case 'end':
-              return e.stop();
-          }
-      }, r);
-    }),
-  )).apply(this, arguments);
-}
-function f(e, r) {
-  return x.apply(this, arguments);
-}
-function x() {
-  return (x = r(
-    e().mark(function r(t, s) {
-      var a;
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              return (e.next = 2), n.collection(t).where(s).count();
-            case 2:
-              return (a = e.sent), e.abrupt('return', a.total || 0);
-            case 4:
-            case 'end':
-              return e.stop();
-          }
-      }, r);
-    }),
-  )).apply(this, arguments);
-}
-function b(e, r) {
-  return w.apply(this, arguments);
-}
-function w() {
-  return (w = r(
-    e().mark(function r(t, s) {
-      var a;
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              return (e.next = 2), f(t, s);
-            case 2:
-              if ((a = e.sent)) {
-                e.next = 5;
-                break;
-              }
-              return e.abrupt('return', 0);
-            case 5:
-              return (e.next = 7), n.collection(t).where(s).remove();
-            case 7:
-              return e.abrupt('return', a);
-            case 8:
-            case 'end':
-              return e.stop();
-          }
-      }, r);
-    }),
-  )).apply(this, arguments);
-}
-function m(e) {
-  return h.apply(this, arguments);
-}
-function h() {
-  return (h = r(
-    e().mark(function r(t) {
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              return (e.next = 2), b('borrow', { borrowerId: t });
-            case 2:
-              return (e.t0 = e.sent), (e.next = 5), b('sale', { sellerId: t });
-            case 5:
-              return (
-                (e.t1 = e.sent), (e.next = 8), b('user_goods', { userId: t })
-              );
-            case 8:
-              return (
-                (e.t2 = e.sent),
-                (e.next = 11),
-                b(
-                  'transfer_requests',
-                  a.or([{ senderId: t }, { receiverId: t }]),
-                )
-              );
-            case 11:
-              return (
-                (e.t3 = e.sent),
-                e.abrupt('return', {
-                  borrow: e.t0,
-                  sale: e.t1,
-                  userGoods: e.t2,
-                  transferRequests: e.t3,
-                })
-              );
-            case 13:
-            case 'end':
-              return e.stop();
-          }
-      }, r);
-    }),
-  )).apply(this, arguments);
-}
-exports.main = (function () {
-  var t = r(
-    e().mark(function r(t) {
-      var s, a, o, p, l, f, x, b, w, h, k, g, v, y, E, D, I, T, q, A, P;
-      return e().wrap(
-        function (e) {
-          for (;;)
-            switch ((e.prev = e.next)) {
-              case 0:
-                return (
-                  (s = t.userId),
-                  (a = t.sessionToken),
-                  (o = t.action),
-                  (p = t.targetUserId),
-                  (l = t.newPassword),
-                  (e.prev = 1),
-                  (e.next = 4),
-                  d(s, a)
-                );
-              case 4:
-                if (((f = e.sent), 'changePassword' !== o)) {
-                  e.next = 23;
-                  break;
-                }
-                if ((x = t.oldPassword) && l) {
-                  e.next = 9;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '参数不完整',
-                });
-              case 9:
-                if (
-                  ((b = f.password),
-                  (w = f.salt || ''),
-                  (h = u(x, w)),
-                  (k = h === b) || f.salt || x !== b || (k = !0),
-                  k)
-                ) {
-                  e.next = 16;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '当前密码错误',
-                });
-              case 16:
-                return (
-                  (g = c()),
-                  (e.next = 19),
-                  n
-                    .collection('users')
-                    .doc(s)
-                    .update({ data: { password: u(l, g), salt: g } })
-                );
-              case 19:
-                return (e.next = 21), i(s);
-              case 21:
-                return (
-                  (v = e.sent),
-                  e.abrupt('return', {
-                    success: !0,
-                    message: '密码修改成功',
-                    sessionToken: v,
-                  })
-                );
-              case 23:
-                if ('root' === f.role) {
-                  e.next = 25;
-                  break;
-                }
-                return e.abrupt('return', { success: !1, message: '无权限' });
-              case 25:
-                if ('delete' !== o) {
-                  e.next = 44;
-                  break;
-                }
-                if (p) {
-                  e.next = 28;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '缺少目标用户',
-                });
-              case 28:
-                if (p !== s) {
-                  e.next = 30;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '不能删除当前登录账号',
-                });
-              case 30:
-                return (e.next = 32), n.collection('users').doc(p).get();
-              case 32:
-                if (((y = e.sent), (E = y.data))) {
-                  e.next = 36;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '目标用户不存在',
-                });
-              case 36:
-                if ('root' !== E.role) {
-                  e.next = 38;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '不能删除管理员账号',
-                });
-              case 38:
-                return (e.next = 40), m(p);
-              case 40:
-                return (
-                  (D = e.sent),
-                  (e.next = 43),
-                  n.collection('users').doc(p).remove()
-                );
-              case 43:
-                return e.abrupt('return', {
-                  success: !0,
-                  message: '删除成功',
-                  deleted: D,
-                });
-              case 44:
-                if ('resetPassword' !== o) {
-                  e.next = 51;
-                  break;
-                }
-                if (l && !(l.length < 6)) {
-                  e.next = 47;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '密码至少 6 位',
-                });
-              case 47:
-                return (
-                  (I = c()),
-                  (e.next = 50),
-                  n
-                    .collection('users')
-                    .doc(p)
-                    .update({ data: { password: u(l, I), salt: I } })
-                );
-              case 50:
-                return e.abrupt('return', {
-                  success: !0,
-                  message: '密码已重置',
-                });
-              case 51:
-                if ('add' !== o) {
-                  e.next = 66;
-                  break;
-                }
-                if (
-                  ((T = t.username), (q = t.name), (A = t.password), T && A)
-                ) {
-                  e.next = 55;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '用户名和密码不能为空',
-                });
-              case 55:
-                if (!(A.length < 6)) {
-                  e.next = 57;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '密码至少 6 位',
-                });
-              case 57:
-                return (
-                  (e.next = 59),
-                  n.collection('users').where({ username: T }).count()
-                );
-              case 59:
-                if (!(e.sent.total > 0)) {
-                  e.next = 62;
-                  break;
-                }
-                return e.abrupt('return', {
-                  success: !1,
-                  message: '用户名已存在',
-                });
-              case 62:
-                return (
-                  (P = c()),
-                  (e.next = 65),
-                  n
-                    .collection('users')
-                    .add({
-                      data: {
-                        username: T,
-                        name: q || T,
-                        password: u(A, P),
-                        salt: P,
-                        role: 'staff',
-                        createTime: n.serverDate(),
-                      },
-                    })
-                );
-              case 65:
-                return e.abrupt('return', { success: !0, message: '添加成功' });
-              case 66:
-                return e.abrupt('return', { success: !1, message: '未知操作' });
-              case 69:
-                return (
-                  (e.prev = 69),
-                  (e.t0 = e.catch(1)),
-                  e.abrupt('return', {
-                    success: !1,
-                    message: e.t0.message || '操作失败',
-                  })
-                );
-              case 72:
-              case 'end':
-                return e.stop();
-            }
-        },
-        r,
-        null,
-        [[1, 69]],
-      );
-    }),
-  );
-  return function (e) {
-    return t.apply(this, arguments);
-  };
-})();
+
+exports.main = async (event, context) => {
+  const { action, userId, sessionToken, targetUserId, newPassword, oldPassword, username, name, password } = event;
+
+  try {
+    // --- 修改密码 ---
+    if (action === 'changePassword') {
+      if (!oldPassword || !newPassword) {
+        return { success: false, message: '参数不完整' };
+      }
+
+      // 先做鉴权（身份/会话有效性）
+      await checkAuth(userId, sessionToken, false);
+
+      // 重新拉取完整文档做密码校验，避免依赖 checkAuth 是否返回 password/salt/pwdAlgo
+      const userRes = await db.collection('users').doc(userId).get();
+      if (!userRes.data) return { success: false, message: '用户不存在' };
+      const user = userRes.data;
+
+      // 统一校验旧密码（兼容 sha256 / 无盐明文 / scrypt，无需再分支处理无盐老用户）
+      if (!pwd.verifyPassword(oldPassword, user)) {
+        return { success: false, message: '当前密码错误' };
+      }
+
+      const newToken = generateToken();
+      const fields = pwd.buildScryptFields(newPassword);
+      await db.collection('users').doc(userId).update({
+        data: {
+          password: fields.password,
+          salt: fields.salt,
+          pwdAlgo: fields.pwdAlgo,
+          sessionToken: newToken,
+          sessionExpireAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+          loginFails: 0,           // ★ M6: 改密后清空
+          lockUntil: null,         // ★ M6: 改密后清空
+          mustChangePwd: false,    // ★ H3: 改密后清除强制标记
+        }
+      });
+
+      return { success: true, message: '密码修改成功', sessionToken: newToken };
+    }
+
+    // --- 更新个人资料（本人操作，无需管理员） ---
+    if (action === 'updateProfile') {
+      const { nickname, bio, avatarUrl } = event;
+      const updateData = {};
+      if (nickname !== undefined) {
+        updateData.nickname = nickname;
+        updateData.name = nickname;
+      }
+      if (bio !== undefined) updateData.bio = bio;
+      if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+
+      if (Object.keys(updateData).length === 0) {
+        return { success: false, message: '没有要更新的数据' };
+      }
+
+      await checkAuth(userId, sessionToken, false);
+      await db.collection('users').doc(userId).update({ data: updateData });
+
+      return { success: true, message: '资料已更新' };
+    }
+
+    // --- 以下操作需要管理员权限 ---
+    if (action !== 'changePassword') {
+      await checkAuth(userId, sessionToken, true);
+    }
+
+    // --- 删除员工 ---
+    if (action === 'delete') {
+      if (!targetUserId) return { success: false, message: '缺少目标用户' };
+      if (targetUserId === userId) return { success: false, message: '不能删除当前登录账号' };
+      if (!password) return { success: false, message: '请输入管理员密码验证身份' };
+
+      // 验证管理员密码（统一校验，兼容老算法）
+      const adminRes = await db.collection('users').doc(userId).get();
+      if (!adminRes.data) return { success: false, message: '管理员账号不存在' };
+      if (!pwd.verifyPassword(password, adminRes.data)) {
+        return { success: false, message: '管理员密码错误' };
+      }
+
+      const targetRes = await db.collection('users').doc(targetUserId).get();
+      if (!targetRes.data) return { success: false, message: '目标用户不存在' };
+      if (targetRes.data.role === 'root') return { success: false, message: '不能删除管理员账号' };
+
+      const deleted = await deleteUserData(targetUserId);
+      await db.collection('users').doc(targetUserId).remove();
+
+      return { success: true, message: '删除成功', deleted };
+    }
+
+    // --- 重置密码 ---
+    if (action === 'resetPassword') {
+      if (!newPassword || !validatePassword(newPassword)) {
+        return { success: false, message: '密码至少8位，且需包含字母和数字' };
+      }
+
+      const fields = pwd.buildScryptFields(newPassword);
+      await db.collection('users').doc(targetUserId).update({
+        data: { password: fields.password, salt: fields.salt, pwdAlgo: fields.pwdAlgo }
+      });
+
+      return { success: true, message: '密码已重置' };
+    }
+
+    // --- 添加员工 ---
+    if (action === 'add') {
+      if (!username) return { success: false, message: '用户名不能为空' };
+      if (password && !validatePassword(password)) return { success: false, message: '密码至少8位，且需包含字母和数字' };
+
+      const existRes = await db.collection('users').where({ username }).count();
+      if (existRes.total > 0) return { success: false, message: '用户名已存在' };
+
+      // ★ 未传密码则生成随机 8 位密码，并标记需强制改密
+      const finalPassword = (password && password.trim()) ||
+                            crypto.randomBytes(4).toString('hex');
+      const fields = pwd.buildScryptFields(finalPassword);
+
+      await db.collection('users').add({
+        data: {
+          username,
+          name: name || username,
+          password: fields.password,
+          salt: fields.salt,
+          pwdAlgo: fields.pwdAlgo,
+          role: 'staff',
+          mustChangePwd: !password,    // 没传密码则强制改密
+          createTime: db.serverDate()
+        }
+      });
+
+      return {
+        success: true,
+        message: '添加成功' + (!password ? '，初始密码：' + finalPassword + '（请告知员工尽快修改）' : ''),
+        initialPassword: !password ? finalPassword : undefined
+      };
+    }
+
+    return { success: false, message: '未知操作' };
+
+  } catch (err) {
+    console.error('userManage 错误:', err);
+    return { success: false, message: err.message || '操作失败' };
+  }
+};

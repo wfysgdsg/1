@@ -1,20 +1,35 @@
-<view class="container">
-    <view class="form">
-        <view class="form-item">
-            <text class="label">{{uiText.oldPassword}}</text>
-            <input password bindinput="onOldPasswordInput" class="input" placeholder="{{uiText.oldPasswordPlaceholder}}" value="{{oldPassword}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.newPassword}}</text>
-            <input password bindinput="onNewPasswordInput" class="input" placeholder="{{uiText.newPasswordPlaceholder}}" value="{{newPassword}}"></input>
-        </view>
-        <view class="form-item">
-            <text class="label">{{uiText.confirmPassword}}</text>
-            <input password bindinput="onConfirmPasswordInput" class="input" placeholder="{{uiText.confirmPasswordPlaceholder}}" value="{{confirmPassword}}"></input>
-        </view>
+<view class="page">
+  <!-- 1) 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">修改密码</text>
+    <text class="x-hero-sub">定期更换密码，保护账号安全</text>
+  </view>
+
+  <!-- 2) 内容卡片区 -->
+  <view class="body">
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>密码设置</view>
+      <view class="field">
+        <text class="lab">{{uiText.oldPassword}}</text>
+        <input password bindinput="onOldPasswordInput" class="inp" placeholder="{{uiText.oldPasswordPlaceholder}}" value="{{oldPassword}}"></input>
+      </view>
+      <view class="field">
+        <text class="lab">{{uiText.newPassword}}</text>
+        <input password bindinput="onNewPasswordInput" class="inp" placeholder="{{uiText.newPasswordPlaceholder}}" value="{{newPassword}}"></input>
+      </view>
+      <view class="field last">
+        <text class="lab">{{uiText.confirmPassword}}</text>
+        <input password bindinput="onConfirmPasswordInput" class="inp" placeholder="{{uiText.confirmPasswordPlaceholder}}" value="{{confirmPassword}}"></input>
+      </view>
+      <view class="tip">新密码至少 6 位，且两次输入需一致</view>
     </view>
-    <view class="btn-group">
-        <button bindtap="goBack" class="cancel-btn">{{uiText.cancel}}</button>
-        <button bindtap="submit" class="submit-btn">{{uiText.save}}</button>
-    </view>
+  </view>
+
+  <!-- 3) 底部玻璃操作栏 -->
+  <view class="x-glass-bar">
+    <button bindtap="goBack" class="btn ghost x-tap">{{uiText.cancel}}</button>
+    <button bindtap="submit" class="btn main x-tap">{{uiText.save}}</button>
+  </view>
 </view>

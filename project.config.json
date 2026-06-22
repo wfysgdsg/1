@@ -7,7 +7,7 @@
     "enhance": true,
     "lazyloadPlaceholderEnable": true,
     "bundle": false,
-    "ignoreUploadUnusedFiles": false,
+    "ignoreUploadUnusedFiles": true,
     "packNpmRelationList": [],
     "babelSetting": {
       "ignore": [],
@@ -15,20 +15,35 @@
       "outputPath": ""
     },
     "useCompilerPlugins": false,
-    "minifyWXML": true
+    "minifyWXML": true,
+    "compileWorklet": false,
+    "uploadWithSourceMap": true,
+    "packNpmManually": false,
+    "minifyWXSS": true,
+    "localPlugins": false,
+    "disableUseStrict": false,
+    "condition": false,
+    "swc": false,
+    "disableSWC": true
   },
   "compileType": "miniprogram",
   "cloudfunctionRoot": "cloudfunctions/",
   "simulatorPluginLibVersion": {},
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "value": "cloudfunctions",
+        "type": "folder"
+      }
+    ],
     "include": [
       {
-        "type": "folder",
-        "value": "@babel/runtime"
+        "value": "@babel/runtime",
+        "type": "folder"
       }
     ]
   },
   "appid": "wx6b4979a2bd3e0c24",
-  "editorSetting": {}
+  "editorSetting": {},
+  "libVersion": "3.15.0"
 }

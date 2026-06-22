@@ -5,6 +5,7 @@
 Page({
   data: {
     userInfo: {},
+    displayName: '',
     isLogged: false,
     isAdmin: false,
     uiText: {
@@ -32,16 +33,37 @@ Page({
     if (userInfo) {
       this.setData({
         userInfo: userInfo,
+        displayName: userInfo.nickname || userInfo.name || userInfo.username || '未登录',
         isLogged: true,
         isAdmin: userInfo.role === 'root'
       });
+
+      // 将 cloud:// fileID 转为临时 URL 用于显示头像
+      const cloudFileId = userInfo.avatarUrl;
+      if (cloudFileId && cloudFileId.indexOf('cloud://') === 0) {
+        const that = this;
+        wx.cloud.getTempFileURL({
+          fileList: [cloudFileId],
+          success: function (res) {
+            if (res.fileList && res.fileList[0] && res.fileList[0].tempFileURL) {
+              that.setData({ 'userInfo.avatarUrl': res.fileList[0].tempFileURL });
+            }
+          }
+        });
+      }
     } else {
       this.setData({
         userInfo: {},
+        displayName: '未登录',
         isLogged: false,
         isAdmin: false
       });
     }
+  },
+
+  editProfile: function () {
+    if (!this.ensureLogin()) return;
+    wx.navigateTo({ url: '/pages/profile/edit' });
   },
 
   // 导航跳转逻辑
@@ -57,48 +79,17 @@ Page({
 
   viewReport: function () {
     if (!this.ensureLogin()) return;
-    wx.navigateTo({ url: '/pages/report/month' });
+    wx.navigateTo({ url: '/pages/report/index' });
+  },
+
+  viewDeliveryList: function () {
+    if (!this.ensureLogin()) return;
+    wx.navigateTo({ url: '/pages/sale/delivery-list' });
   },
 
   manageStaff: function () {
     if (!this.ensureLogin()) return;
     wx.navigateTo({ url: '/pages/staff/index' });
-  },
-
-  /**
-   * 同步商品库
-   */
-  syncGoods: function () {
-    if (!this.ensureLogin()) return;
-    wx.showLoading({ title: '同步中...' });
-    wx.cloud.callFunction({
-      name: 'syncGoods',
-      data: { action: 'sync' },
-      success: res => {
-        wx.hideLoading();
-        if (res.result && res.result.success) {
-          wx.showModal({
-            title: '同步成功',
-            content: res.result.message,
-            showCancel: false
-          });
-        } else {
-          wx.showModal({
-            title: '同步失败',
-            content: res.result ? res.result.message : '未知错误',
-            showCancel: false
-          });
-        }
-      },
-      fail: err => {
-        wx.hideLoading();
-        wx.showModal({
-          title: '同步失败',
-          content: err.message || '请先在开发者工具部署 syncGoods 云函数',
-          showCancel: false
-        });
-      }
-    });
   },
 
   /**
@@ -133,7 +124,10 @@ Page({
           wx.removeStorageSync('userInfo');
           wx.removeStorageSync('userId');
           wx.removeStorageSync('sessionToken');
-          wx.setStorageSync('autoLogin', false);
+          wx.removeStorageSync('rememberPassword');
+          wx.removeStorageSync('rememberedUsername');
+          wx.removeStorageSync('rememberToken');
+          wx.removeStorageSync('autoLogin');
           
           this.setData({
             userInfo: {},

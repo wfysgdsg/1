@@ -1,16 +1,43 @@
-<view class="container">
-    <view class="form-group">
-        <view class="form-item">
-            <text class="label">名称</text>
-            <input bindinput="onNameInput" placeholder="输入客户或厂家名称" type="text" value="{{name}}"></input>
+<view class="page">
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">{{isEdit ? '编辑往来单位' : '新增往来单位'}}</text>
+    <text class="x-hero-sub">登记客户或厂家信息</text>
+  </view>
+
+  <view class="body">
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>单位信息</view>
+
+      <view class="field">
+        <text class="lab">类型</text>
+        <view class="radio-group">
+          <view class="radio-label x-tap {{type==='customer'?'on':''}}" bindtap="onTypeChange" data-type="customer">
+            <view class="radio-dot {{type==='customer'?'checked':''}}"></view>
+            <text>客户</text>
+          </view>
+          <view class="radio-label x-tap {{type==='supplier'?'on':''}}" bindtap="onTypeChange" data-type="supplier">
+            <view class="radio-dot {{type==='supplier'?'checked':''}}"></view>
+            <text>厂家</text>
+          </view>
         </view>
-        <view class="form-item align-top">
-            <text class="label">备注</text>
-            <textarea bindinput="onNoteInput" maxlength="200" placeholder="其他信息..." value="{{note}}"></textarea>
-        </view>
+      </view>
+
+      <view class="field">
+        <text class="lab">名称 *</text>
+        <input bindinput="onNameInput" class="inp" placeholder="输入客户或厂家名称" type="text" value="{{name}}"></input>
+      </view>
+
+      <view class="field">
+        <text class="lab">备注</text>
+        <textarea bindinput="onNoteInput" class="txt" maxlength="200" placeholder="其他信息..." value="{{note}}"></textarea>
+      </view>
     </view>
-    <view class="btn-group">
-        <button bindtap="submit" class="btn-submit">保存</button>
-        <button bindtap="goBack" class="btn-cancel">取消</button>
-    </view>
+  </view>
+
+  <view class="x-glass-bar">
+    <button bindtap="goBack" class="btn ghost x-tap">取消</button>
+    <button bindtap="submit" class="btn main x-tap">保存</button>
+  </view>
 </view>

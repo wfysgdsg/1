@@ -1,25 +1,45 @@
-<view class="container">
+<view class="page">
+  <!-- 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">存放位置</text>
+    <text class="x-hero-sub">管理货品的存放点 / 客户位置</text>
+  </view>
+
+  <view class="body">
+    <!-- 搜索条 -->
     <view class="search-bar">
-        <text class="search-icon">🔍</text>
-        <input bindinput="onSearch" class="search-input" placeholder="搜索存放位置"></input>
+      <text class="search-icon">🔍</text>
+      <input bindinput="onSearch" class="search-input" placeholder="搜索存放位置"></input>
     </view>
-    <view class="customer-list">
-        <view class="customer-item" wx:for="{{customerList}}" wx:key="_id">
-            <view class="customer-info">
-                <text class="customer-name">{{item.name}}</text>
-                <view class="customer-detail" wx:if="{{item.remark}}">
-                    <text>📝 {{item.remark}}</text>
-                </view>
-            </view>
-            <view class="customer-actions">
-                <text bindtap="editCustomer" class="action-btn edit" data-id="{{item._id}}">编辑</text>
-                <text bindtap="deleteCustomer" class="action-btn delete" data-id="{{item._id}}">删除</text>
-            </view>
+
+    <!-- 列表 -->
+    <view class="list">
+      <view class="item x-tap animate-card" wx:for="{{customerList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
+        <view class="item-avatar">📍</view>
+        <view class="item-info">
+          <text class="item-name">{{item.name}}</text>
+          <view class="item-remark" wx:if="{{item.remark}}">
+            <text>📝 {{item.remark}}</text>
+          </view>
         </view>
+        <view class="item-actions">
+          <text bindtap="editCustomer" class="act edit x-tap" data-id="{{item._id}}">编辑</text>
+          <text bindtap="deleteCustomer" class="act del x-tap" data-id="{{item._id}}">删除</text>
+        </view>
+      </view>
     </view>
-    <view class="empty" wx:if="{{customerList.length===0}}">
-        <text class="empty-icon">📍</text>
-        <text>暂无存放位置</text>
+
+    <!-- 空状态 -->
+    <view class="empty-state" wx:if="{{customerList.length===0}}">
+      <text class="empty-icon">📍</text>
+      <text class="empty-text">暂无存放位置</text>
     </view>
-    <view bindtap="goToAdd" class="add-btn">+ 新增位置</view>
+  </view>
+
+  <!-- 底部悬浮新增 -->
+  <view class="x-glass-bar">
+    <button bindtap="goToAdd" class="btn main x-tap">+ 新增存放位置</button>
+  </view>
 </view>

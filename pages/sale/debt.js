@@ -1,50 +1,120 @@
-require('../../@babel/runtime/helpers/Objectvalues');
-var e = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  t = require('../../@babel/runtime/helpers/objectSpread2'),
-  r = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  a = wx.cloud.database(),
-  n = require('../../utils/db').fetchAll;
-function o(e) {
-  return i.apply(this, arguments);
+/**
+ * 应收账款页面（债务管理）
+ */
+var db = wx.cloud.database();
+var _ = db.command;
+var fetchAll = require('../../utils/db').fetchAll;
+
+function formatDate(time) {
+  if (!time) return '';
+  var date = new Date(time);
+  if (isNaN(date.getTime())) return '';
+  var y = date.getFullYear();
+  var m = String(date.getMonth() + 1).padStart(2, '0');
+  var d = String(date.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + d;
 }
-function i() {
-  return (i = r(
-    e().mark(function t(r) {
-      return e().wrap(function (e) {
-        for (;;)
-          switch ((e.prev = e.next)) {
-            case 0:
-              return (
-                (e.next = 2),
-                a
-                  .collection('sale')
-                  .doc(r)
-                  .update({
-                    data: { payStatus: 'paid', payTime: a.serverDate() },
-                  })
-              );
-            case 2:
-            case 'end':
-              return e.stop();
-          }
-      }, t);
-    }),
-  )).apply(this, arguments);
+
+function buildGoodsRows(goodsDetail) {
+  if (!Array.isArray(goodsDetail)) return [];
+  return goodsDetail.map(function(g) {
+    var qty = Number(g.quantity || 0);
+    var price = Number(g.salePrice || 0);
+    return {
+      goodsName: g.goodsName || '未命名商品',
+      quantity: Number.isInteger(qty) ? qty : qty.toFixed(2),
+      unit: g.unit || '',
+      salePrice: price.toFixed(2),
+      lineTotal: (qty * price).toFixed(2),
+      profit: Number(g.profit || 0).toFixed(2),
+    };
+  });
 }
+
+function groupByCustomer(sales, computeAmount) {
+  var customerMap = {};
+  var totalAmount = 0;
+
+  sales.forEach(function(sale) {
+    var custId = sale.contactId || sale.locationId || sale._id;
+    var custName = sale.contactName || sale.locationName || '未填写客户';
+    var goodsRows = buildGoodsRows(sale.goodsDetail);
+    var result = computeAmount(sale, goodsRows);
+
+    if (result.skip) return;
+
+    if (!customerMap[custId]) {
+      customerMap[custId] = {
+        contactId: custId,
+        contactName: custName,
+        totalOriginal: 0,
+        totalProfit: 0,
+        orders: [],
+      };
+    }
+
+    customerMap[custId].totalOriginal += result.amount;
+    customerMap[custId].totalProfit += result.profit;
+    totalAmount += result.amount;
+
+    customerMap[custId].orders.push({
+      _id: sale._id,
+      saleDate: sale.saleDate || formatDate(sale.saleTime),
+      goodsRows: goodsRows,
+      orderOriginal: result.displayAmount,
+      orderProfit: result.profit.toFixed(2),
+      debtDays: sale.debtDays || 0,
+      payTimeStr: sale.payTimeStr || '',
+      totalPaid: result.totalPaid || 0,
+      totalPaidStr: (result.totalPaid || 0).toFixed(2),
+      hasPartial: result.hasPartial || false,
+      remaining: result.remaining || result.displayAmount,
+      payStatus: sale.payStatus,
+    });
+  });
+
+  var list = Object.values(customerMap).map(function(item) {
+    item.displayOriginal = item.totalOriginal.toFixed(2);
+    item.displayProfit = item.totalProfit.toFixed(2);
+    return item;
+  }).sort(function(a, b) {
+    return b.totalOriginal - a.totalOriginal;
+  });
+
+  return { list: list, totalAmount: totalAmount, orderCount: sales.length, customerCount: list.length };
+}
+
 Page({
   data: {
+    _anim: true,
+    tab: 'unpaid',
     debtList: [],
     totalDebt: '0.00',
     debtCount: 0,
     customerCount: 0,
     expandedId: '',
+    paidList: [],
+    totalPaid: '0.00',
+    paidCount: 0,
+    paidCustomerCount: 0,
+    paidExpandedId: '',
+    showPayModal: false,
+    payingSaleId: '',
+    payingRemaining: '0',
+    payingAmount: '',
     uiText: {
+      unpaidTab: '应收账款',
+      paidTab: '已收款项',
       totalDebt: '待回收总额',
+      totalPaid: '已收总额',
       unpaidOrders: '笔未结订单',
+      paidOrders: '笔已结订单',
       customers: '个欠款单位',
+      paidCustomers: '个收款单位',
       orderCount: '笔单子',
       profit: '利',
       overdue: '已欠款',
+      payTime: '收款时间',
       days: '天',
       originalPrice: '原价',
       grossProfit: '毛利',
@@ -53,223 +123,193 @@ Page({
       unitPrice: '单价',
       totalPrice: '总价',
       confirmPayment: '确认收款',
+      payRemaining: '收余款',
       noDebt: '目前没有欠款，账目全清。',
+      noPaid: '暂无已收款项记录。',
     },
   },
-  onShow: function () {
-    this.loadDebts();
+
+  onShow: function() {this.loadDebts();
+    this.loadPaid();
   },
-  loadDebts: function () {
-    var o = this;
-    return r(
-      e().mark(function r() {
-        var i, s, c, u, l, d;
-        return e().wrap(
-          function (e) {
-            for (;;)
-              switch ((e.prev = e.next)) {
-                case 0:
-                  return (
-                    wx.showLoading({ title: '统计中...' }),
-                    (i = wx.getStorageSync('userInfo')),
-                    (e.prev = 2),
-                    (s = a.collection('sale').where({ payStatus: 'unpaid' })),
-                    'root' !== i.role && (s = s.where({ sellerId: i._id })),
-                    (e.next = 7),
-                    n(s.orderBy('saleTime', 'desc'))
-                  );
-                case 7:
-                  (c = e.sent),
-                    (u = {}),
-                    (l = 0),
-                    c.forEach(function (e) {
-                      var t = e.contactId || e.locationId || 'unknown',
-                        r = e.contactName || e.locationName || '未填写客户',
-                        a = new Date(e.saleDate),
-                        n = new Date();
-                      (e.debtDays = Math.ceil(Math.abs(n - a) / 864e5)),
-                        u[t] ||
-                          (u[t] = {
-                            contactId: t,
-                            contactName: r,
-                            totalOriginal: 0,
-                            totalProfit: 0,
-                            orders: [],
-                          });
-                      var o = 0,
-                        i = [];
-                      Array.isArray(e.goodsDetail) &&
-                        e.goodsDetail.forEach(function (e) {
-                          var t = Number(e.quantity || 0),
-                            r = Number(e.salePrice || 0),
-                            a = t * r,
-                            n = Number(e.profit || 0);
-                          (o += a),
-                            i.push({
-                              goodsName: e.goodsName || '未命名商品',
-                              quantity: Number.isInteger(t) ? t : t.toFixed(2),
-                              unit: e.unit || '',
-                              salePrice: r.toFixed(2),
-                              lineTotal: a.toFixed(2),
-                              profit: n.toFixed(2),
-                            });
-                        }),
-                        (e.goodsRows = i),
-                        (e.orderOriginal = o.toFixed(2)),
-                        (e.orderProfit = parseFloat(e.totalProfit || 0).toFixed(
-                          2,
-                        )),
-                        (u[t].totalOriginal += o),
-                        (u[t].totalProfit += parseFloat(e.totalProfit || 0)),
-                        u[t].orders.push(e),
-                        (l += o);
-                    }),
-                    (d = Object.values(u)
-                      .map(function (e) {
-                        return t(
-                          t({}, e),
-                          {},
-                          {
-                            displayOriginal: e.totalOriginal.toFixed(2),
-                            displayProfit: e.totalProfit.toFixed(2),
-                          },
-                        );
-                      })
-                      .sort(function (e, t) {
-                        return t.totalOriginal - e.totalOriginal;
-                      })),
-                    o.setData({
-                      debtList: d,
-                      totalDebt: l.toFixed(2),
-                      debtCount: c.length,
-                      customerCount: d.length,
-                    }),
-                    wx.hideLoading(),
-                    (e.next = 21);
-                  break;
-                case 16:
-                  (e.prev = 16),
-                    (e.t0 = e.catch(2)),
-                    wx.hideLoading(),
-                    console.error('加载债务失败', e.t0),
-                    wx.showToast({ title: '加载失败', icon: 'none' });
-                case 21:
-                case 'end':
-                  return e.stop();
-              }
-          },
-          r,
-          null,
-          [[2, 16]],
-        );
-      }),
-    )();
+
+  switchTab: function(e) {
+    this.setData({ tab: e.currentTarget.dataset.tab });
   },
-  toggleCustomer: function (e) {
-    var t = e.currentTarget.dataset.id;
-    this.setData({ expandedId: this.data.expandedId === t ? '' : t });
+
+  loadDebts: function() {
+    var that = this;
+    var userInfo = wx.getStorageSync('userInfo');
+
+    wx.showLoading({ title: '统计中...' });
+
+    var q = db.collection('sale').where(_.and([
+      { payStatus: 'unpaid' },
+      _.or([{ voidStatus: _.exists(false) }, { voidStatus: 'normal' }]),
+    ]));
+    if (userInfo && userInfo.role !== 'root') {
+      q = q.where({ sellerId: userInfo._id });
+    }
+
+    fetchAll(function() { return q.orderBy('saleTime', 'desc'); }).then(function(sales) {
+      // 计算欠款天数
+      var now = new Date();
+      sales.forEach(function(s) {
+        var saleDate = new Date(s.saleDate || s.saleTime);
+        s.debtDays = Math.ceil(Math.abs(now - saleDate) / 86400000);
+      });
+
+      var result = groupByCustomer(sales, function(sale, goodsRows) {
+        var orderTotal = goodsRows.reduce(function(sum, g) { return sum + Number(g.lineTotal); }, 0);
+        var invoiceAmount = sale.totalInvoiceAmount || orderTotal;
+        var totalPaid = Number(sale.totalPaid || 0);
+        var remaining = invoiceAmount - totalPaid;
+        if (remaining <= 0.01) return { skip: true };
+        return {
+          amount: remaining,
+          profit: Number(sale.totalProfit || 0),
+          displayAmount: remaining.toFixed(2),
+          totalPaid: totalPaid,
+          hasPartial: totalPaid > 0,
+          remaining: remaining.toFixed(2),
+        };
+      });
+
+      that.setData({
+        debtList: result.list,
+        totalDebt: result.totalAmount.toFixed(2),
+        debtCount: result.orderCount,
+        customerCount: result.customerCount,
+      });
+      wx.hideLoading();
+    }).catch(function(err) {
+      wx.hideLoading();
+      console.error('加载债务失败', err);
+      wx.showToast({ title: '加载失败', icon: 'none' });
+    });
   },
-  confirmPayment: function (t) {
-    var a = this;
-    return r(
-      e().mark(function n() {
-        var i, s, c;
-        return e().wrap(function (n) {
-          for (;;)
-            switch ((n.prev = n.next)) {
-              case 0:
-                (i = t.currentTarget.dataset.id),
-                  (s = wx.getStorageSync('userInfo')),
-                  (c = wx.getStorageSync('sessionToken')),
-                  wx.showModal({
-                    title: '确认收款',
-                    content: '确定这笔订单已经收到货款吗？',
-                    success: (function () {
-                      var t = r(
-                        e().mark(function t(r) {
-                          var n, u;
-                          return e().wrap(
-                            function (e) {
-                              for (;;)
-                                switch ((e.prev = e.next)) {
-                                  case 0:
-                                    if (r.confirm) {
-                                      e.next = 2;
-                                      break;
-                                    }
-                                    return e.abrupt('return');
-                                  case 2:
-                                    return (
-                                      wx.showLoading({ title: '处理中...' }),
-                                      (e.prev = 3),
-                                      (n = !1),
-                                      (e.prev = 5),
-                                      (e.next = 8),
-                                      wx.cloud.callFunction({
-                                        name: 'saleManage',
-                                        data: {
-                                          action: 'confirmPayment',
-                                          userId: s ? s._id : '',
-                                          sessionToken: c,
-                                          saleId: i,
-                                        },
-                                      })
-                                    );
-                                  case 8:
-                                    (u = e.sent),
-                                      (n = !(!u.result || !u.result.success)),
-                                      (e.next = 15);
-                                    break;
-                                  case 12:
-                                    (e.prev = 12),
-                                      (e.t0 = e.catch(5)),
-                                      (n = !1);
-                                  case 15:
-                                    if (n) {
-                                      e.next = 18;
-                                      break;
-                                    }
-                                    return (e.next = 18), o(i);
-                                  case 18:
-                                    wx.hideLoading(),
-                                      wx.showToast({ title: '销账成功' }),
-                                      a.loadDebts(),
-                                      (e.next = 28);
-                                    break;
-                                  case 23:
-                                    (e.prev = 23),
-                                      (e.t1 = e.catch(3)),
-                                      wx.hideLoading(),
-                                      console.error('销账失败', e.t1),
-                                      wx.showToast({
-                                        title: '操作失败',
-                                        icon: 'none',
-                                      });
-                                  case 28:
-                                  case 'end':
-                                    return e.stop();
-                                }
-                            },
-                            t,
-                            null,
-                            [
-                              [3, 23],
-                              [5, 12],
-                            ],
-                          );
-                        }),
-                      );
-                      return function (e) {
-                        return t.apply(this, arguments);
-                      };
-                    })(),
-                  });
-              case 4:
-              case 'end':
-                return n.stop();
-            }
-        }, n);
-      }),
-    )();
+
+  loadPaid: function() {
+    var that = this;
+    var userInfo = wx.getStorageSync('userInfo');
+
+    var q = db.collection('sale').where(_.and([
+      { payStatus: 'paid' },
+      _.or([{ voidStatus: _.exists(false) }, { voidStatus: 'normal' }]),
+    ]));
+    if (userInfo && userInfo.role !== 'root') {
+      q = q.where({ sellerId: userInfo._id });
+    }
+
+    fetchAll(function() { return q.orderBy('payTime', 'desc').limit(200); }).then(function(sales) {
+      sales.forEach(function(s) {
+        s.payTimeStr = formatDate(s.payTime);
+      });
+
+      var result = groupByCustomer(sales, function(sale, goodsRows) {
+        var orderTotal = goodsRows.reduce(function(sum, g) { return sum + Number(g.lineTotal); }, 0);
+        var invoiceAmount = sale.totalInvoiceAmount || orderTotal;
+        var totalPaid = Number(sale.totalPaid || 0);
+        return {
+          amount: totalPaid || invoiceAmount,
+          profit: Number(sale.totalProfit || 0),
+          displayAmount: (totalPaid || invoiceAmount).toFixed(2),
+          totalPaid: totalPaid,
+          hasPartial: false,
+          remaining: '0',
+        };
+      });
+
+      that.setData({
+        paidList: result.list,
+        totalPaid: result.totalAmount.toFixed(2),
+        paidCount: result.orderCount,
+        paidCustomerCount: result.customerCount,
+      });
+    }).catch(function(err) {
+      console.error('加载已收款失败', err);
+    });
+  },
+
+  toggleCustomer: function(e) {
+    var id = e.currentTarget.dataset.id;
+    this.setData({ expandedId: this.data.expandedId === id ? '' : id });
+  },
+
+  togglePaidCustomer: function(e) {
+    var id = e.currentTarget.dataset.id;
+    this.setData({ paidExpandedId: this.data.paidExpandedId === id ? '' : id });
+  },
+
+  confirmPayment: function(e) {
+    var saleId = e.currentTarget.dataset.id;
+    var remaining = e.currentTarget.dataset.remaining || '0';
+
+    if (!saleId) {
+      wx.showToast({ title: '错误：找不到ID', icon: 'none' });
+      return;
+    }
+
+    this.setData({
+      showPayModal: true,
+      payingSaleId: saleId,
+      payingRemaining: remaining,
+      payingAmount: remaining,
+    });
+  },
+
+  onPayAmountInput: function(e) {
+    this.setData({ payingAmount: e.detail.value });
+  },
+
+  cancelPayment: function() {
+    this.setData({ showPayModal: false, payingSaleId: '', payingRemaining: '0', payingAmount: '' });
+  },
+
+  submitPayment: function() {
+    var that = this;
+    var saleId = this.data.payingSaleId;
+    var remaining = parseFloat(this.data.payingRemaining);
+    var amount = parseFloat(this.data.payingAmount);
+    var userInfo = wx.getStorageSync('userInfo');
+    var sessionToken = wx.getStorageSync('sessionToken');
+
+    if (isNaN(amount) || amount <= 0) {
+      wx.showToast({ title: '请输入有效金额', icon: 'none' });
+      return;
+    }
+    if (amount > remaining + 0.01) {
+      wx.showToast({ title: '收款金额不能超过剩余 ¥' + remaining.toFixed(2), icon: 'none' });
+      return;
+    }
+
+    that.setData({ showPayModal: false });
+    wx.showLoading({ title: '处理中...' });
+
+    wx.cloud.callFunction({
+      name: 'saleManage',
+      data: {
+        action: 'recordPayment',
+        userId: userInfo ? userInfo._id : '',
+        sessionToken: sessionToken,
+        saleId: saleId,
+        amount: amount,
+      }
+    }).then(function(res) {
+      wx.hideLoading();
+      if (res.result && res.result.success) {
+        wx.showToast({ title: res.result.message || '收款成功', icon: 'success' });
+        setTimeout(function() {
+          that.loadDebts();
+          that.loadPaid();
+        }, 800);
+      } else {
+        wx.showToast({ title: (res.result && res.result.message) || '操作失败', icon: 'none' });
+      }
+    }).catch(function(err) {
+      wx.hideLoading();
+      console.error('收款失败', err);
+      wx.showToast({ title: '操作失败', icon: 'none' });
+    });
   },
 });

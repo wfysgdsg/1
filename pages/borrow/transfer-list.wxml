@@ -1,34 +1,84 @@
-<view class="container">
-    <view class="header-banner">
-        <text class="title">移货申请列表</text>
-        <text class="subtitle">待您确认接收的货品</text>
+<view class="page">
+  <!-- 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">移货处理</text>
+    <text class="x-hero-sub" wx:if="{{tab==='pending'}}">待您确认收货的货品</text>
+    <text class="x-hero-sub" wx:else>发方和接方均可查看</text>
+  </view>
+
+  <view class="body">
+    <!-- Tab -->
+    <view class="tabs">
+      <view bindtap="switchTab" class="tab {{tab==='pending'?'active':''}}" data-tab="pending">待处理</view>
+      <view bindtap="switchTab" class="tab {{tab==='history'?'active':''}}" data-tab="history">处理记录</view>
     </view>
-    <view class="request-list">
-        <view class="request-card" wx:for="{{requestList}}" wx:key="_id">
-            <view class="card-header">
-                <view class="sender-info">
-                    <text class="sender-name">来自: {{item.senderName}}</text>
-                    <text class="request-time">时间: {{item.createTime}}</text>
-                </view>
-                <view class="status-tag">待接收</view>
-            </view>
-            <view class="card-body">
-                <view class="customer-info">原单位: {{item.fromCustomerName}}</view>
-                <view class="goods-list">
-                    <view class="goods-item" wx:for="{{item.goodsList}}" wx:for-item="goods" wx:key="goodsId">
-                        <text class="goods-name">• {{goods.goodsName}}</text>
-                        <text class="goods-qty">x{{goods.quantity}} {{goods.unit}}</text>
-                    </view>
-                </view>
-            </view>
-            <view class="card-footer">
-                <view bindtap="rejectTransfer" class="action-btn reject" data-id="{{item._id}}">拒绝</view>
-                <view bindtap="acceptTransfer" class="action-btn accept" data-id="{{item._id}}">同意接收</view>
-            </view>
+
+    <!-- 待处理 -->
+    <view class="request-list" wx:if="{{tab==='pending'}}">
+      <view class="request-card {{_anim ? 'animate-card' : ''}}" wx:for="{{requestList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+        <view class="card-header">
+          <view class="sender-info">
+            <text class="sender-name">来自：{{item.senderName}}</text>
+            <text class="request-time">{{item.timeStr}}</text>
+          </view>
+          <view class="status-tag pending">待收货</view>
         </view>
-        <view class="empty" wx:if="{{!requestList||requestList.length===0}}">
-            <text class="empty-icon">📂</text>
-            <text>暂无待处理的移货申请</text>
+        <view class="card-body">
+          <view class="customer-info">原单位：{{item.fromCustomerName}}</view>
+          <view class="goods-list">
+            <view class="goods-item" wx:for="{{item.goodsList}}" wx:for-item="goods" wx:key="goodsId">
+              <text class="goods-name">{{goods.goodsName}}</text>
+              <text class="goods-qty">x{{goods.transferQty || goods.quantity}} {{goods.unit}}</text>
+            </view>
+          </view>
         </view>
+        <view class="card-footer">
+          <view bindtap="rejectTransfer" class="action-btn reject x-tap" data-id="{{item._id}}">拒绝</view>
+          <view bindtap="acceptTransfer" class="action-btn accept x-tap" data-id="{{item._id}}">确认收货</view>
+        </view>
+      </view>
+
+      <view class="empty-state" wx:if="{{!requestList||requestList.length===0}}">
+        <view class="empty-icon">📂</view>
+        <text class="empty-text">暂无待处理的移货申请</text>
+      </view>
     </view>
+
+    <!-- 处理记录 -->
+    <view class="history-list" wx:if="{{tab==='history'}}">
+      <view class="history-card {{_anim ? 'animate-card' : ''}}" wx:for="{{historyList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+        <view class="card-header">
+          <view class="sender-info">
+            <text class="sender-name">{{item.senderName}} → {{item.receiverName}}</text>
+            <text class="request-time">{{item.timeStr}}</text>
+          </view>
+          <view class="status-tag {{item.status==='accepted'?'accepted':'rejected'}}">
+            {{item.status==='accepted'?'已收货':'已拒绝'}}
+          </view>
+        </view>
+        <view class="card-body">
+          <view class="customer-info">原单位：{{item.fromCustomerName}}</view>
+          <view class="goods-list">
+            <view class="goods-item" wx:for="{{item.goodsList}}" wx:for-item="goods" wx:key="goodsId">
+              <text class="goods-name">{{goods.goodsName}}</text>
+              <text class="goods-qty">x{{goods.transferQty || goods.quantity}} {{goods.unit}}</text>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class="empty-state" wx:if="{{!historyList||historyList.length===0}}">
+        <view class="empty-icon">📂</view>
+        <text class="empty-text">暂无处理记录</text>
+      </view>
+
+      <view class="pagination" wx:if="{{historyTotalCount>0}}">
+        <view bindtap="prevHistoryPage" class="page-btn {{historyPage<=1?'disabled':''}}">上一页</view>
+        <text class="page-info">{{historyPage}} / {{historyTotalPages}}（共 {{historyTotalCount}} 条）</text>
+        <view bindtap="nextHistoryPage" class="page-btn {{historyPage>=historyTotalPages?'disabled':''}}">下一页</view>
+      </view>
+    </view>
+  </view>
 </view>

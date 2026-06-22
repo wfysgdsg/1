@@ -1,28 +1,76 @@
-<view class="container">
-    <view class="form">
-        <view class="form-item">
-            <text class="label">{{uiText.dataType}}</text>
-            <picker bindchange="onTypeChange" range="{{dataTypes}}" rangeKey="name">
-                <view class="picker">{{selectedType?selectedType.name:uiText.choose}}</view>
-            </picker>
+<view class="page">
+  <!-- 1) 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">数据导出</text>
+    <text class="x-hero-sub">按类型与时间范围导出 CSV 报表</text>
+  </view>
+
+  <!-- 2) 内容卡片区 -->
+  <view class="body">
+    <!-- 导出配置卡片 -->
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>导出设置</view>
+
+      <view class="field">
+        <text class="lab">{{uiText.dataType}}</text>
+        <picker bindchange="onTypeChange" range="{{dataTypes}}" rangeKey="name">
+          <view class="picker x-tap">
+            <text class="pick-val {{selectedType ? '' : 'ph'}}">{{selectedType?selectedType.name:uiText.choose}}</text>
+            <text class="pick-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="field" wx:if="{{isRoot}}">
+        <text class="lab">{{uiText.userFilter}}</text>
+        <picker bindchange="onUserChange" range="{{pickerUserList}}" rangeKey="name" value="{{selectedUserIndex}}">
+          <view class="picker x-tap">
+            <text class="pick-val">{{pickerUserList[selectedUserIndex].name || uiText.allUsers}}</text>
+            <text class="pick-arrow">▾</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="lab">{{uiText.dateRange}}</text>
+        <view class="range">
+          <picker class="range-item" bindchange="onStartDateChange" mode="date" start="2024-01-01" value="{{startDate}}">
+            <view class="picker x-tap">
+              <text class="pick-tag">{{uiText.start}}</text>
+              <text class="pick-val {{startDate ? '' : 'ph'}}">{{startDate||uiText.choose}}</text>
+            </view>
+          </picker>
+          <text class="range-sep">~</text>
+          <picker class="range-item" bindchange="onEndDateChange" mode="date" value="{{endDate}}">
+            <view class="picker x-tap">
+              <text class="pick-tag">{{uiText.end}}</text>
+              <text class="pick-val {{endDate ? '' : 'ph'}}">{{endDate||uiText.choose}}</text>
+            </view>
+          </picker>
         </view>
-        <view class="form-item">
-            <text class="label">{{uiText.dateRange}}</text>
-            <picker bindchange="onStartDateChange" mode="date" start="2024-01-01" value="{{startDate}}">
-                <view class="picker">{{uiText.start}}{{startDate||uiText.choose}}</view>
-            </picker>
-            <picker bindchange="onEndDateChange" mode="date" value="{{endDate}}">
-                <view class="picker" style="margin-top:16rpx;">{{uiText.end}}{{endDate||uiText.choose}}</view>
-            </picker>
+      </view>
+
+      <view class="btn-group">
+        <button bindtap="previewData" class="btn ghost x-tap" disabled="{{exporting}}">{{uiText.preview}}</button>
+        <button bindtap="exportData" class="btn main x-tap" disabled="{{exporting}}">{{exporting ? '导出中...' : uiText.exportExcel}}</button>
+      </view>
+    </view>
+
+    <!-- 预览卡片 -->
+    <view class="card preview-card" wx:if="{{previewData.length>0}}">
+      <view class="card-h"><view class="dot"></view>{{uiText.preview}}</view>
+      <scroll-view class="preview-table" scroll-x="true">
+        <view class="preview-inner">
+          <view class="preview-header">
+            <text class="header-cell" wx:for="{{previewHeaders}}" wx:key="index">{{item}}</text>
+          </view>
+          <view class="preview-row" wx:for="{{previewData}}" wx:key="index">
+            <text class="row-cell" wx:for="{{item}}" wx:for-item="cell" wx:key="*this">{{cell}}</text>
+          </view>
         </view>
+      </scroll-view>
     </view>
-    <view class="btn-group">
-        <button bindtap="exportData" class="export-btn">{{uiText.exportExcel}}</button>
-    </view>
-    <view class="preview" wx:if="{{previewData.length>0}}">
-        <view class="preview-title">{{uiText.preview}}</view>
-        <view class="preview-list">
-            <view class="preview-item" wx:for="{{previewData}}" wx:key="index">{{item}}</view>
-        </view>
-    </view>
+  </view>
 </view>

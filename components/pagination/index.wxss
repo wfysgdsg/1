@@ -1,0 +1,15 @@
+.pagination {
+  display: flex; align-items: center; justify-content: center; gap: 12rpx;
+  padding: 12rpx 16rpx; margin: 16rpx 0;
+  background: var(--bg-card,#fff); border-radius: 40rpx;
+}
+.page-btn {
+  background: var(--field,#F3F5FB); border: none; border-radius: 30rpx;
+  color: var(--ink-2,#5A5C70); font-size: 24rpx; padding: 14rpx 28rpx;
+  line-height: 1.2; transition: all .15s ease;
+}
+.page-btn:active{background:var(--ink-3,#9A9CB0);color:#fff}
+.page-btn[disabled]{opacity:.35}
+.page-info {
+  color: var(--ink-3,#9A9CB0); font-size: 24rpx; min-width: 80rpx; text-align: center;
+}

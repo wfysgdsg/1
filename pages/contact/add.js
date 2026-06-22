@@ -10,7 +10,6 @@ Page({
     id: '',
     name: '',
     type: 'customer', // 默认类型：customer
-    contact: '',
     note: '',
     isEdit: false,
   },
@@ -36,7 +35,6 @@ Page({
       this.setData({
         name: contact.name,
         type: contact.type || 'customer',
-        contact: contact.contact || '',
         note: contact.note || '',
       });
     } catch (err) {
@@ -45,16 +43,15 @@ Page({
   },
 
   // 输入绑定
-  onNameInput: (e) => this.setData({ name: e.detail.value }),
-  onTypeChange: (e) => this.setData({ type: e.detail.value }),
-  onContactInput: (e) => this.setData({ contact: e.detail.value }),
-  onNoteInput: (e) => this.setData({ note: e.detail.value }),
+  onNameInput: function(e) { this.setData({ name: e.detail.value }); },
+  onTypeChange: function(e) { this.setData({ type: e.currentTarget.dataset.type }); },
+  onNoteInput: function(e) { this.setData({ note: e.detail.value }); },
 
   /**
    * 提交保存
    */
   async submit() {
-    const { name, type, contact, note } = this.data;
+    const { name, type, note } = this.data;
 
     if (!name) {
       wx.showToast({ title: '请填写名称', icon: 'none' });
@@ -64,7 +61,6 @@ Page({
     const contactData = {
       name,
       type,
-      contact,
       note,
       updateTime: db.serverDate(),
     };
@@ -72,23 +68,26 @@ Page({
     wx.showLoading({ title: '保存中...' });
 
     try {
-      if (this.data.isEdit) {
-        // 更新
-        await db.collection('contacts').doc(this.data.id).update({
+      var action = this.data.isEdit ? 'update' : 'add';
+      var res = await wx.cloud.callFunction({
+        name: 'contactManage',
+        data: {
+          userId: wx.getStorageSync('userId'),
+          sessionToken: wx.getStorageSync('sessionToken'),
+          action: action,
+          collection: 'contacts',
+          id: this.data.isEdit ? this.data.id : undefined,
           data: contactData
-        });
-      } else {
-        // 新增
-        contactData.createTime = db.serverDate();
-        await db.collection('contacts').add({
-          data: contactData
-        });
-      }
+        }
+      });
 
       wx.hideLoading();
-      wx.showToast({ title: '保存成功' });
-      setTimeout(() => wx.navigateBack(), 1500);
-
+      if (res.result && res.result.success) {
+        wx.showToast({ title: '保存成功' });
+        setTimeout(() => wx.navigateBack(), 1500);
+      } else {
+        wx.showToast({ title: (res.result && res.result.message) || '保存失败', icon: 'none' });
+      }
     } catch (err) {
       wx.hideLoading();
       console.error('保存失败', err);
@@ -96,5 +95,5 @@ Page({
     }
   },
 
-  goBack: () => wx.navigateBack(),
+  goBack: function() { wx.navigateBack(); },
 });

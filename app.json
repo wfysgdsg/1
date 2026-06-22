@@ -3,35 +3,45 @@
   "componentFramework": "exparser",
   "tabBar": {
     "color": "#999999",
-    "selectedColor": "#1890ff",
+    "selectedColor": "#4F6EF7",
     "backgroundColor": "#ffffff",
-    "borderStyle": "black",
+    "borderStyle": "white",
     "list": [
       {
         "pagePath": "pages/index/index",
-        "text": "首页"
+        "text": "首页",
+        "iconPath": "images/tab/home.png",
+        "selectedIconPath": "images/tab/home-active.png"
       },
       {
         "pagePath": "pages/goods/list",
-        "text": "商品库"
+        "text": "商品库",
+        "iconPath": "images/tab/goods.png",
+        "selectedIconPath": "images/tab/goods-active.png"
       },
       {
         "pagePath": "pages/borrow/list",
-        "text": "借货"
+        "text": "借货",
+        "iconPath": "images/tab/borrow.png",
+        "selectedIconPath": "images/tab/borrow-active.png"
       },
       {
         "pagePath": "pages/sale/list",
-        "text": "销售"
+        "text": "销售",
+        "iconPath": "images/tab/sale.png",
+        "selectedIconPath": "images/tab/sale-active.png"
       },
       {
         "pagePath": "pages/profile/profile",
-        "text": "我的"
+        "text": "我的",
+        "iconPath": "images/tab/profile.png",
+        "selectedIconPath": "images/tab/profile-active.png"
       }
     ]
   },
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#1890ff",
+    "navigationBarBackgroundColor": "#4F6EF7",
     "navigationBarTitleText": "个人借销货系统",
     "navigationBarTextStyle": "white"
   },
@@ -47,14 +57,18 @@
     "pages/customer/list",
     "pages/customer/add",
     "pages/profile/profile",
+    "pages/profile/edit",
     "pages/password/index",
     "pages/export/index",
     "pages/staff/index",
     "pages/contact/list",
     "pages/contact/add",
     "pages/sale/debt",
-    "pages/report/month",
+    "pages/report/index",
     "pages/borrow/detail",
-    "pages/borrow/transfer-list"
+    "pages/borrow/transfer-list",
+    "pages/sale/delivery",
+    "pages/sale/delivery-list",
+    "pages/sale/delivery-sign"
   ]
 }

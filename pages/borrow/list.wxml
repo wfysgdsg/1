@@ -1,18 +1,33 @@
 <view class="container">
     <view class="tabs">
+        <view class="tab-indicator {{tab==='stock'?'right':''}}"></view>
         <view bindtap="switchTab" class="tab {{tab==='detail'?'active':''}}" data-tab="detail">{{uiText.detailTab}}</view>
         <view bindtap="switchTab" class="tab {{tab==='stock'?'active':''}}" data-tab="stock">{{uiText.stockTab}}</view>
     </view>
 
+    <!-- 搜索栏 -->
+    <view class="search-bar">
+        <view class="search-box">
+            <text class="search-icon">🔍</text>
+            <input bindinput="onSearchInput" class="search-input" placeholder="{{tab==='detail'?uiText.searchBorrow:uiText.searchStock}}" value="{{searchKeyword}}"></input>
+        </view>
+        <picker wx:if="{{tab==='detail'}}" bindchange="onSortChange" mode="selector" range="{{[uiText.sortCount, uiText.sortTime]}}" value="{{sortBy==='count'?0:1}}">
+            <view class="sort-btn">{{sortBy==='count'?uiText.sortCount:uiText.sortTime}}</view>
+        </picker>
+        <picker wx:if="{{tab==='stock'}}" bindchange="onStockSortChange" mode="selector" range="{{[uiText.stockSortTime, uiText.stockSortName, uiText.stockSortQty]}}" value="{{stockSortBy==='time'?0:(stockSortBy==='name'?1:2)}}">
+            <view class="sort-btn">{{stockSortBy==='time'?uiText.stockSortTime:(stockSortBy==='name'?uiText.stockSortName:uiText.stockSortQty)}}</view>
+        </picker>
+    </view>
+
     <view class="borrow-list" wx:if="{{tab==='detail'}}">
         <!-- 列表最上面的分页 -->
-        <view class="pagination" wx:if="{{totalPages > 1}}">
+        <view class="pagination" wx:if="{{totalCount > 0}}">
             <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
             <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
             <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
         </view>
 
-        <view bindtap="goToDetail" class="customer-card" data-id="{{item.customerId}}" data-name="{{item.customerName}}" wx:for="{{customerGroups}}" wx:key="groupKey">
+        <view bindtap="goToDetail" class="customer-card {{_anim ? 'animate-card' : ''}}" data-id="{{item.customerId}}" data-name="{{item.customerName}}" wx:for="{{customerGroups}}" wx:key="groupKey" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
             <view class="card-header">
                 <view class="customer-info">
                     <text class="customer-name">{{item.customerName}}</text>
@@ -36,7 +51,7 @@
             <text>{{uiText.noBorrow}}</text>
         </view>
         <!-- 底部固定分页 -->
-        <view class="pagination" wx:if="{{totalPages > 1 && tab==='detail'}}">
+        <view class="pagination" wx:if="{{totalCount > 0 && tab==='detail'}}">
             <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
             <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
             <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
@@ -44,13 +59,13 @@
     </view>
     <view class="stock-list" wx:if="{{tab==='stock'}}">
         <!-- 库存列表最上面的分页 -->
-        <view class="pagination" wx:if="{{stockTotalPages > 1}}">
+        <view class="pagination" wx:if="{{stockTotalCount > 0}}">
             <button bindtap="prevStockPage" class="page-btn" disabled="{{stockPage === 1}}">上一页</button>
             <text class="page-info">{{stockPage}} / {{stockTotalPages}} 共 {{stockTotalCount}} 条</text>
             <button bindtap="nextStockPage" class="page-btn" disabled="{{stockPage >= stockTotalPages}}">下一页</button>
         </view>
 
-        <view class="stock-item" wx:for="{{stockList}}" wx:key="_id">
+        <view class="stock-item {{_anim ? 'animate-card' : ''}}" wx:for="{{stockList}}" wx:key="_id" style="animation-delay: {{index * 0.04}}s">
             <view class="stock-info">
                 <text class="goods-name">{{item.goodsName}}</text>
                 <text class="stock-num">{{uiText.availableStock}}: {{item.stock}} {{item.unit||''}}</text>
@@ -63,7 +78,7 @@
         </view>
         
         <!-- 库存列表最下面的分页 -->
-        <view class="pagination" wx:if="{{stockTotalPages > 1}}">
+        <view class="pagination" wx:if="{{stockTotalCount > 0}}">
             <button bindtap="prevStockPage" class="page-btn" disabled="{{stockPage === 1}}">上一页</button>
             <text class="page-info">{{stockPage}} / {{stockTotalPages}} 共 {{stockTotalCount}} 条</text>
             <button bindtap="nextStockPage" class="page-btn" disabled="{{stockPage >= stockTotalPages}}">下一页</button>

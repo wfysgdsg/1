@@ -1,52 +1,104 @@
 page {
-  background-color: #f7f8fa;
+  background: linear-gradient(180deg, #FFF3E8 0%, #f7f8fa 180rpx, #f5f5f5 100%);
 }
 .container {
   padding-bottom: 40rpx;
+  min-height: 100vh;
 }
 .tabs {
-  background-color: #fff;
-  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.05);
+  background: #f0f2ff;
+  border-radius: 20rpx;
   display: -webkit-flex;
   display: flex;
-  padding: 20rpx 40rpx;
-  position: -webkit-sticky;
-  position: sticky;
-  top: 0;
+  margin: 16rpx 0 24rpx;
+  padding: 6rpx;
+  position: relative;
   z-index: 100;
+}
+
+.tab-indicator {
+  position: absolute;
+  top: 6rpx;
+  left: 6rpx;
+  width: calc(50% - 6rpx);
+  height: calc(100% - 12rpx);
+  background: #fff;
+  border-radius: 16rpx;
+  box-shadow: 0 4rpx 12rpx rgba(79, 110, 247, 0.15);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.tab-indicator.right {
+  transform: translateX(100%);
 }
 
 .tab {
   color: #8c8c8c;
   flex: 1;
-  font-size: 30rpx;
-  padding: 10rpx 0;
+  font-size: 28rpx;
+  padding: 20rpx 0;
   position: relative;
   text-align: center;
+  z-index: 1;
+  transition: color 0.25s ease;
 }
 .tab.active {
-  color: #1890ff;
-  font-weight: 700;
+  color: #4F6EF7;
+  font-weight: 600;
 }
-.tab.active::after {
-  background-color: #1890ff;
-  border-radius: 3rpx;
-  bottom: -10rpx;
-  content: '';
-  height: 6rpx;
-  left: 30%;
-  position: absolute;
-  width: 40%;
+.search-bar {
+  align-items: center;
+  background: #fff;
+  display: -webkit-flex;
+  display: flex;
+  gap: 12rpx;
+  padding: 16rpx 30rpx;
+}
+.search-box {
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  display: -webkit-flex;
+  display: flex;
+  flex: 1;
+  min-height: 68rpx;
+  padding: 0 20rpx;
+}
+.search-icon {
+  color: #bfbfbf;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+.search-input {
+  color: #333; flex: 1; font-size: 26rpx;
+  background: transparent; border: none; padding: 0; border-radius: 0;
+}
+.sort-btn {
+  align-items: center;
+  background: #f5f7fa;
+  border-radius: 16rpx;
+  color: #4F6EF7;
+  display: -webkit-flex;
+  display: flex;
+  font-size: 24rpx;
+  min-height: 68rpx;
+  padding: 0 20rpx;
+  white-space: nowrap;
 }
 .borrow-list {
   padding: 30rpx 40rpx;
 }
 .customer-card {
   background-color: #fff;
-  border-radius: 20rpx;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.04);
-  margin-bottom: 30rpx;
+  border-radius: 24rpx;
+  border-left: 6rpx solid #FF9C6E;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.03), 0 8rpx 32rpx rgba(255, 156, 110, 0.04);
+  margin-bottom: 24rpx;
   padding: 30rpx;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.customer-card:active {
+  transform: scale(0.985);
+  box-shadow: 0 1rpx 8rpx rgba(0, 0, 0, 0.03);
 }
 .card-header {
   align-items: flex-start;
@@ -74,9 +126,9 @@ page {
   margin-top: 6rpx;
 }
 .badge-count {
-  background-color: #e6f7ff;
+  background-color: #EEF1FE;
   border-radius: 20rpx;
-  color: #1890ff;
+  color: #4F6EF7;
   font-size: 24rpx;
   font-weight: 500;
   padding: 4rpx 16rpx;
@@ -96,7 +148,7 @@ page {
   font-size: 28rpx;
 }
 .goods-qty {
-  color: #1890ff;
+  color: #4F6EF7;
   font-size: 28rpx;
   font-weight: 500;
 }
@@ -110,7 +162,7 @@ page {
   text-align: right;
 }
 .tap-detail-btn {
-  color: #1890ff;
+  color: #4F6EF7;
   font-size: 24rpx;
 }
 .stock-list {
@@ -163,10 +215,11 @@ page {
 }
 .add-btn {
   align-items: center;
-  background: linear-gradient(135deg, #1890ff, #0050b3);
+  animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55) 0.35s both, fabPulse 2.5s ease-in-out 1s infinite;
+  background: linear-gradient(135deg, #4F6EF7, #3D56D4);
   border-radius: 50rpx;
   bottom: 180rpx;
-  box-shadow: 0 8rpx 30rpx rgba(24, 144, 255, 0.4);
+  box-shadow: 0 8rpx 30rpx rgba(79, 110, 247, 0.40);
   color: #fff;
   display: -webkit-flex;
   display: flex;
@@ -184,31 +237,4 @@ page {
 .add-btn text:last-child {
   font-size: 30rpx;
   font-weight: 700;
-}
-/* 分页样式 */
-.pagination {
-  align-items: center;
-  background: #fff;
-  display: flex;
-  justify-content: center;
-  padding: 16rpx 20rpx;
-  margin: 16rpx 0;
-  border-radius: 12rpx;
-}
-.page-btn {
-  background: #f5f5f5;
-  border: 1rpx solid #e5e5e5;
-  border-radius: 8rpx;
-  color: #666;
-  font-size: 22rpx;
-  padding: 8rpx 16rpx;
-  line-height: 1.2;
-}
-.page-btn[disabled] {
-  color: #ccc;
-}
-.page-info {
-  color: #999;
-  font-size: 22rpx;
-  margin: 0 12rpx;
 }

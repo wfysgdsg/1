@@ -1,66 +1,27 @@
-.container {
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  padding: 20px;
-}
-.form-group {
-  background-color: #fff;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  padding: 0 15px;
-}
-.form-item {
-  align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  display: -webkit-flex;
-  display: flex;
-  padding: 15px 0;
-}
-.form-item:last-child {
-  border-bottom: none;
-}
-.form-item.align-top {
-  align-items: flex-start;
-}
-.label {
-  color: #333;
-  font-size: 14px;
-  width: 80px;
-}
-.form-item input,
-.form-item textarea {
-  flex: 1;
-  font-size: 14px;
-}
-.form-item textarea {
-  height: 80px;
-}
-.radio-group,
-.radio-label {
-  display: -webkit-flex;
-  display: flex;
-}
-.radio-label {
-  align-items: center;
-  font-size: 14px;
-  margin-right: 20px;
-}
-.btn-group {
-  display: -webkit-flex;
-  display: flex;
-  flex-direction: column;
-}
-.btn-submit {
-  background-color: #1890ff;
-  border-radius: 8px;
-  color: #fff;
-  margin-bottom: 15px;
-  width: 100% !important;
-}
-.btn-cancel {
-  background-color: #fff;
-  border: 1px solid #d9d9d9;
-  border-radius: 8px;
-  color: #666;
-  width: 100% !important;
-}
+page { --grad: linear-gradient(135deg,#5B6CF7,#7C5CFF); --accent:#5B6CF7; background: var(--bg); }
+.page { min-height: 100vh; padding-bottom: 200rpx; }
+.hero { background: var(--grad); }
+.body { padding: 28rpx; margin-top: -32rpx; position: relative; z-index: 2; }
+
+.card { background:var(--card); border-radius:var(--r-l); padding:28rpx 28rpx 8rpx; margin-bottom:22rpx; box-shadow:var(--sh-s); }
+.card-h { display:flex; align-items:center; font-size:28rpx; font-weight:700; color:var(--ink); margin-bottom:20rpx; }
+.dot { width:8rpx; height:30rpx; border-radius:4rpx; background:var(--grad); margin-right:14rpx; }
+
+.field { padding-bottom:26rpx; }
+.lab { display:block; font-size:26rpx; color:var(--ink-2); font-weight:600; margin-bottom:14rpx; }
+.inp { width:100%; box-sizing:border-box; height:88rpx; padding:0 26rpx; background:var(--field); border:2rpx solid transparent; border-radius:var(--r-m); font-size:30rpx; color:var(--ink); }
+.inp:focus { border-color:var(--accent); background:#fff; }
+.txt { width:100%; box-sizing:border-box; min-height:160rpx; padding:24rpx 26rpx; background:var(--field); border:2rpx solid transparent; border-radius:var(--r-m); font-size:30rpx; color:var(--ink); }
+.txt:focus { border-color:var(--accent); background:#fff; }
+
+/* 类型单选（胶囊卡片样式） */
+.radio-group { display:flex; gap:20rpx; }
+.radio-label { flex:1; display:flex; align-items:center; justify-content:center; gap:14rpx; height:88rpx; background:var(--field); border:2rpx solid transparent; border-radius:var(--r-m); font-size:28rpx; color:var(--ink-2); transition:all .2s; }
+.radio-label.on { border-color:var(--accent); background:#EEF1FE; color:var(--accent); font-weight:600; }
+.radio-dot { width:34rpx; height:34rpx; border:3rpx solid #D9D9D9; border-radius:50%; box-sizing:border-box; transition:all .2s; }
+.radio-dot.checked { border-color:var(--accent); background:radial-gradient(circle, #fff 30%, var(--accent) 32%); box-shadow:0 4rpx 12rpx rgba(91,108,247,.3); }
+
+.btn { border:none; border-radius:var(--pill); font-size:30rpx; font-weight:600; height:92rpx; line-height:92rpx; }
+.btn::after { border:none; }
+.btn.ghost { flex:1; background:#EEF0F6; color:var(--ink-2); }
+.btn.main { flex:2; background:var(--grad); color:#fff; box-shadow:0 12rpx 30rpx rgba(91,108,247,.36); }

@@ -28,9 +28,9 @@ Page({
   },
 
   // 输入绑定
-  onOldPasswordInput: (e) => this.setData({ oldPassword: e.detail.value }),
-  onNewPasswordInput: (e) => this.setData({ newPassword: e.detail.value }),
-  onConfirmPasswordInput: (e) => this.setData({ confirmPassword: e.detail.value }),
+  onOldPasswordInput: function (e) { this.setData({ oldPassword: e.detail.value }); },
+  onNewPasswordInput: function (e) { this.setData({ newPassword: e.detail.value }); },
+  onConfirmPasswordInput: function (e) { this.setData({ confirmPassword: e.detail.value }); },
 
   /**
    * 提交修改密码
@@ -73,9 +73,12 @@ Page({
 
       const result = res.result;
       if (result && result.success) {
-        // 如果后端返回了新的 Token 则更新
+        // 如果后端返回了新的 Token 则更新（同时更新 userInfo 中的副本）
         if (result.sessionToken) {
           wx.setStorageSync('sessionToken', result.sessionToken);
+          var userInfo = wx.getStorageSync('userInfo') || {};
+          userInfo.sessionToken = result.sessionToken;
+          wx.setStorageSync('userInfo', userInfo);
         }
         
         wx.showToast({ title: '密码修改成功', icon: 'success' });

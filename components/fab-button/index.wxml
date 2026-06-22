@@ -1,0 +1,7 @@
+<view
+  class="fab fab-{{position}} fab-{{color}}"
+  bindtap="onTap"
+>
+  <text wx:if="{{icon}}" class="fab-icon">{{icon}}</text>
+  <text wx:if="{{text}}" class="fab-text">{{text}}</text>
+</view>

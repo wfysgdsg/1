@@ -1,33 +1,54 @@
-<view class="container">
-    <view class="search-bar">
-        <text class="search-icon">搜</text>
-        <input bindinput="onSearch" class="search-input" placeholder="搜索商品名称"></input>
+<view class="page {{_anim ? 'animate-fade-in' : ''}}">
+  <!-- 1) 顶部渐变大头（Tab 页无返回按钮） -->
+  <view class="hero">
+    <view class="hero-orb a"></view>
+    <view class="hero-orb b"></view>
+    <view class="hero-top">
+      <text class="hero-title">商品库</text>
+      <text class="hero-sub">共 {{totalCount}} 件商品 · 借货 / 开票快速调用</text>
     </view>
-    <view class="goods-list" wx:if="{{goodsList.length}}">
-        <view class="goods-item" wx:for="{{goodsList}}" wx:key="_id">
-            <view class="goods-info">
-                <text class="goods-name">{{item.name}}</text>
-                <view class="goods-tags">
-                    <text class="tag">成本: {{item.costPrice}}</text>
-                    <text class="tag">售价: {{item.salePrice}}</text>
-                    <text class="tag stock">库存: {{item.stock||0}}{{item.unit||''}}</text>
-                </view>
-            </view>
-            <view class="goods-actions">
-                <text bindtap="editGoods" class="action-btn edit" data-id="{{item._id}}">编辑</text>
-                <text bindtap="deleteGoods" class="action-btn delete" data-id="{{item._id}}">删除</text>
-            </view>
+
+    <!-- 搜索框（悬浮在 hero 上） -->
+    <view class="search">
+      <text class="search-ico">🔍</text>
+      <input class="search-inp" bindinput="onSearch" placeholder="搜索商品名称" placeholder-class="search-ph"/>
+    </view>
+  </view>
+
+  <!-- 2) 列表内容区 -->
+  <view class="body">
+    <view class="list" wx:if="{{goodsList.length}}">
+      <view class="g-card {{_anim ? 'animate-card' : ''}}" wx:for="{{goodsList}}" wx:key="_id" style="animation-delay: {{index * 0.08 < 0.4 ? index * 0.08 : 0.4}}s">
+        <view class="g-main">
+          <text class="g-name">{{item.name}}</text>
+          <view class="g-tags">
+            <text class="g-tag">成本 ¥{{item.costPrice}}</text>
+            <text class="g-tag price">售价 ¥{{item.salePrice}}</text>
+            <text class="g-tag stock">库存 {{item.stock||0}}{{item.unit||''}}</text>
+          </view>
         </view>
+        <view class="g-acts" wx:if="{{isAdmin}}">
+          <text bindtap="editGoods" class="g-btn edit x-tap" data-id="{{item._id}}">编辑</text>
+          <text bindtap="deleteGoods" class="g-btn del x-tap" data-id="{{item._id}}">删除</text>
+        </view>
+      </view>
     </view>
-    
-    <view class="pagination" wx:if="{{totalPages > 1}}">
-        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
-        <text class="page-info">{{currentPage}} / {{totalPages}}</text>
-        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage === totalPages}}">下一页</button>
-    </view>
+
+    <!-- 空状态 -->
     <view class="empty" wx:else>
-        <text class="empty-icon">货</text>
-        <text>暂无商品</text>
+      <text class="empty-ico">📦</text>
+      <text class="empty-txt">暂无商品</text>
+      <text class="empty-tip">点击下方按钮，新增第一件商品</text>
     </view>
-    <view bindtap="goToAdd" class="add-btn">+ 新增商品</view>
+
+    <!-- 分页 -->
+    <view class="pager" wx:if="{{totalPages > 1}}">
+      <button bindtap="prevPage" class="pg-btn" disabled="{{currentPage === 1}}">上一页</button>
+      <text class="pg-info">{{currentPage}} / {{totalPages}}</text>
+      <button bindtap="nextPage" class="pg-btn" disabled="{{currentPage === totalPages}}">下一页</button>
+    </view>
+  </view>
+
+  <!-- 3) 悬浮新增按钮 -->
+  <view bindtap="goToAdd" class="fab">+ 新增商品</view>
 </view>

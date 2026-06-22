@@ -1,41 +1,61 @@
-<view class="container">
+<view class="page">
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">往来单位</text>
+    <text class="x-hero-sub">管理客户与厂家联系人</text>
+  </view>
+
+  <view class="body">
+    <!-- 类型切换 -->
+    <view class="tabs">
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='all'?'active':''}}" data-tab="all">全部</view>
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='customer'?'active':''}}" data-tab="customer">客户</view>
+      <view bindtap="switchTab" class="tab x-tap {{activeTab==='supplier'?'active':''}}" data-tab="supplier">厂家</view>
+    </view>
+
+    <!-- 搜索条 -->
     <view class="search-bar">
-        <icon size="18" type="search"></icon>
-        <input bindinput="onSearch" placeholder="搜索名称/备注" type="text" value="{{searchKeyword}}"></input>
+      <text class="search-icon">🔍</text>
+      <input bindinput="onSearch" class="search-input" placeholder="搜索名称/备注" type="text" value="{{searchKeyword}}"></input>
     </view>
 
     <!-- 顶部分页 -->
-    <view class="pagination" wx:if="{{totalPages > 1}}">
-        <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
-        <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
-        <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
+    <view class="pagination" wx:if="{{totalCount > 0}}">
+      <button bindtap="prevPage" class="page-btn x-tap" disabled="{{currentPage === 1}}">上一页</button>
+      <text class="page-info">{{currentPage}} / {{totalPages}} · 共 {{totalCount}} 条</text>
+      <button bindtap="nextPage" class="page-btn x-tap" disabled="{{currentPage >= totalPages}}">下一页</button>
     </view>
 
-    <scroll-view scrollY class="contact-list">
-        <view bindtap="editContact" class="contact-card" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id">
-            <view class="contact-info">
-                <view class="name-row">
-                    <text class="name">{{item.name}}</text>
-                </view>
-                <view class="detail" wx:if="{{item.contact}}">联系方式: {{item.contact}}</view>
-                <view class="detail" wx:if="{{item.note}}">备注: {{item.note}}</view>
-            </view>
-            <view catchtap="deleteContact" class="delete-btn" data-id="{{item._id}}">
-                <icon color="#ff4d4f" size="20" type="cancel"></icon>
-            </view>
+    <!-- 列表 -->
+    <view class="list">
+      <view bindtap="editContact" class="item x-tap {{_anim ? 'animate-card' : ''}}" data-id="{{item._id}}" wx:for="{{contactList}}" wx:key="_id" style="animation-delay: {{index * 0.06 < 0.36 ? index * 0.06 : 0.36}}s">
+        <view class="item-avatar {{item.type==='supplier'?'supplier':'customer'}}">{{item.type==='supplier'?'🏭':'👤'}}</view>
+        <view class="item-info">
+          <view class="name-row">
+            <text class="item-name">{{item.name}}</text>
+            <text class="tag {{item.type==='supplier'?'supplier':'customer'}}">{{item.type==='supplier'?'厂家':'客户'}}</text>
+          </view>
+          <view class="item-remark" wx:if="{{item.note}}">备注: {{item.note}}</view>
         </view>
-        <view class="empty" wx:if="{{contactList.length===0}}">
-            <text>暂无联系人，请点击下方 + 号添加</text>
-        </view>
+        <view catchtap="deleteContact" class="del-btn x-tap" data-id="{{item._id}}">✕</view>
+      </view>
 
-        <!-- 底部分页 -->
-        <view class="pagination" wx:if="{{totalPages > 1}}">
-            <button bindtap="prevPage" class="page-btn" disabled="{{currentPage === 1}}">上一页</button>
-            <text class="page-info">{{currentPage}} / {{totalPages}} 共 {{totalCount}} 条</text>
-            <button bindtap="nextPage" class="page-btn" disabled="{{currentPage >= totalPages}}">下一页</button>
-        </view>
-    </scroll-view>
-    <view bindtap="goToAdd" class="fab">
-        <text class="plus">+</text>
+      <view class="empty-state" wx:if="{{contactList.length===0}}">
+        <text class="empty-icon">📇</text>
+        <text class="empty-text">暂无往来单位，点击下方按钮添加</text>
+      </view>
     </view>
+
+    <!-- 底部分页 -->
+    <view class="pagination" wx:if="{{totalCount > 0}}">
+      <button bindtap="prevPage" class="page-btn x-tap" disabled="{{currentPage === 1}}">上一页</button>
+      <text class="page-info">{{currentPage}} / {{totalPages}} · 共 {{totalCount}} 条</text>
+      <button bindtap="nextPage" class="page-btn x-tap" disabled="{{currentPage >= totalPages}}">下一页</button>
+    </view>
+  </view>
+
+  <view class="x-glass-bar">
+    <button bindtap="goToAdd" class="btn main x-tap">+ 新增往来单位</button>
+  </view>
 </view>

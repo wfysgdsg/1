@@ -40,6 +40,13 @@ Page({
     this.restoreLoginPreferences();
   },
 
+  onShow: function () {
+    // 如果已登录，直接跳转到首页
+    if (wx.getStorageSync('userInfo') && wx.getStorageSync('sessionToken')) {
+      wx.switchTab({ url: '/pages/index/index' });
+    }
+  },
+
   /**
    * 从本地缓存恢复登录偏好（记住密码、自动登录）
    * 修复：使用安全令牌替代明文密码存储
@@ -139,6 +146,19 @@ Page({
         wx.setStorageSync('userId', userInfo._id);
         wx.setStorageSync('sessionToken', userInfo.sessionToken);
 
+        // ★ H3: 强制改密（与手动登录逻辑一致）
+        if (result.mustChangePwd) {
+          wx.showModal({
+            title: '请修改初始密码',
+            content: '为了账号安全，请先修改初始密码',
+            showCancel: false,
+            success: function () {
+              wx.redirectTo({ url: '/pages/password/index' });
+            }
+          });
+          return;
+        }
+
         wx.showToast({ title: '自动登录成功', icon: 'success' });
 
         setTimeout(() => {
@@ -204,6 +224,19 @@ Page({
           this.persistLoginPreferences();
         }
 
+        // ★ H3: 首次登录/管理员创建账号 → 强制改密
+        if (result.mustChangePwd) {
+          wx.showModal({
+            title: '请修改初始密码',
+            content: '为了账号安全，请先修改初始密码',
+            showCancel: false,
+            success: function () {
+              wx.redirectTo({ url: '/pages/password/index' });
+            }
+          });
+          return;
+        }
+
         wx.showToast({ title: '登录成功', icon: 'success' });
 
         setTimeout(() => {
@@ -247,6 +280,14 @@ Page({
     wx.showModal({
       title: '提示',
       content: '请联系管理员重置密码',
+      showCancel: false
+    });
+  },
+
+  changePassword: function () {
+    wx.showModal({
+      title: '提示',
+      content: '请先登录，再进入「我的」→「修改密码」',
       showCancel: false
     });
   }

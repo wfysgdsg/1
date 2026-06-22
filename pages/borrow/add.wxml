@@ -1,95 +1,125 @@
-<view class="container">
-    <view class="form">
-        <view class="ai-recognition">
-            <button bindtap="takePhoto" class="ai-btn" disabled="{{isRecognizing}}">
-                <text class="ai-icon">📷</text>
-                <text>{{isRecognizing?'识别中...':'AI拍照识别商品'}}</text>
-            </button>
+<view class="page">
+  <!-- 1) 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">新增借货</text>
+    <text class="x-hero-sub">选择商品与客户，快速创建借货单</text>
+  </view>
+
+  <!-- 2) 内容卡片区 -->
+  <view class="body">
+    <!-- 选择商品 -->
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>选择商品</view>
+
+      <view class="goods-select">
+        <view class="input-wrapper">
+          <input bindinput="onSearchInput" class="inp" confirmType="search" placeholder="输入商品名称搜索" value="{{searchKeyword}}"></input>
+          <view bindtap="clearSearch" class="clear-search x-tap" wx:if="{{searchKeyword}}">×</view>
         </view>
-        <view class="form-section">
-            <view class="section-title">文字批量识别</view>
-            <view class="text-input-area">
-                <textarea bindinput="onTextInput" class="text-input" placeholder="粘贴或输入商品文字（如：CTL-205黑色 x 1, CTL-350红色 x 2），支持手机输入法语音输入" value="{{textInput}}"></textarea>
-                <view class="text-input-actions">
-                    <button bindtap="parseTextInput" class="parse-btn" disabled="{{!textInput}}">解析识别</button>
-                    <button bindtap="clearTextInput" class="clear-btn" disabled="{{!textInput}}">清空</button>
-                </view>
+
+        <view class="search-result" wx:if="{{showSearchResults&&searchResults.length>0}}">
+          <view class="result-item" wx:for="{{searchResults}}" wx:key="_id">
+            <view bindtap="toggleCheck" class="check-box {{checkedIds[item._id] ? 'checked' : ''}}" data-id="{{item._id}}">
+              <text class="check-mark" wx:if="{{checkedIds[item._id]}}">✓</text>
             </view>
-        </view>
-        <view class="form-section">
-            <view class="section-title">选择商品</view>
-            <view class="goods-select">
-                <view class="input-wrapper">
-                    <input bindinput="onSearchInput" class="input" confirmType="search" placeholder="输入商品名称搜索" value="{{searchKeyword}}"></input>
-                    <view bindtap="clearSearch" class="clear-search" wx:if="{{searchKeyword}}">×</view>
-                </view>
-                <view class="search-result" wx:if="{{showSearchResults&&searchResults.length>0}}">
-                    <view bindtap="selectGoods" class="result-item" data-item="{{item}}" wx:for="{{searchResults}}" wx:key="_id">
-                        <text>{{item.name}}</text>
-                        <text class="result-price">¥{{item.costPrice}}</text>
-                    </view>
-                </view>
-                <view class="search-result empty-result" wx:if="{{showSearchResults&&searchResults.length===0&&searchKeyword}}">
-                    <text>未找到商品</text>
-                </view>
+            <view bindtap="selectGoods" class="result-info" data-item="{{item}}">
+              <text class="result-name">{{item.name}}</text>
+              <text class="result-price">¥{{item.costPrice}}</text>
             </view>
-            <view bindtap="goToAddGoods" class="add-quick-link">+ 新增商品</view>
-            <view class="selected-goods" wx:if="{{selectedGoods.length>0}}">
-                <view class="goods-item" wx:for="{{selectedGoods}}" wx:key="index">
-                    <view class="goods-header">
-                        <text class="goods-name">{{item.name}}</text>
-                        <text bindtap="removeGoods" class="remove-btn" data-index="{{index}}">×</text>
-                    </view>
-                    <view class="goods-body">
-                        <view class="price-row">
-                            <text class="price-label">成本:</text>
-                            <input bindinput="onCostPriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.costPrice}}"></input>
-                        </view>
-                        <view class="price-row">
-                            <text class="price-label">数量:</text>
-                            <input bindinput="onQuantityInput" class="quantity-input" data-index="{{index}}" placeholder="0" type="digit" value="{{item.quantity}}"></input>
-                        </view>
-                    </view>
-                    <view class="goods-footer">
-                        <text class="goods-unit">单位: {{item.unit||'无'}}</text>
-                    </view>
-                </view>
+          </view>
+          <view class="batch-bar" wx:if="{{checkedCount > 0}}">
+            <text class="batch-count">已选 {{checkedCount}} 项</text>
+            <button bindtap="batchAddGoods" class="batch-add-btn x-tap">批量添加</button>
+          </view>
+        </view>
+
+        <view class="search-result empty-result" wx:if="{{showSearchResults&&searchResults.length===0&&searchKeyword}}">
+          <text>未找到商品</text>
+        </view>
+      </view>
+
+      <view bindtap="goToAddGoods" class="add-quick-link x-tap">+ 新增商品</view>
+
+      <view class="selected-goods" wx:if="{{selectedGoods.length>0}}">
+        <view class="goods-item" wx:for="{{selectedGoods}}" wx:key="index">
+          <view class="goods-header">
+            <text class="goods-name">{{item.name}}</text>
+            <text bindtap="removeGoods" class="remove-btn x-tap" data-index="{{index}}">×</text>
+          </view>
+          <view class="goods-body">
+            <view class="price-row">
+              <text class="price-label">成本</text>
+              <input bindinput="onCostPriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.costPrice}}"></input>
             </view>
-        </view>
-        <view class="form-section">
-            <view class="section-title">客户信息 *</view>
-            <view class="location-search">
-                <input bindinput="onLocationSearchInput" class="contact-input" confirmType="search" placeholder="输入关键字搜索客户" value="{{locationSearchKeyword}}"></input>
-                <view class="contact-results" wx:if="{{showLocationResults&&locationSearchResults.length>0}}">
-                    <view bindtap="selectLocation" class="contact-item" data-item="{{item}}" wx:for="{{locationSearchResults}}" wx:key="_id">
-                        <text>{{item.name}}</text>
-                        <text class="result-detail" wx:if="{{item.contact}}">{{item.contact}}</text>
-                    </view>
-                </view>
-                <view class="contact-results empty-result" wx:if="{{showLocationResults&&locationSearchResults.length===0&&locationSearchKeyword}}">
-                    <text>未找到匹配客户</text>
-                </view>
+            <view class="price-row">
+              <text class="price-label">售价</text>
+              <input bindinput="onSalePriceInput" class="price-input" data-index="{{index}}" type="digit" value="{{item.salePrice}}"></input>
             </view>
-            <view class="selected-location" wx:if="{{selectedLocation}}">
-                <text class="selected-text">已选: {{selectedLocation.name}}</text>
-                <text bindtap="clearLocationSearch" class="clear-btn">×</text>
+            <view class="price-row">
+              <text class="price-label">数量</text>
+              <input bindinput="onQuantityInput" class="quantity-input" data-index="{{index}}" placeholder="0" type="digit" value="{{item.quantity}}"></input>
             </view>
-            <view bindtap="goToAddContact" class="add-quick-link">+ 新增客户</view>
+          </view>
+          <view class="goods-footer">
+            <text class="goods-unit">单位：{{item.unit||'无'}}</text>
+          </view>
         </view>
-        <view class="form-item">
-            <text class="label">借货日期 *</text>
-            <picker bindchange="onDateChange" mode="date" value="{{borrowDate}}">
-                <view class="picker">{{borrowDate||'请选择日期'}}</view>
-            </picker>
-        </view>
-        <view class="form-item">
-            <text class="label">备注</text>
-            <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
-        </view>
-        <view class="stock-tip">提示：借货成功后，商品会自动添加到你的个人库存中</view>
+      </view>
     </view>
-    <view class="btn-group">
-        <button bindtap="goBack" class="cancel-btn">取消</button>
-        <button bindtap="submit" class="submit-btn">确认借货</button>
+
+    <!-- 客户信息 -->
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>客户信息 <text class="req">*</text></view>
+
+      <view class="location-search">
+        <input bindinput="onLocationSearchInput" class="inp" confirmType="search" placeholder="输入关键字搜索客户" value="{{locationSearchKeyword}}"></input>
+        <view class="contact-results" wx:if="{{showLocationResults&&locationSearchResults.length>0}}">
+          <view bindtap="selectLocation" class="contact-item" data-item="{{item}}" wx:for="{{locationSearchResults}}" wx:key="_id">
+            <text class="contact-name">{{item.name}}</text>
+            <text class="result-detail" wx:if="{{item.contact}}">{{item.contact}}</text>
+          </view>
+        </view>
+        <view class="contact-results empty-result" wx:if="{{showLocationResults&&locationSearchResults.length===0&&locationSearchKeyword}}">
+          <text>未找到匹配客户</text>
+        </view>
+      </view>
+
+      <view class="selected-location" wx:if="{{selectedLocation}}">
+        <text class="selected-text">已选：{{selectedLocation.name}}</text>
+        <text bindtap="clearLocationSearch" class="clear-btn x-tap">×</text>
+      </view>
+
+      <view bindtap="goToAddContact" class="add-quick-link x-tap">+ 新增客户</view>
     </view>
+
+    <!-- 借货信息 -->
+    <view class="card">
+      <view class="card-h"><view class="dot"></view>借货信息</view>
+
+      <view class="field">
+        <text class="lab">借货日期 <text class="req">*</text></text>
+        <picker bindchange="onDateChange" mode="date" value="{{borrowDate}}">
+          <view class="picker">
+            <text>{{borrowDate||'请选择日期'}}</text>
+            <text class="picker-arrow">›</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="field">
+        <text class="lab">备注</text>
+        <textarea bindinput="onRemarkInput" class="textarea" placeholder="可选填写" value="{{remark}}"></textarea>
+      </view>
+
+      <view class="stock-tip">提示：借货成功后，商品会自动添加到你的个人库存中</view>
+    </view>
+  </view>
+
+  <!-- 3) 底部玻璃操作栏 -->
+  <view class="x-glass-bar">
+    <button bindtap="goBack" class="btn ghost x-tap">取消</button>
+    <button bindtap="submit" class="btn main x-tap" disabled="{{submitting}}">{{submitting ? '提交中...' : '确认借货'}}</button>
+  </view>
 </view>

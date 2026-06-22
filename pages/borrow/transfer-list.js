@@ -1,394 +1,221 @@
-var e = require('../../@babel/runtime/helpers/createForOfIteratorHelper'),
-  t = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  r = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  a = wx.cloud.database(),
-  n = a.command;
+/**
+ * 借货调货处理页
+ * 整理日期：2026-04-09
+ * 修复：rejectTransfer/acceptTransfer 改为调用 transferManage 云函数（事务保证原子性）
+ * 新增：处理记录 Tab，发方接方都能看到历史
+ */
+const db = wx.cloud.database();
+const _ = db.command;
+const { fetchAll } = require('../../utils/db');
+
 Page({
-  data: { requestList: [], loading: !1 },
-  onShow: function () {
-    this.loadRequests();
+  data: {
+    _anim: true,
+    tab: 'pending',
+    requestList: [],
+    historyList: [],
+    allHistoryCache: [],
+    historyPage: 1,
+    historyPageSize: 10,
+    historyTotalPages: 0,
+    historyTotalCount: 0,
+    loading: false
   },
+
+  onShow: function () {this.loadRequests();
+    this.loadHistory();
+  },
+
   onPullDownRefresh: function () {
+    this.setData({ historyPage: 1 });
     this.loadRequests();
+    this.loadHistory();
   },
+
+  switchTab: function (e) {
+    this.setData({ tab: e.currentTarget.dataset.tab });
+  },
+
   loadRequests: function () {
-    var e = this;
-    return r(
-      t().mark(function r() {
-        var n, o;
-        return t().wrap(
-          function (t) {
-            for (;;)
-              switch ((t.prev = t.next)) {
-                case 0:
-                  return (
-                    e.setData({ loading: !0 }),
-                    (n = wx.getStorageSync('userInfo')),
-                    (t.prev = 2),
-                    (t.next = 5),
-                    a
-                      .collection('transfer_requests')
-                      .where({ receiverId: n._id, status: 'pending' })
-                      .orderBy('createTime', 'desc')
-                      .get()
-                  );
-                case 5:
-                  (o = t.sent),
-                    e.setData({ requestList: o.data || [] }),
-                    wx.stopPullDownRefresh(),
-                    (t.next = 13);
-                  break;
-                case 10:
-                  (t.prev = 10),
-                    (t.t0 = t.catch(2)),
-                    console.error('加载申请失败', t.t0);
-                case 13:
-                  return (
-                    (t.prev = 13), e.setData({ loading: !1 }), t.finish(13)
-                  );
-                case 16:
-                case 'end':
-                  return t.stop();
-              }
+    var that = this;
+    var userInfo = wx.getStorageSync('userInfo') || {};
+    this.setData({ loading: true });
+
+    db.collection('transfer_requests')
+      .where({ receiverId: userInfo._id, status: 'pending' })
+      .orderBy('createTime', 'desc')
+      .get()
+      .then(function (res) {
+        var list = (res.data || []).map(function (item) {
+          item.timeStr = that.formatTime(item.createTime);
+          return item;
+        });
+        that.setData({ requestList: list });
+        wx.stopPullDownRefresh();
+      })
+      .catch(function (err) {
+        console.error('加载申请失败', err);
+      })
+      .finally(function () {
+        that.setData({ loading: false });
+      });
+  },
+
+  loadHistory: function () {
+    var that = this;
+    var userInfo = wx.getStorageSync('userInfo') || {};
+
+    fetchAll(function() {
+      return db.collection('transfer_requests')
+        .where(_.and([
+          { status: _.neq('pending') },
+          _.or([{ senderId: userInfo._id }, { receiverId: userInfo._id }])
+        ]))
+        .orderBy('createTime', 'desc');
+    }, { pageSize: 100 })
+      .then(function (allRecords) {
+        var formatted = allRecords.map(function (item) {
+          item.timeStr = that.formatTime(item.createTime);
+          return item;
+        });
+        var total = formatted.length;
+        var totalPages = Math.ceil(total / that.data.historyPageSize);
+        var page = Math.min(that.data.historyPage, totalPages || 1);
+        var start = (page - 1) * that.data.historyPageSize;
+        that.setData({
+          allHistoryCache: formatted,
+          historyList: formatted.slice(start, start + that.data.historyPageSize),
+          historyTotalCount: total,
+          historyTotalPages: totalPages,
+          historyPage: page
+        });
+      })
+      .catch(function (err) {
+        console.error('加载历史失败', err);
+      });
+  },
+
+  prevHistoryPage: function () {
+    if (this.data.historyPage <= 1) return;
+    var page = this.data.historyPage - 1;
+    var start = (page - 1) * this.data.historyPageSize;
+    this.setData({
+      historyPage: page,
+      historyList: this.data.allHistoryCache.slice(start, start + this.data.historyPageSize)
+    });
+  },
+
+  nextHistoryPage: function () {
+    if (this.data.historyPage >= this.data.historyTotalPages) return;
+    var page = this.data.historyPage + 1;
+    var start = (page - 1) * this.data.historyPageSize;
+    this.setData({
+      historyPage: page,
+      historyList: this.data.allHistoryCache.slice(start, start + this.data.historyPageSize)
+    });
+  },
+
+  formatTime: function (time) {
+    if (!time) return '';
+    var d = new Date(time);
+    if (isNaN(d.getTime())) return '';
+    var y = d.getFullYear();
+    var M = String(d.getMonth() + 1).padStart(2, '0');
+    var dd = String(d.getDate()).padStart(2, '0');
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    return y + '-' + M + '-' + dd + ' ' + h + ':' + m;
+  },
+
+  /**
+   * 拒绝调货（云函数事务版）
+   */
+  rejectTransfer: function (e) {
+    var that = this;
+    var id = e.currentTarget.dataset.id;
+    var item = this.data.requestList.find(function (r) { return r._id === id; });
+
+    if (!item) return;
+
+    wx.showModal({
+      title: '确认拒绝',
+      content: '确定要拒绝来自 ' + (item.senderName || '') + ' 的移货申请吗？',
+      success: function (res) {
+        if (!res.confirm) return;
+
+        wx.showLoading({ title: '处理中...' });
+
+        var userId = wx.getStorageSync('userId');
+        var sessionToken = wx.getStorageSync('sessionToken');
+
+        wx.cloud.callFunction({
+          name: 'transferManage',
+          data: {
+            userId: userId,
+            sessionToken: sessionToken,
+            transferRequestId: id,
+            action: 'reject',
           },
-          r,
-          null,
-          [[2, 10, 13, 16]],
-        );
-      }),
-    )();
+        }).then(function (res) {
+          wx.hideLoading();
+          if (res.result && res.result.success) {
+            wx.showToast({ title: '已拒绝', icon: 'success' });
+            that.loadRequests();
+          } else {
+            wx.showToast({ title: (res.result && res.result.message) || '操作失败', icon: 'none' });
+          }
+        }).catch(function (err) {
+          wx.hideLoading();
+          console.error('拒绝失败', err);
+          wx.showToast({ title: '操作失败', icon: 'none' });
+        });
+      }
+    });
   },
-  rejectTransfer: function (n) {
-    var o = this;
-    return r(
-      t().mark(function s() {
-        var c, i;
-        return t().wrap(function (s) {
-          for (;;)
-            switch ((s.prev = s.next)) {
-              case 0:
-                (c = n.currentTarget.dataset.id),
-                  (i = o.data.requestList.find(function (e) {
-                    return e._id === c;
-                  })),
-                  wx.showModal({
-                    title: '确认拒绝',
-                    content: '确定要拒绝来自 '.concat(
-                      i.senderName,
-                      ' 的移货申请吗？',
-                    ),
-                    success: (function () {
-                      var n = r(
-                        t().mark(function r(n) {
-                          var s, d, u;
-                          return t().wrap(
-                            function (t) {
-                              for (;;)
-                                switch ((t.prev = t.next)) {
-                                  case 0:
-                                    if (!n.confirm) {
-                                      t.next = 32;
-                                      break;
-                                    }
-                                    return (
-                                      wx.showLoading({ title: '处理中...' }),
-                                      (t.prev = 2),
-                                      (t.next = 5),
-                                      a
-                                        .collection('transfer_requests')
-                                        .doc(c)
-                                        .update({
-                                          data: { status: 'rejected' },
-                                        })
-                                    );
-                                  case 5:
-                                    (s = e(i.goodsList)), (t.prev = 6), s.s();
-                                  case 8:
-                                    if ((d = s.n()).done) {
-                                      t.next = 14;
-                                      break;
-                                    }
-                                    return (
-                                      (u = d.value),
-                                      (t.next = 12),
-                                      a
-                                        .collection('borrow')
-                                        .doc(u.originalBorrowId)
-                                        .update({ data: { status: 'pending' } })
-                                    );
-                                  case 12:
-                                    t.next = 8;
-                                    break;
-                                  case 14:
-                                    t.next = 19;
-                                    break;
-                                  case 16:
-                                    (t.prev = 16),
-                                      (t.t0 = t.catch(6)),
-                                      s.e(t.t0);
-                                  case 19:
-                                    return (t.prev = 19), s.f(), t.finish(19);
-                                  case 22:
-                                    wx.showToast({ title: '已拒绝' }),
-                                      o.loadRequests(),
-                                      (t.next = 29);
-                                    break;
-                                  case 26:
-                                    (t.prev = 26),
-                                      (t.t1 = t.catch(2)),
-                                      console.error('拒绝失败', t.t1);
-                                  case 29:
-                                    return (
-                                      (t.prev = 29),
-                                      wx.hideLoading(),
-                                      t.finish(29)
-                                    );
-                                  case 32:
-                                  case 'end':
-                                    return t.stop();
-                                }
-                            },
-                            r,
-                            null,
-                            [
-                              [2, 26, 29, 32],
-                              [6, 16, 19, 22],
-                            ],
-                          );
-                        }),
-                      );
-                      return function (e) {
-                        return n.apply(this, arguments);
-                      };
-                    })(),
-                  });
-              case 3:
-              case 'end':
-                return s.stop();
-            }
-        }, s);
-      }),
-    )();
-  },
-  acceptTransfer: function (o) {
-    var s = this;
-    return r(
-      t().mark(function c() {
-        var i, d, u;
-        return t().wrap(function (c) {
-          for (;;)
-            switch ((c.prev = c.next)) {
-              case 0:
-                (i = o.currentTarget.dataset.id),
-                  (d = s.data.requestList.find(function (e) {
-                    return e._id === i;
-                  })),
-                  (u = wx.getStorageSync('userInfo')),
-                  wx.showModal({
-                    title: '确认接收',
-                    content: '同意接收 '.concat(
-                      d.senderName,
-                      ' 移交给您的商品？',
-                    ),
-                    success: (function () {
-                      var o = r(
-                        t().mark(function r(o) {
-                          var c, l, f, p, g;
-                          return t().wrap(
-                            function (t) {
-                              for (;;)
-                                switch ((t.prev = t.next)) {
-                                  case 0:
-                                    if (!o.confirm) {
-                                      t.next = 50;
-                                      break;
-                                    }
-                                    wx.showLoading({
-                                      title: '正在办理移交...',
-                                      mask: !0,
-                                    }),
-                                      (t.prev = 2),
-                                      (c = e(d.goodsList)),
-                                      (t.prev = 4),
-                                      c.s();
-                                  case 6:
-                                    if ((l = c.n()).done) {
-                                      t.next = 30;
-                                      break;
-                                    }
-                                    return (
-                                      (f = l.value),
-                                      (t.next = 10),
-                                      a
-                                        .collection('borrow')
-                                        .doc(f.originalBorrowId)
-                                        .update({
-                                          data: {
-                                            status: 'returned',
-                                            memo: '已移交给 '.concat(
-                                              d.receiverName,
-                                            ),
-                                          },
-                                        })
-                                    );
-                                  case 10:
-                                    return (
-                                      (t.next = 12),
-                                      a
-                                        .collection('borrow')
-                                        .add({
-                                          data: {
-                                            borrowerId: u._id,
-                                            borrowerName: u.name,
-                                            goodsId: f.goodsId,
-                                            goodsName: f.goodsName,
-                                            quantity: f.quantity,
-                                            unit: f.unit,
-                                            costPrice: f.costPrice,
-                                            salePrice: f.salePrice,
-                                            borrowDate: new Date()
-                                              .toISOString()
-                                              .split('T')[0],
-                                            locationId: '',
-                                            locationName: d.fromCustomerName,
-                                            status: 'pending',
-                                            createTime: a.serverDate(),
-                                          },
-                                        })
-                                    );
-                                  case 12:
-                                    return (
-                                      (t.next = 14),
-                                      a
-                                        .collection('user_goods')
-                                        .where({
-                                          userId: d.senderId,
-                                          goodsId: f.goodsId,
-                                        })
-                                        .get()
-                                    );
-                                  case 14:
-                                    if (!((p = t.sent).data.length > 0)) {
-                                      t.next = 18;
-                                      break;
-                                    }
-                                    return (
-                                      (t.next = 18),
-                                      a
-                                        .collection('user_goods')
-                                        .doc(p.data[0]._id)
-                                        .update({
-                                          data: { stock: n.inc(-f.quantity) },
-                                        })
-                                    );
-                                  case 18:
-                                    return (
-                                      (t.next = 20),
-                                      a
-                                        .collection('user_goods')
-                                        .where({
-                                          userId: u._id,
-                                          goodsId: f.goodsId,
-                                        })
-                                        .get()
-                                    );
-                                  case 20:
-                                    if (!((g = t.sent).data.length > 0)) {
-                                      t.next = 26;
-                                      break;
-                                    }
-                                    return (
-                                      (t.next = 24),
-                                      a
-                                        .collection('user_goods')
-                                        .doc(g.data[0]._id)
-                                        .update({
-                                          data: { stock: n.inc(f.quantity) },
-                                        })
-                                    );
-                                  case 24:
-                                    t.next = 28;
-                                    break;
-                                  case 26:
-                                    return (
-                                      (t.next = 28),
-                                      a
-                                        .collection('user_goods')
-                                        .add({
-                                          data: {
-                                            userId: u._id,
-                                            goodsId: f.goodsId,
-                                            goodsName: f.goodsName,
-                                            stock: f.quantity,
-                                            unit: f.unit,
-                                          },
-                                        })
-                                    );
-                                  case 28:
-                                    t.next = 6;
-                                    break;
-                                  case 30:
-                                    t.next = 35;
-                                    break;
-                                  case 32:
-                                    (t.prev = 32),
-                                      (t.t0 = t.catch(4)),
-                                      c.e(t.t0);
-                                  case 35:
-                                    return (t.prev = 35), c.f(), t.finish(35);
-                                  case 38:
-                                    return (
-                                      (t.next = 40),
-                                      a
-                                        .collection('transfer_requests')
-                                        .doc(i)
-                                        .update({
-                                          data: { status: 'accepted' },
-                                        })
-                                    );
-                                  case 40:
-                                    wx.hideLoading(),
-                                      wx.showToast({
-                                        title: '移交成功',
-                                        icon: 'success',
-                                      }),
-                                      s.loadRequests(),
-                                      (t.next = 50);
-                                    break;
-                                  case 45:
-                                    (t.prev = 45),
-                                      (t.t1 = t.catch(2)),
-                                      console.error('移交失败', t.t1),
-                                      wx.hideLoading(),
-                                      wx.showToast({
-                                        title: '操作失败',
-                                        icon: 'none',
-                                      });
-                                  case 50:
-                                  case 'end':
-                                    return t.stop();
-                                }
-                            },
-                            r,
-                            null,
-                            [
-                              [2, 45],
-                              [4, 32, 35, 38],
-                            ],
-                          );
-                        }),
-                      );
-                      return function (e) {
-                        return o.apply(this, arguments);
-                      };
-                    })(),
-                  });
-              case 4:
-              case 'end':
-                return c.stop();
-            }
-        }, c);
-      }),
-    )();
+
+  /**
+   * 接受调货（云函数事务版）
+   */
+  acceptTransfer: function (e) {
+    var that = this;
+    var id = e.currentTarget.dataset.id;
+    var item = this.data.requestList.find(function (r) { return r._id === id; });
+
+    if (!item) return;
+
+    wx.showModal({
+      title: '确认收货',
+      content: '确认接收 ' + (item.senderName || '') + ' 移交给您的商品？收货后可在借货列表中归还。',
+      success: function (res) {
+        if (!res.confirm) return;
+
+        wx.showLoading({ title: '正在办理移交...', mask: true });
+
+        var userId = wx.getStorageSync('userId');
+        var sessionToken = wx.getStorageSync('sessionToken');
+
+        wx.cloud.callFunction({
+          name: 'transferManage',
+          data: {
+            userId: userId,
+            sessionToken: sessionToken,
+            transferRequestId: id,
+            action: 'accept',
+          },
+        }).then(function (res) {
+          wx.hideLoading();
+          if (res.result && res.result.success) {
+            wx.showToast({ title: '收货成功', icon: 'success' });
+            that.loadRequests();
+          } else {
+            wx.showToast({ title: (res.result && res.result.message) || '操作失败', icon: 'none' });
+          }
+        }).catch(function (err) {
+          wx.hideLoading();
+          console.error('移交失败', err);
+          wx.showToast({ title: '操作失败', icon: 'none' });
+        });
+      }
+    });
   },
 });

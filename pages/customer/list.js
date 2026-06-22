@@ -1,132 +1,83 @@
-var e = require('../../@babel/runtime/helpers/regeneratorRuntime'),
-  t = require('../../@babel/runtime/helpers/asyncToGenerator'),
-  r = wx.cloud.database();
+/**
+ * 客户/存放位置列表页（源码重写）
+ */
+var db = wx.cloud.database();
+var { escapeRegExp } = require('../../utils/db');
+
 Page({
-  data: { customerList: [], searchKeyword: '' },
+  data: {
+    customerList: [],
+    searchKeyword: ''
+  },
+
   onShow: function () {
     this.loadCustomers();
   },
+
   loadCustomers: function () {
-    var a = this;
-    return t(
-      e().mark(function t() {
-        var n, o;
-        return e().wrap(
-          function (e) {
-            for (;;)
-              switch ((e.prev = e.next)) {
-                case 0:
-                  return (
-                    (e.prev = 0),
-                    (n = r
-                      .collection('customer')
-                      .orderBy('createTime', 'desc')),
-                    a.data.searchKeyword &&
-                      (n = n.where({
-                        name: r.RegExp({
-                          regexp: a.data.searchKeyword,
-                          options: 'i',
-                        }),
-                      })),
-                    (e.next = 5),
-                    n.get()
-                  );
-                case 5:
-                  (o = e.sent),
-                    a.setData({ customerList: o.data }),
-                    (e.next = 12);
-                  break;
-                case 9:
-                  (e.prev = 9),
-                    (e.t0 = e.catch(0)),
-                    console.error('加载送货单位失败', e.t0);
-                case 12:
-                case 'end':
-                  return e.stop();
-              }
-          },
-          t,
-          null,
-          [[0, 9]],
-        );
-      }),
-    )();
+    var that = this;
+    var query = db.collection('customer').orderBy('createTime', 'desc');
+
+    if (this.data.searchKeyword) {
+      query = query.where({
+        name: db.RegExp({ regexp: escapeRegExp(this.data.searchKeyword), options: 'i' })
+      });
+    }
+
+    query.get().then(function (res) {
+      that.setData({ customerList: res.data || [] });
+    }).catch(function (err) {
+      console.error('加载送货单位失败', err);
+    });
   },
+
   onSearch: function (e) {
-    this.setData({ searchKeyword: e.detail.value }), this.loadCustomers();
+    this.setData({ searchKeyword: e.detail.value });
+    if (this._searchTimer) clearTimeout(this._searchTimer);
+    var that = this;
+    this._searchTimer = setTimeout(function() { that.loadCustomers(); }, 350);
   },
+
   goToAdd: function () {
     wx.navigateTo({ url: '/pages/customer/add' });
   },
+
   editCustomer: function (e) {
-    var t = e.currentTarget.dataset.id;
-    wx.navigateTo({ url: '/pages/customer/add?id='.concat(t) });
+    var id = e.currentTarget.dataset.id;
+    wx.navigateTo({ url: '/pages/customer/add?id=' + id });
   },
-  deleteCustomer: function (a) {
-    var n = this;
-    return t(
-      e().mark(function o() {
-        var s;
-        return e().wrap(function (o) {
-          for (;;)
-            switch ((o.prev = o.next)) {
-              case 0:
-                (s = a.currentTarget.dataset.id),
-                  wx.showModal({
-                    title: '确认删除',
-                    content: '确定要删除该送货单位吗？',
-                    success: (function () {
-                      var a = t(
-                        e().mark(function t(a) {
-                          return e().wrap(
-                            function (e) {
-                              for (;;)
-                                switch ((e.prev = e.next)) {
-                                  case 0:
-                                    if (!a.confirm) {
-                                      e.next = 12;
-                                      break;
-                                    }
-                                    return (
-                                      (e.prev = 1),
-                                      (e.next = 4),
-                                      r.collection('customer').doc(s).remove()
-                                    );
-                                  case 4:
-                                    wx.showToast({ title: '删除成功' }),
-                                      n.loadCustomers(),
-                                      (e.next = 12);
-                                    break;
-                                  case 8:
-                                    (e.prev = 8),
-                                      (e.t0 = e.catch(1)),
-                                      console.error('删除失败', e.t0),
-                                      wx.showToast({
-                                        title: '删除失败',
-                                        icon: 'none',
-                                      });
-                                  case 12:
-                                  case 'end':
-                                    return e.stop();
-                                }
-                            },
-                            t,
-                            null,
-                            [[1, 8]],
-                          );
-                        }),
-                      );
-                      return function (e) {
-                        return a.apply(this, arguments);
-                      };
-                    })(),
-                  });
-              case 2:
-              case 'end':
-                return o.stop();
-            }
-        }, o);
-      }),
-    )();
-  },
+
+  deleteCustomer: function (e) {
+    var that = this;
+    var id = e.currentTarget.dataset.id;
+
+    wx.showModal({
+      title: '确认删除',
+      content: '确定要删除该存放位置吗？',
+      success: function (res) {
+        if (!res.confirm) return;
+
+        wx.cloud.callFunction({
+          name: 'contactManage',
+          data: {
+            userId: wx.getStorageSync('userId'),
+            sessionToken: wx.getStorageSync('sessionToken'),
+            action: 'delete',
+            collection: 'customer',
+            id: id
+          }
+        }).then(function (res) {
+          if (res.result && res.result.success) {
+            wx.showToast({ title: '删除成功' });
+            that.loadCustomers();
+          } else {
+            wx.showToast({ title: '删除失败', icon: 'none' });
+          }
+        }).catch(function (err) {
+          console.error('删除失败', err);
+          wx.showToast({ title: '删除失败', icon: 'none' });
+        });
+      }
+    });
+  }
 });

@@ -1,0 +1,21 @@
+.fab {
+  display: flex; align-items: center; justify-content: center;
+  position: fixed; z-index: 100; color: #fff;
+  font-size: var(--font-lg,32rpx); font-weight: 600;
+  border-radius: 50rpx; transition: transform .15s ease, box-shadow .15s ease;
+  animation: fabPulse 2.5s ease-in-out infinite;
+}
+@keyframes fabPulse {
+  0%,100%{box-shadow:0 8rpx 28rpx rgba(79,110,247,.25)}
+  50%{box-shadow:0 8rpx 40rpx rgba(79,110,247,.45),0 0 0 12rpx rgba(79,110,247,.08)}
+}
+.fab:active{transform:scale(.94)}
+
+.fab-center {bottom:40rpx;left:50%;transform:translateX(-50%);width:80%;height:96rpx}
+.fab-right {bottom:180rpx;right:40rpx;padding:0 40rpx;height:100rpx}
+
+.fab-primary {background:linear-gradient(135deg,#4F6EF7,#3D56D4)}
+.fab-purple {background:linear-gradient(135deg,#6C5CE7,#4F6EF7)}
+
+.fab-icon {font-size:40rpx;margin-right:10rpx}
+.fab-text {font-size:var(--font-lg,32rpx);font-weight:700}

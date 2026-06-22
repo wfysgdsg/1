@@ -1,55 +1,24 @@
-.container {
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  padding: 30rpx;
-}
-.form {
-  background: #fff;
-  border-radius: 16rpx;
-  padding: 30rpx;
-}
-.form-item {
-  margin-bottom: 30rpx;
-}
-.label {
-  color: #333;
-  display: block;
-  font-weight: 500;
-  margin-bottom: 12rpx;
-}
-.input,
-.label {
-  font-size: 28rpx;
-}
-.input {
-  background: #f7f7f7;
-  border-radius: 8rpx;
-  height: 80rpx;
-  padding: 0 20rpx;
-}
-.btn-group {
-  display: -webkit-flex;
-  display: flex;
-  gap: 20rpx;
-  margin-top: 40rpx;
-  padding: 0 30rpx;
-}
-.cancel-btn,
-.submit-btn {
-  align-items: center;
-  border-radius: 44rpx;
-  display: -webkit-flex;
-  display: flex;
-  flex: 1;
-  font-size: 30rpx;
-  height: 88rpx;
-  justify-content: center;
-}
-.cancel-btn {
-  background: #f5f5f5;
-  color: #666;
-}
-.submit-btn {
-  background: #1890ff;
-  color: #fff;
-}
+page { --grad: linear-gradient(135deg,#4F6EF7,#6C5CE7); --accent:#4F6EF7; }
+
+.page { min-height: 100vh; padding-bottom: 200rpx; }
+.hero { background: var(--grad); }
+.body { padding: 28rpx; margin-top: -32rpx; position: relative; z-index: 2; }
+
+/* 通用卡片 */
+.card { background: var(--card); border-radius: var(--r-l); padding: 28rpx; margin-bottom: 22rpx; box-shadow: var(--sh-s); }
+.card-h { display:flex; align-items:center; font-size:28rpx; font-weight:700; color:var(--ink); margin-bottom:20rpx; }
+.dot { width:8rpx; height:30rpx; border-radius:4rpx; background:var(--grad); margin-right:14rpx; }
+
+/* 表单字段 */
+.field { padding-bottom: 26rpx; }
+.field.last { padding-bottom: 0; }
+.lab { display:block; font-size:26rpx; color:var(--ink-2); font-weight:600; margin-bottom:14rpx; }
+.inp { width:100%; box-sizing:border-box; height:88rpx; padding:0 26rpx; background:var(--field); border:2rpx solid transparent; border-radius:var(--r-m); font-size:30rpx; color:var(--ink); }
+.inp:focus { border-color: var(--accent); background:#fff; }
+.tip { margin-top:20rpx; font-size:24rpx; color:var(--ink-3); line-height:1.6; }
+
+/* 按钮 */
+.btn { border:none; border-radius:var(--pill); font-size:30rpx; font-weight:600; height:92rpx; line-height:92rpx; }
+.btn::after { border:none; }
+.btn.ghost { flex:1; background:#EEF0F6; color:var(--ink-2); }
+.btn.main  { flex:2; background:var(--grad); color:#fff; box-shadow:0 12rpx 30rpx rgba(79,110,247,.36); }

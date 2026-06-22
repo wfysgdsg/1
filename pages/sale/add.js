@@ -4,12 +4,13 @@
  */
 const db = wx.cloud.database();
 const _ = db.command;
-const { fetchAll } = require('../../utils/db');
-const { matchGoodsFromOcr } = require('../../utils/ocr');
-const { takePhotoAndRecognize, startVoice, stopVoice, handleRecognizedResult } = require('../../utils/recognize');
+const { fetchAll, escapeRegExp } = require('../../utils/db');
+const { TAX_RATES } = require('../../utils/constants');
+
 
 Page({
   data: {
+    _anim: true,
     searchKeyword: '',
     searchResults: [],
     showSearchResults: false,
@@ -19,19 +20,20 @@ Page({
     selectedContact: null,
     showContactResults: false,
     selectedGoods: [],
+    checkedIds: {},
+    checkedCount: 0,
     saleDate: '',
     remark: '',
     totalAmount: 0,
     totalCost: 0,
     totalProfit: 0,
+    totalInvoiceAmount: 0,
     profitRate: 0,
     hasAllQuantities: false,
-    payStatus: 'paid', // 默认已结清
-    isRecognizing: false,
-    recognizedGoods: [],
+    payStatus: 'unpaid',
     importMode: false,
     importIds: [],
-    isVoiceRecording: false,
+    submitting: false,
   },
 
   onLoad: function (options) {
@@ -48,8 +50,7 @@ Page({
     }
   },
 
-  onShow: function () {
-    this.loadContacts();
+  onShow: function () {this.loadContacts();
   },
 
   /**
@@ -121,8 +122,8 @@ Page({
    */
   onSearchInput: function (e) {
     const val = String(e.detail.value || '');
-    this.setData({ searchKeyword: val, showSearchResults: val.length > 0 });
-    
+    this.setData({ searchKeyword: val, showSearchResults: val.length > 0, checkedIds: {}, checkedCount: 0 });
+
     if (this.searchTimer) clearTimeout(this.searchTimer);
     if (val.length) {
       this.searchTimer = setTimeout(() => {
@@ -144,7 +145,7 @@ Page({
     try {
       const [goodsRes, stockRes] = await Promise.all([
         db.collection('goods').where({
-          name: db.RegExp({ regexp: keyword, options: 'i' }),
+          name: db.RegExp({ regexp: escapeRegExp(keyword), options: 'i' }),
         }).limit(20).get(),
         db.collection('user_goods').where({ userId }).get(),
       ]);
@@ -177,7 +178,7 @@ Page({
   },
 
   clearSearch: function () {
-    this.setData({ searchKeyword: '', searchResults: [], showSearchResults: false });
+    this.setData({ searchKeyword: '', searchResults: [], showSearchResults: false, checkedIds: {}, checkedCount: 0 });
   },
 
   /**
@@ -185,7 +186,7 @@ Page({
    */
   onContactKeywordInput: function (e) {
     const val = String(e.detail.value || '').trim();
-    this.setData({ contactKeyword: val, showContactResults: true });
+    this.setData({ contactKeyword: val, showContactResults: val.length > 0 });
 
     if (this.contactTimer) clearTimeout(this.contactTimer);
     this.contactTimer = setTimeout(async () => {
@@ -195,7 +196,7 @@ Page({
       }
       try {
         const res = await db.collection('contacts').where({
-          name: db.RegExp({ regexp: val, options: 'i' }),
+          name: db.RegExp({ regexp: escapeRegExp(val), options: 'i' }),
         }).limit(20).get();
         this.setData({ contactResults: res.data || [] });
       } catch (err) {
@@ -206,10 +207,10 @@ Page({
 
   onContactFocus: function () {
     if (this.data.importMode) return;
-    this.setData({
-      showContactResults: true,
-      contactResults: this.data.contactList,
-    });
+    // 只有已输入关键词时才显示结果
+    if (this.data.contactKeyword) {
+      this.setData({ showContactResults: true });
+    }
   },
 
   selectContact: function (e) {
@@ -252,10 +253,10 @@ Page({
       {
         _id: goods._id,
         name: goods.name,
-        category: goods.category || 'hardware', // 保存分类以供后续计算
+        category: goods.category || 'hardware',
         unit: goods.unit || '',
-        costPrice: Number(goods.costPrice || 0).toFixed(2),
-        salePrice: Number(goods.salePrice || 0).toFixed(2),
+        costPrice: Number(goods.costPrice || 0),
+        salePrice: Number(goods.salePrice || 0),
         userStock: goods.userStock,
         quantity: '',
         profit: '0.00',
@@ -267,7 +268,69 @@ Page({
       searchResults: [],
       showSearchResults: false,
       searchKeyword: '',
+      checkedIds: {},
+      checkedCount: 0,
     });
+  },
+
+  toggleCheck: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var checkedIds = {};
+    var keys = Object.keys(this.data.checkedIds);
+    for (var i = 0; i < keys.length; i++) {
+      checkedIds[keys[i]] = true;
+    }
+    if (checkedIds[id]) {
+      delete checkedIds[id];
+    } else {
+      checkedIds[id] = true;
+    }
+    this.setData({
+      checkedIds: checkedIds,
+      checkedCount: Object.keys(checkedIds).length,
+    });
+  },
+
+  batchAddGoods: function () {
+    var checkedIds = this.data.checkedIds;
+    var searchResults = this.data.searchResults;
+    var selectedGoods = this.data.selectedGoods.slice();
+    var addedCount = 0;
+
+    for (var i = 0; i < searchResults.length; i++) {
+      var item = searchResults[i];
+      if (checkedIds[item._id] && !selectedGoods.some(function (g) { return g._id === item._id; })) {
+        selectedGoods.push({
+          _id: item._id,
+          name: item.name,
+          category: item.category || 'hardware',
+          unit: item.unit || '',
+          costPrice: Number(item.costPrice || 0),
+          salePrice: Number(item.salePrice || 0),
+          userStock: item.userStock || 0,
+          quantity: '',
+          profit: '0.00',
+        });
+        addedCount++;
+      }
+    }
+
+    this.setData({
+      selectedGoods: selectedGoods,
+      checkedIds: {},
+      checkedCount: 0,
+      searchKeyword: '',
+      searchResults: [],
+      showSearchResults: false,
+    });
+
+    this.calcProfit();
+
+    if (addedCount > 0) {
+      wx.showToast({ title: '已添加 ' + addedCount + ' 件商品', icon: 'success' });
+    } else {
+      wx.showToast({ title: '请先勾选商品', icon: 'none' });
+    }
   },
 
   onQuantityInput: function (e) {
@@ -322,39 +385,29 @@ Page({
    */
   calcProfit: function () {
     const goods = this.data.selectedGoods;
-    let totalAmt = 0, totalCostAmt = 0, totalProfAmt = 0;
+    let totalAmt = 0, totalCostAmt = 0, totalProfAmt = 0, totalInvoiceAmt = 0;
     let hasAllQty = goods.length > 0;
 
     const list = goods.map(g => {
       const qty = parseFloat(g.quantity);
       if (!qty || qty <= 0) {
         hasAllQty = false;
-        return { ...g, profit: '0.00' };
+        return Object.assign({}, g, { profit: '0.00' });
       }
 
-      // 根据分类判断税率 (默认为硬件 1.13)
-      const taxRate = g.category === 'software' ? 1.06 : 1.13;
+      const taxRate = g.category === 'software' ? TAX_RATES.SOFTWARE : TAX_RATES.HARDWARE;
+      const salePrice = Number(g.salePrice || 0);
+      const costPrice = Number(g.costPrice || 0);
 
-      // 使用整数运算避免浮点数精度问题：
-      // 将金额转为"分"（整数），除法用整数除法避免小数精度丢失
-      // 公式: (qty * priceYuan) / taxRate = (qty * priceFen) / (taxRate * 100)
-      const priceYuan = Number(g.salePrice || 0);
-      const costYuan = Number(g.costPrice || 0);
-      const priceFen = Math.round(priceYuan * 100); // 元转分
-      const costFen = Math.round(costYuan * 100);   // 元转分
-      const divisorFen = Math.round(taxRate * 100); // 税率转分母，如 1.13 -> 113
-
-      const lineSaleFen = Math.round((qty * priceFen) / divisorFen);
-      const lineCostFen = Math.round((qty * costFen) / divisorFen);
-      const lineProfitFen = lineSaleFen - lineCostFen;
-
-      const lineSale = lineSaleFen / 100;
-      const lineCost = lineCostFen / 100;
-      const lineProfit = lineProfitFen / 100;
+      const lineSale = (qty * salePrice) / taxRate;
+      const lineCost = (qty * costPrice) / taxRate;
+      const lineProfit = lineSale - lineCost;
+      const lineInvoiceAmount = qty * salePrice;
 
       totalAmt += lineSale;
       totalCostAmt += lineCost;
       totalProfAmt += lineProfit;
+      totalInvoiceAmt += lineInvoiceAmount;
 
       return {
         _id: g._id,
@@ -365,7 +418,8 @@ Page({
         salePrice: g.salePrice,
         userStock: g.userStock,
         quantity: g.quantity,
-        profit: lineProfit.toFixed(2)
+        profit: lineProfit.toFixed(2),
+        originalBorrowId: g.originalBorrowId
       };
     });
 
@@ -374,6 +428,7 @@ Page({
       totalAmount: totalAmt.toFixed(2),
       totalCost: totalCostAmt.toFixed(2),
       totalProfit: totalProfAmt.toFixed(2),
+      totalInvoiceAmount: totalInvoiceAmt.toFixed(2),
       profitRate: totalAmt > 0 ? ((totalProfAmt / totalAmt) * 100).toFixed(2) : '0.00',
       hasAllQuantities: hasAllQty,
     });
@@ -383,6 +438,9 @@ Page({
    * 提交销售单
    */
   async submit() {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+
     const { selectedGoods, selectedContact, saleDate, payStatus, remark, importMode, importIds } = this.data;
     const userInfo = wx.getStorageSync('userInfo');
     const userId = userInfo ? userInfo._id : '';
@@ -390,11 +448,13 @@ Page({
 
     if (!selectedGoods.length || !selectedContact || !saleDate) {
       wx.showToast({ title: '请填写完整信息', icon: 'none' });
+      this.setData({ submitting: false });
       return;
     }
 
     if (selectedGoods.filter(g => parseFloat(g.quantity) > 0).length === 0) {
       wx.showToast({ title: '请至少填写一项有效数量', icon: 'none' });
+      this.setData({ submitting: false });
       return;
     }
 
@@ -419,6 +479,7 @@ Page({
       const result = res.result;
       if (!result || !result.success) {
         wx.hideLoading();
+        this.setData({ submitting: false });
         wx.showModal({
           title: '提交失败',
           content: (result && result.message) || '提交销售失败',
@@ -429,7 +490,7 @@ Page({
 
       wx.hideLoading();
       wx.showToast({ title: '开票成功', icon: 'success' });
-      
+
       setTimeout(() => {
         // 如果是导入模式，返回两层
         wx.navigateBack({ delta: importMode ? 2 : 1 });
@@ -438,60 +499,10 @@ Page({
     } catch (err) {
       console.error('提交失败', err);
       wx.hideLoading();
+      this.setData({ submitting: false });
       wx.showModal({ title: '提交失败', content: err.message || '请稍后再试', showCancel: false });
     }
   },
 
   goBack: () => wx.navigateBack(),
-
-  /**
-   * OCR 拍照/选图识别商品
-   */
-  /**
-   * 拍照识别
-   */
-  async takePhoto() {
-    const ocrData = await takePhotoAndRecognize(this, 'ocrRecognize');
-    if (ocrData) {
-      await handleRecognizedResult(this, ocrData, (matched) => this.applyRecognizedGoods(matched));
-    }
-  },
-
-  /**
-   * 语音识别相关
-   */
-  startVoice() {
-    startVoice(this);
-  },
-
-  async stopVoice() {
-    const recognizedText = await stopVoice(this);
-    if (recognizedText) {
-      await handleRecognizedResult(this, recognizedText, (matched) => this.applyRecognizedGoods(matched));
-    }
-  },
-
-  /**
-   * 将识别结果应用到列表
-   */
-  applyRecognizedGoods(recognized) {
-    const current = [...this.data.selectedGoods];
-    recognized.forEach(reg => {
-      if (!current.some(c => c._id === reg._id)) {
-        const item = {
-          _id: reg._id,
-          name: reg.name,
-          unit: reg.unit || '',
-          costPrice: Number(reg.costPrice || 0).toFixed(2),
-          salePrice: Number(reg.salePrice || 0).toFixed(2),
-          userStock: reg.userStock || 0,
-          quantity: reg.quantity || '',
-          profit: '0.00'
-        };
-        current.push(item);
-      }
-    });
-    this.setData({ selectedGoods: current });
-    this.calcProfit();
-  }
 });

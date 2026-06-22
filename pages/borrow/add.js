@@ -4,26 +4,25 @@
  */
 const db = wx.cloud.database();
 const _ = db.command;
-const { fetchAll } = require('../../utils/db');
-const { matchGoodsFromOcr } = require('../../utils/ocr');
-const { takePhotoAndRecognize, startVoice, stopVoice, handleRecognizedResult } = require('../../utils/recognize');
+const { fetchAll, escapeRegExp } = require('../../utils/db');
+
 
 Page({
   data: {
+    _anim: true,
     searchKeyword: '',
     searchResults: [],
     showSearchResults: false,
     selectedGoods: [],
+    checkedIds: {},
+    checkedCount: 0,
     locationSearchKeyword: '',
     locationSearchResults: [],
     showLocationResults: false,
     selectedLocation: null,
     borrowDate: '',
     remark: '',
-    isRecognizing: false,
-    recognizedGoods: [],
-    isVoiceRecording: false,
-    textInput: '',  // 文字批量输入
+    submitting: false,
   },
 
   onLoad: function () {
@@ -31,6 +30,8 @@ Page({
       borrowDate: this.formatDate(new Date())
     });
   },
+
+  onShow: function () {},
 
   formatDate: function (date) {
     const y = date.getFullYear();
@@ -46,7 +47,8 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || {};
     return {
       userInfo,
-      userId: wx.getStorageSync('userId') || userInfo._id || ''
+      userId: wx.getStorageSync('userId') || userInfo._id || '',
+      sessionToken: wx.getStorageSync('sessionToken') || '',
     };
   },
 
@@ -55,8 +57,8 @@ Page({
    */
   onSearchInput: function (e) {
     const val = String(e.detail.value || '').trim();
-    this.setData({ searchKeyword: val, showSearchResults: val.length > 0 });
-    
+    this.setData({ searchKeyword: val, showSearchResults: val.length > 0, checkedIds: {}, checkedCount: 0 });
+
     if (this.searchTimer) clearTimeout(this.searchTimer);
     if (val) {
       this.searchTimer = setTimeout(() => {
@@ -70,7 +72,7 @@ Page({
   async doGoodsSearch(keyword) {
     try {
       const res = await db.collection('goods')
-        .where({ name: db.RegExp({ regexp: keyword, options: 'i' }) })
+        .where({ name: db.RegExp({ regexp: escapeRegExp(keyword), options: 'i' }) })
         .limit(20)
         .get();
       this.setData({ searchResults: res.data || [] });
@@ -80,7 +82,7 @@ Page({
   },
 
   clearSearch: function () {
-    this.setData({ searchKeyword: '', searchResults: [], showSearchResults: false });
+    this.setData({ searchKeyword: '', searchResults: [], showSearchResults: false, checkedIds: {}, checkedCount: 0 });
   },
 
   /**
@@ -103,7 +105,7 @@ Page({
   async doLocationSearch(keyword) {
     try {
       const res = await db.collection('contacts')
-        .where({ name: db.RegExp({ regexp: keyword, options: 'i' }) })
+        .where({ name: db.RegExp({ regexp: escapeRegExp(keyword), options: 'i' }) })
         .limit(20)
         .get();
       this.setData({ locationSearchResults: res.data || [] });
@@ -157,7 +159,65 @@ Page({
       searchKeyword: '',
       searchResults: [],
       showSearchResults: false,
+      checkedIds: {},
+      checkedCount: 0,
     });
+  },
+
+  toggleCheck: function (e) {
+    var id = e.currentTarget.dataset.id;
+    var checkedIds = {};
+    // 浅拷贝当前勾选状态
+    var keys = Object.keys(this.data.checkedIds);
+    for (var i = 0; i < keys.length; i++) {
+      checkedIds[keys[i]] = true;
+    }
+    if (checkedIds[id]) {
+      delete checkedIds[id];
+    } else {
+      checkedIds[id] = true;
+    }
+    this.setData({
+      checkedIds: checkedIds,
+      checkedCount: Object.keys(checkedIds).length,
+    });
+  },
+
+  batchAddGoods: function () {
+    var checkedIds = this.data.checkedIds;
+    var searchResults = this.data.searchResults;
+    var selectedGoods = this.data.selectedGoods.slice();
+    var addedCount = 0;
+
+    for (var i = 0; i < searchResults.length; i++) {
+      var item = searchResults[i];
+      if (checkedIds[item._id] && !selectedGoods.some(function (g) { return g._id === item._id; })) {
+        selectedGoods.push({
+          _id: item._id,
+          name: item.name,
+          unit: item.unit || '',
+          costPrice: Number(item.costPrice || 0),
+          salePrice: Number(item.salePrice || 0),
+          quantity: '',
+        });
+        addedCount++;
+      }
+    }
+
+    this.setData({
+      selectedGoods: selectedGoods,
+      checkedIds: {},
+      checkedCount: 0,
+      searchKeyword: '',
+      searchResults: [],
+      showSearchResults: false,
+    });
+
+    if (addedCount > 0) {
+      wx.showToast({ title: '已添加 ' + addedCount + ' 件商品', icon: 'success' });
+    } else {
+      wx.showToast({ title: '请先勾选商品', icon: 'none' });
+    }
   },
 
   removeGoods: function (e) {
@@ -174,6 +234,13 @@ Page({
     this.setData({ selectedGoods: list });
   },
 
+  onSalePriceInput: function (e) {
+    const idx = Number(e.currentTarget.dataset.index);
+    const list = [...this.data.selectedGoods];
+    list[idx].salePrice = Number(e.detail.value || 0);
+    this.setData({ selectedGoods: list });
+  },
+
   onCostPriceInput: function (e) {
     const idx = Number(e.currentTarget.dataset.index);
     const list = [...this.data.selectedGoods];
@@ -181,81 +248,8 @@ Page({
     this.setData({ selectedGoods: list });
   },
 
-  onDateChange: (e) => this.setData({ borrowDate: e.detail.value }),
-  onRemarkInput: (e) => this.setData({ remark: e.detail.value }),
-
-  /**
-   * 文字批量输入处理
-   */
-  onTextInput: function (e) {
-    this.setData({ textInput: e.detail.value });
-  },
-
-  clearTextInput: function () {
-    this.setData({ textInput: '' });
-  },
-
-  /**
-   * 解析文字输入并匹配商品
-   */
-  async parseTextInput() {
-    const text = this.data.textInput;
-    if (!text || !text.trim()) {
-      wx.showToast({ title: '请输入商品文字', icon: 'none' });
-      return;
-    }
-
-    wx.showLoading({ title: '解析中...' });
-
-    try {
-      // 调试：打印输入
-      console.log('【解析】输入文字:', text);
-      
-      // 调用 matchGoodsFromOcr 进行匹配
-      const matched = await matchGoodsFromOcr(text);
-
-      console.log('【解析】匹配结果:', matched);
-
-      wx.hideLoading();
-
-      if (matched && matched.length > 0) {
-        // 添加匹配到的商品到列表
-        console.log('【解析】当前商品列表:', this.data.selectedGoods);
-        const newList = [...this.data.selectedGoods];
-        let added = 0;
-
-        matched.forEach(item => {
-          if (!newList.some(g => g._id === item._id)) {
-            newList.push({
-              _id: item._id,
-              name: item.name,
-              unit: item.unit || '',
-              costPrice: item.costPrice || 0,
-              salePrice: item.salePrice || 0,
-              quantity: item.quantity || '',
-            });
-            added++;
-          }
-        });
-
-        console.log('【解析】添加后商品列表:', newList);
-
-        this.setData({
-          selectedGoods: newList,
-          textInput: '',  // 清空输入
-        });
-
-        wx.showToast({ title: `识别到 ${added} 个商品`, icon: 'success' });
-      } else {
-        // 调试：显示更多信息
-        wx.showToast({ title: '未能识别到商品', icon: 'none' });
-      }
-    } catch (err) {
-      wx.hideLoading();
-      console.error('【解析】失败:', err);
-      wx.showToast({ title: '解析失败: ' + err.message, icon: 'none' });
-    }
-  },
+  onDateChange: function (e) { this.setData({ borrowDate: e.detail.value }); },
+  onRemarkInput: function (e) { this.setData({ remark: e.detail.value }); },
 
   /**
    * 提交借货申请
@@ -263,23 +257,29 @@ Page({
    * 优化：使用 Promise.all 并行处理多个商品的借货操作
    */
   async submit() {
+    if (this.data.submitting) return;
+    this.setData({ submitting: true });
+
     const { selectedGoods, selectedLocation, borrowDate, remark } = this.data;
-    const { userInfo, userId } = this.getLoginInfo();
-    const userName = userInfo.name || userInfo.username || '';
+    const { userInfo, userId, sessionToken } = this.getLoginInfo();
+    const userName = userInfo.nickname || userInfo.name || userInfo.username || '';
 
     if (!selectedGoods.length || !selectedLocation || !borrowDate) {
       wx.showToast({ title: '请选择商品、客户和日期', icon: 'none' });
+      this.setData({ submitting: false });
       return;
     }
 
     if (!userId) {
       wx.showToast({ title: '登录失效，请重新登录', icon: 'none' });
+      this.setData({ submitting: false });
       return;
     }
 
     const validGoods = selectedGoods.filter(g => Number(g.quantity) > 0);
     if (!validGoods.length) {
       wx.showToast({ title: '请填写借货数量', icon: 'none' });
+      this.setData({ submitting: false });
       return;
     }
 
@@ -289,125 +289,49 @@ Page({
     wx.showLoading({ title: '借货中...' });
 
     try {
-      // 并行处理所有商品的借货操作
-      const promises = validGoods.map(async (item) => {
-        const qty = Number(item.quantity || 0);
-        const borrowDateTime = new Date(borrowDate).getTime();
-
-        // 1. 添加借货记录
-        const borrowPromise = db.collection('borrow').add({
-          data: {
-            goodsId: item._id,
-            goodsName: item.name,
-            quantity: qty,
-            costPrice: Number(item.costPrice || 0),
-            salePrice: Number(item.salePrice || 0),
-            unit: item.unit || '',
-            locationId: locId,
-            locationName: locName,
-            borrowerId: userId,
-            borrowerName: userName,
-            borrowDate: borrowDateTime,
-            remark: remark || '',
-            status: 'pending',
-            createTime: db.serverDate(),
-            updateTime: db.serverDate(),
-          }
-        });
-
-        // 2. 增加个人库存 (user_goods)
-        const stockRes = await db.collection('user_goods').where({
-          userId: userId,
-          goodsId: item._id
-        }).get();
-
-        let stockPromise;
-        if (stockRes.data.length > 0) {
-          // 已有记录，累加
-          stockPromise = db.collection('user_goods').doc(stockRes.data[0]._id).update({
-            data: {
-              stock: _.inc(qty),
-              updateTime: db.serverDate()
-            }
-          });
-        } else {
-          // 无记录，新增
-          stockPromise = db.collection('user_goods').add({
-            data: {
-              userId: userId,
-              userName: userName,
-              goodsId: item._id,
-              goodsName: item.name,
-              stock: qty,
-              unit: item.unit || '',
-              createTime: db.serverDate(),
-              updateTime: db.serverDate()
-            }
-          });
-        }
-
-        // 并行执行单商品的借货记录和库存更新
-        return Promise.all([borrowPromise, stockPromise]);
+      // 调用云函数（事务保证原子性）
+      const res = await wx.cloud.callFunction({
+        name: 'borrowManage',
+        data: {
+          userId,
+          sessionToken,
+          selectedGoods: validGoods,
+          selectedLocation,
+          borrowDate,
+          remark,
+        },
       });
 
-      // 等待所有商品处理完成
-      await Promise.all(promises);
+      const result = res.result;
+      if (!result || !result.success) {
+        wx.hideLoading();
+        this.setData({ submitting: false });
+        wx.showToast({
+          title: (result && result.message) || '操作失败',
+          icon: 'none',
+        });
+        return;
+      }
 
       wx.hideLoading();
-      wx.showToast({ title: '操作成功', icon: 'success' });
+      wx.showToast({ title: result.message || '借货成功', icon: 'success' });
       setTimeout(() => wx.navigateBack(), 1200);
 
     } catch (err) {
       wx.hideLoading();
+      this.setData({ submitting: false });
       console.error('借货失败', err);
       wx.showToast({ title: '操作失败', icon: 'none' });
     }
   },
 
+  goToAddGoods: function () {
+    wx.navigateTo({ url: '/pages/goods/add' });
+  },
+
+  goToAddContact: function () {
+    wx.navigateTo({ url: '/pages/contact/add' });
+  },
+
   goBack: () => wx.navigateBack(),
-
-  /**
-   * OCR 拍照识别
-   */
-  async takePhoto() {
-    const ocrData = await takePhotoAndRecognize(this, 'ocrRecognize');
-    if (ocrData) {
-      await handleRecognizedResult(this, ocrData, (matched) => this.applyRecognizedGoods(matched));
-    }
-  },
-
-  /**
-   * 语音识别
-   */
-  startVoice() {
-    startVoice(this);
-  },
-
-  async stopVoice() {
-    const recognizedText = await stopVoice(this);
-    if (recognizedText) {
-      await handleRecognizedResult(this, recognizedText, (matched) => this.applyRecognizedGoods(matched));
-    }
-  },
-
-  applyRecognizedGoods(matched) {
-    console.log('【OCR识别】当前商品列表:', this.data.selectedGoods);
-    console.log('【OCR识别】匹配到的商品:', matched);
-    const current = [...this.data.selectedGoods];
-    matched.forEach(m => {
-      if (!current.some(c => c._id === m._id)) {
-        const item = {
-          _id: m._id,
-          name: m.name,
-          unit: m.unit || '',
-          costPrice: m.costPrice,
-          salePrice: m.salePrice,
-          quantity: m.quantity || ''
-        };
-        current.push(item);
-      }
-    });
-    console.log('【OCR识别】添加后商品列表:', current);
-    this.setData({ selectedGoods: current });
-  }
 });

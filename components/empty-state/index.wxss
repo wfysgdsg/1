@@ -1,0 +1,23 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80rpx 40rpx;
+}
+.empty-icon {
+  font-size: 96rpx;
+  margin-bottom: 20rpx;
+  animation: emptyPulse 2.4s ease-in-out infinite;
+}
+@keyframes emptyPulse {
+  0%,100%{opacity:.5;transform:scale(1)}
+  50%{opacity:.85;transform:scale(1.06)}
+}
+.empty-text {
+  color: var(--ink-3,#9A9CB0);
+  font-size: 26rpx;
+  background: var(--field,#F3F5FB);
+  padding: 14rpx 32rpx;
+  border-radius: 30rpx;
+}

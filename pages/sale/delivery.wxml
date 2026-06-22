@@ -1,0 +1,136 @@
+<view class="page">
+
+  <!-- 1) 顶部渐变大头 -->
+  <view class="x-hero hero">
+    <view class="x-hero-orb a"></view>
+    <view class="x-hero-orb b"></view>
+    <text class="x-hero-title">送（销）货 单</text>
+    <text class="x-hero-sub">核对商品明细，签字确认后保存并分享</text>
+  </view>
+
+  <!-- 2) 内容区（上移盖住 hero 圆角） -->
+  <view class="body">
+
+    <!-- 送货单纸面卡片 -->
+    <view class="doc-card animate-card">
+
+      <!-- 单据抬头 -->
+      <view class="doc-head">
+        <text class="doc-title">送（销）货 单</text>
+        <view class="doc-meta">
+          <text class="doc-no">No. {{receiptNo}}</text>
+          <text class="doc-date">{{saleDateStr}}</text>
+        </view>
+      </view>
+
+      <!-- 收货单位信息 -->
+      <view class="info-block">
+        <view class="info-row">
+          <text class="info-lab">收货单位（人）</text>
+          <text class="info-val strong">{{contactName || '___________'}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-lab">地址 · 电话</text>
+          <text class="info-val muted">___________</text>
+        </view>
+      </view>
+
+      <!-- 商品表格 -->
+      <view class="goods-table">
+        <view class="table-header">
+          <text class="th" style="width:6%">序号</text>
+          <text class="th" style="width:27%">名称及规格</text>
+          <text class="th" style="width:7%">单位</text>
+          <text class="th" style="width:8%">数量</text>
+          <text class="th" style="width:13%">单价</text>
+          <text class="th" style="width:17%">金额</text>
+          <text class="th" style="width:22%">备注</text>
+        </view>
+        <view class="table-body">
+          <view class="table-row" wx:for="{{goodsList}}" wx:key="seq">
+            <text class="td" style="width:6%">{{item.seq}}</text>
+            <text class="td name" style="width:27%">{{item.goodsName}}</text>
+            <text class="td" style="width:7%">{{item.unit}}</text>
+            <text class="td" style="width:8%">{{item.quantity}}</text>
+            <text class="td" style="width:13%">{{item.salePrice}}</text>
+            <text class="td money" style="width:17%">{{item.lineTotal}}</text>
+            <text class="td" style="width:22%">{{item.remark}}</text>
+          </view>
+          <view class="table-row empty-row" wx:for="{{5 - goodsList.length}}" wx:key="*this" wx:if="{{goodsList.length < 5}}">
+            <text class="td" style="width:6%"></text><text class="td" style="width:27%"></text>
+            <text class="td" style="width:7%"></text><text class="td" style="width:8%"></text>
+            <text class="td" style="width:13%"></text><text class="td" style="width:17%"></text>
+            <text class="td" style="width:22%"></text>
+          </view>
+        </view>
+        <view class="table-footer">
+          <text class="tf" style="width:61%">合计</text>
+          <text class="tf amount" style="width:17%">¥{{totalInvoiceAmountStr}}</text>
+          <text class="tf" style="width:22%"></text>
+        </view>
+      </view>
+
+      <!-- 金额：大写 + 小写 -->
+      <view class="amount-row">
+        <view class="amount-chinese">
+          <text class="chinese-label">人民币</text>
+          <text class="chinese-value">{{totalInvoiceChinese}}</text>
+        </view>
+        <text class="amount-number">小写 ¥{{totalInvoiceAmountStr}}</text>
+      </view>
+
+      <!-- 签名区：四列并排 -->
+      <view class="signature-area">
+        <view class="sign-quad-row">
+          <!-- 送货单位主管 -->
+          <view class="sign-col">
+            <text class="sign-label">送货单位主管</text>
+            <view class="sign-block">___________</view>
+          </view>
+          <!-- 制票 -->
+          <view class="sign-col">
+            <text class="sign-label">制票</text>
+            <view class="sign-block">___________</view>
+          </view>
+          <!-- 送货人签名 -->
+          <view class="sign-col">
+            <text class="sign-label">送货人</text>
+            <view class="sign-area small x-tap" data-role="seller" bindtap="openSignPage">
+              <image wx:if="{{hasSellerSign}}" class="signature-img" src="{{sellerSignPath}}" mode="aspectFit"></image>
+              <text wx:else class="sign-hint">✍️ 点击签名</text>
+            </view>
+            <text wx:if="{{hasSellerSign}}" class="sign-clear" data-role="seller" bindtap="clearSignature">清空</text>
+          </view>
+          <!-- 收货单位签名 -->
+          <view class="sign-col">
+            <text class="sign-label">收货单位（人）</text>
+            <view class="sign-area small x-tap" data-role="customer" bindtap="openSignPage">
+              <image wx:if="{{hasCustomerSign}}" class="signature-img" src="{{customerSignPath}}" mode="aspectFit"></image>
+              <text wx:else class="sign-hint">✍️ 点击签名</text>
+            </view>
+            <text wx:if="{{hasCustomerSign}}" class="sign-clear" data-role="customer" bindtap="clearSignature">清空</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 备注 -->
+      <view class="remark-area" wx:if="{{remark}}">
+        <text class="remark-label">备注</text><text class="remark-text">{{remark}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 3) 底部玻璃操作栏 -->
+  <view class="x-glass-bar">
+    <button class="btn ghost x-tap" bindtap="saveDelivery" disabled="{{saving}}">
+      {{saving ? '保存中...' : (saved ? '💾 更新保存' : '💾 保存')}}
+    </button>
+    <button class="btn main x-tap" bindtap="doShare" disabled="{{exporting}}">
+      {{exporting ? '生成中...' : '📤 分享'}}
+    </button>
+  </view>
+
+  <!-- 隐藏导出 Canvas（请勿删除，分享功能依赖它） -->
+  <canvas type="2d" id="exportCanvas" class="export-canvas" style="width:750px;height:1200px;"></canvas>
+
+</view>

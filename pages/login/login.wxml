@@ -4,6 +4,7 @@
     <view class="bg-orb bg-orb-3"></view>
     <view class="logo-section">
         <view class="logo-circle">
+            <view class="logo-ring"></view>
             <text class="logo-icon">{{uiText.logo}}</text>
         </view>
         <text class="logo-title">{{uiText.title}}</text>
@@ -23,7 +24,7 @@
                     placeholder="{{uiText.accountPlaceholder}}"
                     placeholder-class="placeholder"
                     value="{{username}}"
-                    cursor-color="#667eea"
+                    cursor-color="#4F6EF7"
                 />
             </view>
         </view>
@@ -41,7 +42,7 @@
                     placeholder="{{uiText.passwordPlaceholder}}"
                     placeholder-class="placeholder"
                     value="{{password}}"
-                    cursor-color="#667eea"
+                    cursor-color="#4F6EF7"
                 />
                 <view bindtap="togglePassword" class="eye-btn {{showPassword ? 'showing' : ''}}">
                     {{showPassword ? '🙈' : '👁'}}

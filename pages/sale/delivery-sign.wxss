@@ -1,0 +1,10 @@
+.sign-page { display: flex; flex-direction: column; width: 100vw; height: 100vh; background: #fafbfe; }
+.canvas-area { flex: 1; position: relative; overflow: hidden; background: #fff; margin: 16rpx 16rpx 0; border-radius: 28rpx; box-shadow: var(--sh-s,0 2rpx 16rpx rgba(0,0,0,.04)); }
+.sign-canvas { width: 100%; height: 100%; border-radius: 28rpx; }
+.hint-text { position: absolute; left: 50%; top: 46%; transform: translate(-50%,-50%); color: #c8c8d0; font-size: 36rpx; pointer-events: none; letter-spacing: 4rpx; }
+
+.toolbar { flex-shrink: 0; display: flex; gap: 6rpx; padding: 4rpx 12rpx; padding-bottom: 10rpx; background: #fafbfe; }
+.tb-btn { flex: 1; font-size: 18rpx; font-weight: 400; border-radius: 20rpx; padding: 4rpx 0; border: none; text-align: center; }
+.tb-btn.cancel { background: var(--field,#F3F5FB); color: var(--ink-2,#5A5C70); }
+.tb-btn.clear { background: #fff1f0; color: #e04040; }
+.tb-btn.confirm { background: var(--grad,linear-gradient(135deg,#4F6EF7,#6C5CE7)); color: #fff; }

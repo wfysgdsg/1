@@ -1,0 +1,21 @@
+<view class="sign-page">
+  <!-- 画布区 -->
+  <view class="canvas-area">
+    <canvas
+      type="2d"
+      id="signCanvas"
+      class="sign-canvas"
+      disable-scroll="{{true}}"
+      bindtouchstart="onTouchStart"
+      bindtouchmove="onTouchMove"
+    ></canvas>
+    <text class="hint-text" wx:if="{{!hasDrawn}}">← 请在此处签名 →</text>
+  </view>
+
+  <!-- 底部按钮栏 -->
+  <view class="toolbar">
+    <button class="tb-btn cancel" bindtap="cancelSign">取消</button>
+    <button class="tb-btn clear" bindtap="clearCanvas">清空</button>
+    <button class="tb-btn confirm" bindtap="confirmSign">✅ 确认</button>
+  </view>
+</view>
