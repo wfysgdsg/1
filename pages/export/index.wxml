@@ -53,8 +53,8 @@
       </view>
 
       <view class="btn-group">
-        <button bindtap="previewData" class="btn ghost x-tap tap-3d" disabled="{{exporting}}">{{uiText.preview}}</button>
-        <button bindtap="exportData" class="btn main x-tap tap-3d" disabled="{{exporting}}">{{exporting ? '导出中...' : uiText.exportExcel}}</button>
+        <button bindtap="previewData" class="btn ghost x-tap" disabled="{{exporting}}">{{uiText.preview}}</button>
+        <button bindtap="exportData" class="btn main x-tap" disabled="{{exporting}}">{{exporting ? '导出中...' : uiText.exportExcel}}</button>
       </view>
     </view>
 

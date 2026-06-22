@@ -29,7 +29,7 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button bindtap="goBack" class="btn ghost x-tap tap-3d">{{uiText.cancel}}</button>
-    <button bindtap="submit" class="btn main x-tap tap-3d">{{uiText.save}}</button>
+    <button bindtap="goBack" class="btn ghost x-tap">{{uiText.cancel}}</button>
+    <button bindtap="submit" class="btn main x-tap">{{uiText.save}}</button>
   </view>
 </view>

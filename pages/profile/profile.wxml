@@ -1,5 +1,5 @@
 <view class="container">
-    <view class="header-card tap-3d" class="tap-3d" bindtap="editProfile">
+    <view class="header-card" bindtap="editProfile">
         <view class="avatar-section">
             <image wx:if="{{userInfo.avatarUrl}}" class="avatar-img" src="{{userInfo.avatarUrl}}" mode="aspectFill"></image>
             <view wx:else class="avatar">{{displayName[0]||'?'}}</view>
@@ -12,7 +12,7 @@
         </view>
     </view>
     <view class="menu-card">
-        <view bindtap="changePassword" class="menu-item tap-3d">
+        <view bindtap="changePassword" class="menu-item">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#EEF1FE;">
                     <text class="menu-icon">🔑</text>
@@ -21,7 +21,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="exportData" class="menu-item tap-3d">
+        <view bindtap="exportData" class="menu-item">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#FFF7E6;">
                     <text class="menu-icon">📥</text>
@@ -30,7 +30,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="viewReport" class="menu-item tap-3d">
+        <view bindtap="viewReport" class="menu-item">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F6FFED;">
                     <text class="menu-icon">📊</text>
@@ -39,7 +39,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="viewDeliveryList" class="menu-item tap-3d">
+        <view bindtap="viewDeliveryList" class="menu-item">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F9F0FF;">
                     <text class="menu-icon">📋</text>
@@ -48,7 +48,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="manageStaff" class="menu-item tap-3d" wx:if="{{isAdmin}}">
+        <view bindtap="manageStaff" class="menu-item" wx:if="{{isAdmin}}">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#FFF1F0;">
                     <text class="menu-icon">👥</text>
@@ -57,7 +57,7 @@
             </view>
             <text class="arrow">›</text>
         </view>
-        <view bindtap="about" class="menu-item tap-3d">
+        <view bindtap="about" class="menu-item">
             <view class="menu-left">
                 <view class="menu-icon-wrapper" style="background:#F5F6FA;">
                     <text class="menu-icon">ℹ️</text>
@@ -67,5 +67,5 @@
             <text class="arrow">›</text>
         </view>
     </view>
-    <button bindtap="logout" class="logout-btn tap-3d" wx:if="{{isLogged}}">{{uiText.logout}}</button>
+    <button bindtap="logout" class="logout-btn" wx:if="{{isLogged}}">{{uiText.logout}}</button>
 </view>

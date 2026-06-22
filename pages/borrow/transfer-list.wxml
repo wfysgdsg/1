@@ -11,8 +11,8 @@
   <view class="body">
     <!-- Tab -->
     <view class="tabs">
-      <view bindtap="switchTab" class="tab {{tab==='pending'?'active':''}} tap-3d" data-tab="pending">待处理</view>
-      <view bindtap="switchTab" class="tab {{tab==='history'?'active':''}} tap-3d" data-tab="history">处理记录</view>
+      <view bindtap="switchTab" class="tab {{tab==='pending'?'active':''}}" data-tab="pending">待处理</view>
+      <view bindtap="switchTab" class="tab {{tab==='history'?'active':''}}" data-tab="history">处理记录</view>
     </view>
 
     <!-- 待处理 -->
@@ -35,8 +35,8 @@
           </view>
         </view>
         <view class="card-footer">
-          <view bindtap="rejectTransfer" class="action-btn reject x-tap tap-3d" data-id="{{item._id}}">拒绝</view>
-          <view bindtap="acceptTransfer" class="action-btn accept x-tap tap-3d" data-id="{{item._id}}">确认收货</view>
+          <view bindtap="rejectTransfer" class="action-btn reject x-tap" data-id="{{item._id}}">拒绝</view>
+          <view bindtap="acceptTransfer" class="action-btn accept x-tap" data-id="{{item._id}}">确认收货</view>
         </view>
       </view>
 
@@ -75,9 +75,9 @@
       </view>
 
       <view class="pagination" wx:if="{{historyTotalCount>0}}">
-        <view bindtap="prevHistoryPage" class="page-btn {{historyPage<=1?'disabled':''}} tap-3d">上一页</view>
+        <view bindtap="prevHistoryPage" class="page-btn {{historyPage<=1?'disabled':''}}">上一页</view>
         <text class="page-info">{{historyPage}} / {{historyTotalPages}}（共 {{historyTotalCount}} 条）</text>
-        <view bindtap="nextHistoryPage" class="page-btn {{historyPage>=historyTotalPages?'disabled':''}} tap-3d">下一页</view>
+        <view bindtap="nextHistoryPage" class="page-btn {{historyPage>=historyTotalPages?'disabled':''}}">下一页</view>
       </view>
     </view>
   </view>

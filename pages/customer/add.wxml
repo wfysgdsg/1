@@ -21,7 +21,7 @@
   </view>
 
   <view class="x-glass-bar">
-    <button bindtap="goBack" class="btn ghost x-tap tap-3d">取消</button>
-    <button bindtap="submit" class="btn main x-tap tap-3d">保存</button>
+    <button bindtap="goBack" class="btn ghost x-tap">取消</button>
+    <button bindtap="submit" class="btn main x-tap">保存</button>
   </view>
 </view>

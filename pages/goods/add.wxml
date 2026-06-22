@@ -69,7 +69,7 @@
   </view>
 
   <view class="x-glass-bar">
-    <button class="btn ghost x-tap tap-3d" bindtap="goBack">{{uiText.cancel}}</button>
-    <button class="btn main x-tap tap-3d" bindtap="submit">{{uiText.save}}</button>
+    <button class="btn ghost x-tap" bindtap="goBack">{{uiText.cancel}}</button>
+    <button class="btn main x-tap" bindtap="submit">{{uiText.save}}</button>
   </view>
 </view>

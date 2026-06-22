@@ -14,8 +14,8 @@
 
   <!-- 底部按钮栏 -->
   <view class="toolbar">
-    <button class="tb-btn cancel tap-3d" bindtap="cancelSign">取消</button>
-    <button class="tb-btn clear tap-3d" bindtap="clearCanvas">清空</button>
-    <button class="tb-btn confirm tap-3d" bindtap="confirmSign">✅ 确认</button>
+    <button class="tb-btn cancel" bindtap="cancelSign">取消</button>
+    <button class="tb-btn clear" bindtap="clearCanvas">清空</button>
+    <button class="tb-btn confirm" bindtap="confirmSign">✅ 确认</button>
   </view>
 </view>

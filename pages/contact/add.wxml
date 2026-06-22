@@ -13,11 +13,11 @@
       <view class="field">
         <text class="lab">类型</text>
         <view class="radio-group">
-          <view class="radio-label x-tap {{type=== tap-3d'customer'?'on':''}}" bindtap="onTypeChange" data-type="customer">
+          <view class="radio-label x-tap {{type==='customer'?'on':''}}" bindtap="onTypeChange" data-type="customer">
             <view class="radio-dot {{type==='customer'?'checked':''}}"></view>
             <text>客户</text>
           </view>
-          <view class="radio-label x-tap {{type=== tap-3d'supplier'?'on':''}}" bindtap="onTypeChange" data-type="supplier">
+          <view class="radio-label x-tap {{type==='supplier'?'on':''}}" bindtap="onTypeChange" data-type="supplier">
             <view class="radio-dot {{type==='supplier'?'checked':''}}"></view>
             <text>厂家</text>
           </view>
@@ -37,7 +37,7 @@
   </view>
 
   <view class="x-glass-bar">
-    <button bindtap="goBack" class="btn ghost x-tap tap-3d">取消</button>
-    <button bindtap="submit" class="btn main x-tap tap-3d">保存</button>
+    <button bindtap="goBack" class="btn ghost x-tap">取消</button>
+    <button bindtap="submit" class="btn main x-tap">保存</button>
   </view>
 </view>

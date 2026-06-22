@@ -6,8 +6,8 @@
     <text class="x-hero-title">销售报表</text>
     <text class="x-hero-sub">{{reportMode==='year'?'年度经营概览':'月度经营概览'}}</text>
     <view class="seg">
-      <view class="seg-item {{reportMode=== tap-3d'month'?'on':''}}" bindtap="switchMode" data-mode="month">月度</view>
-      <view class="seg-item {{reportMode=== tap-3d'year'?'on':''}}" bindtap="switchMode" data-mode="year">年度</view>
+      <view class="seg-item {{reportMode==='month'?'on':''}}" bindtap="switchMode" data-mode="month">月度</view>
+      <view class="seg-item {{reportMode==='year'?'on':''}}" bindtap="switchMode" data-mode="year">年度</view>
     </view>
   </view>
 
@@ -117,7 +117,7 @@
 
   <!-- 3) 底部玻璃操作栏 -->
   <view class="x-glass-bar">
-    <button bindtap="exportCSV" class="btn main x-tap tap-3d" disabled="{{exporting}}">
+    <button bindtap="exportCSV" class="btn main x-tap" disabled="{{exporting}}">
       {{exporting ? '导出中...' : '导出 CSV 报表'}}
     </button>
   </view>
